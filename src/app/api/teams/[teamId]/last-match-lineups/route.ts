@@ -66,7 +66,7 @@ export async function GET(
       if (p.minutes_played && p.minutes_played > 0) {
         // 90분 이상이면 선발, 그렇지 않으면 교체 출전
         participation_status =
-          p.minutes_played >= 90 ? 'starting' : 'substitute';
+          p.minutes_played >= 10 ? 'starting' : 'substitute';
       } else {
         // 출전하지 않았으면 벤치
         participation_status = 'bench';

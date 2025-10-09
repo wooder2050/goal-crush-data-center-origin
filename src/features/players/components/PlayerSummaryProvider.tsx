@@ -10,12 +10,17 @@ interface PlayerSummaryProviderProps {
   children: (summary: NonNullable<PlayerSummaryData>) => React.ReactNode;
 }
 
-export function PlayerSummaryProvider({ playerId, children }: PlayerSummaryProviderProps) {
-  const { data: summary } = useGoalSuspenseQuery(getPlayerSummaryPrisma, [playerId]);
-  
+export function PlayerSummaryProvider({
+  playerId,
+  children,
+}: PlayerSummaryProviderProps) {
+  const { data: summary } = useGoalSuspenseQuery(getPlayerSummaryPrisma, [
+    playerId,
+  ]);
+
   if (!summary) {
     throw new Error('Player summary data is required but was null');
   }
-  
+
   return <>{children(summary)}</>;
 }

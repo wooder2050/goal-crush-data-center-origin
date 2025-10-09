@@ -60,9 +60,6 @@ function TeamLineupsSectionInner({
       (arr: unknown) => !Array.isArray(arr) || arr.length === 0
     );
 
-  const seasonName = match.season?.season_name;
-  const isSeasonFirstMatch = seasonName && seasonName.includes('시즌');
-
   const { data: predictedLineups = {} } = useGoalSuspenseQuery(
     getPredictedMatchLineupsPrisma,
     [match.match_id]
@@ -92,63 +89,75 @@ function TeamLineupsSectionInner({
   let isPredicted = false;
 
   if (actualEmpty) {
-    if (
-      isSeasonFirstMatch &&
-      (lastMatchLineups.length > 0 || awayLastMatchLineups.length > 0)
-    ) {
-      const homeTeamKey = `${match.match_id}_${match.home_team_id}`;
-      const awayTeamKey = `${match.match_id}_${match.away_team_id}`;
+    const homeTeamKey = `${match.match_id}_${match.home_team_id}`;
+    const awayTeamKey = `${match.match_id}_${match.away_team_id}`;
 
-      lineups = {
-        [homeTeamKey]: lastMatchLineups.map((p) => ({
-          ...p,
-          participation_status: 'starting' as const,
-          goals: 0,
-          yellow_cards: 0,
-          red_cards: 0,
-          card_type: 'none' as const,
-          assists: 0,
-        })) as LineupPlayer[],
-        [awayTeamKey]: awayLastMatchLineups.map((p) => ({
-          ...p,
-          participation_status: 'starting' as const,
-          goals: 0,
-          yellow_cards: 0,
-          red_cards: 0,
-          card_type: 'none' as const,
-          assists: 0,
-        })) as LineupPlayer[],
-      };
-      isPredicted = true;
-    } else if (seasonPlayers.length > 0 || awaySeasonPlayers.length > 0) {
-      const homeTeamKey = `${match.match_id}_${match.home_team_id}`;
-      const awayTeamKey = `${match.match_id}_${match.away_team_id}`;
+    // Determine lineup for each team independently
+    let homeLineup: LineupPlayer[] = [];
+    let awayLineup: LineupPlayer[] = [];
 
-      lineups = {
-        [homeTeamKey]: seasonPlayers.map((p) => ({
-          ...p,
-          participation_status: 'starting' as const,
-          goals: 0,
-          yellow_cards: 0,
-          red_cards: 0,
-          card_type: 'none' as const,
-          assists: 0,
-        })) as LineupPlayer[],
-        [awayTeamKey]: awaySeasonPlayers.map((p) => ({
-          ...p,
-          participation_status: 'starting' as const,
-          goals: 0,
-          yellow_cards: 0,
-          red_cards: 0,
-          card_type: 'none' as const,
-          assists: 0,
-        })) as LineupPlayer[],
-      };
-      isPredicted = true;
-    } else {
-      lineups = predictedLineups as Record<string, LineupPlayer[]>;
-      isPredicted = true;
+    // Home team lineup determination logic
+    if (seasonPlayers.length > 0) {
+      // Priority 1: Use current season players if available
+      homeLineup = seasonPlayers.map((p) => ({
+        ...p,
+        participation_status: 'starting' as const,
+        goals: 0,
+        yellow_cards: 0,
+        red_cards: 0,
+        card_type: 'none' as const,
+        assists: 0,
+      })) as LineupPlayer[];
+    } else if (lastMatchLineups.length > 0) {
+      // Priority 2: Use previous match lineup if no season record
+      homeLineup = lastMatchLineups.map((p) => ({
+        ...p,
+        participation_status: 'starting' as const,
+        goals: 0,
+        yellow_cards: 0,
+        red_cards: 0,
+        card_type: 'none' as const,
+        assists: 0,
+      })) as LineupPlayer[];
+    } else if (predictedLineups[homeTeamKey]) {
+      // Priority 3: Use predicted lineup
+      homeLineup = predictedLineups[homeTeamKey] as LineupPlayer[];
     }
+
+    // Away team lineup determination logic
+    if (awaySeasonPlayers.length > 0) {
+      // Priority 1: Use current season players if available
+      awayLineup = awaySeasonPlayers.map((p) => ({
+        ...p,
+        participation_status: 'starting' as const,
+        goals: 0,
+        yellow_cards: 0,
+        red_cards: 0,
+        card_type: 'none' as const,
+        assists: 0,
+      })) as LineupPlayer[];
+    } else if (awayLastMatchLineups.length > 0) {
+      // Priority 2: Use previous match lineup if no season record
+      awayLineup = awayLastMatchLineups.map((p) => ({
+        ...p,
+        participation_status: 'starting' as const,
+        goals: 0,
+        yellow_cards: 0,
+        red_cards: 0,
+        card_type: 'none' as const,
+        assists: 0,
+      })) as LineupPlayer[];
+    } else if (predictedLineups[awayTeamKey]) {
+      // Priority 3: Use predicted lineup
+      awayLineup = predictedLineups[awayTeamKey] as LineupPlayer[];
+    }
+
+    lineups = {
+      [homeTeamKey]: homeLineup,
+      [awayTeamKey]: awayLineup,
+    };
+
+    isPredicted = homeLineup.length > 0 || awayLineup.length > 0;
   }
 
   // Fetch assist data via Suspense Query
