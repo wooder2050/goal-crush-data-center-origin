@@ -41,7 +41,7 @@
     "dotenv": "^17.2.1",
     "es-toolkit": "^1.28.0",
     "lucide-react": "^0.451.0",
-    "next": "14.2.15",
+    "next": "14.2.35",
     "postcss": "^8.4.47",
     "react": "^18.3.1",
     "react-day-picker": "^9.9.0",
@@ -66,9 +66,12 @@
     "@storybook/addon-docs": "^9.1.5",
     "@storybook/addon-onboarding": "^9.1.5",
     "@storybook/addon-vitest": "^9.1.5",
+    "@storybook/nextjs-vite": "^9.1.5",
     "@types/eslint": "^9.6.1",
     "@typescript-eslint/eslint-plugin": "^8.3.0",
     "@typescript-eslint/parser": "^8.3.0",
+    "@vitest/browser": "^3.2.4",
+    "@vitest/coverage-v8": "^3.2.4",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.7",
@@ -77,14 +80,11 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-storybook": "^9.1.5",
     "eslint-plugin-tailwindcss": "^3.17.4",
+    "playwright": "^1.55.0",
     "prettier": "^3.3.3",
     "prisma": "^5.22.0",
     "storybook": "^9.1.5",
-    "@storybook/nextjs-vite": "^9.1.5",
-    "vitest": "^3.2.4",
-    "@vitest/browser": "^3.2.4",
-    "playwright": "^1.55.0",
-    "@vitest/coverage-v8": "^3.2.4"
+    "vitest": "^3.2.4"
   },
   "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }
