@@ -22,7 +22,10 @@ import { useGoalMutation } from '@/hooks/useGoalMutation';
 
 // 폼 검증 스키마
 const createPostSchema = z.object({
-  title: z.string().min(1, '제목을 입력해주세요.').max(200, '제목은 200자 이하여야 합니다.'),
+  title: z
+    .string()
+    .min(1, '제목을 입력해주세요.')
+    .max(200, '제목은 200자 이하여야 합니다.'),
   content: z.string().min(1, '내용을 입력해주세요.'),
   category: z.enum(['general', 'match', 'team', 'data', 'prediction']),
   team_id: z.string().optional(),

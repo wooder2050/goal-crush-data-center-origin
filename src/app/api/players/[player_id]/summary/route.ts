@@ -89,17 +89,22 @@ export async function GET(
       const agg = pmsAggBySeason.get(seasonId)!;
       agg.goals += (r.goals ?? 0) as number;
       agg.assists += (r.assists ?? 0) as number;
-      
+
       // Helper function to check if appearance is goalkeeper
-      const isGoalkeeperAppearance = (position: string | null, goals_conceded: number | null): boolean => {
-        return position === 'GK' || (position !== 'GK' && (goals_conceded || 0) > 0);
+      const isGoalkeeperAppearance = (
+        position: string | null,
+        goals_conceded: number | null
+      ): boolean => {
+        return (
+          position === 'GK' || (position !== 'GK' && (goals_conceded || 0) > 0)
+        );
       };
-      
+
       // Add goals conceded only for goalkeeper appearances
       if (isGoalkeeperAppearance(r.position, r.goals_conceded)) {
         agg.goals_conceded += (r.goals_conceded ?? 0) as number;
       }
-      
+
       // Count appearance only if minutes_played > 0 (bench only is not an appearance)
       const playedMinutes = (r.minutes_played ?? 0) as number;
       if (playedMinutes > 0) {
@@ -215,8 +220,13 @@ export async function GET(
         where: { team_id: { in: idsNeedingTeamInfo } },
         select: { team_id: true, team_name: true, logo: true },
       });
-      const teamMap = new Map<number, { team_name: string; logo: string | null }>();
-      teams.forEach((t) => teamMap.set(t.team_id, { team_name: t.team_name, logo: t.logo ?? null }));
+      const teamMap = new Map<
+        number,
+        { team_name: string; logo: string | null }
+      >();
+      teams.forEach((t) =>
+        teamMap.set(t.team_id, { team_name: t.team_name, logo: t.logo ?? null })
+      );
       for (let i = 0; i < seasons.length; i++) {
         const tid = seasons[i].team_id as number | null;
         if (tid) {
@@ -308,28 +318,43 @@ export async function GET(
     // Per-team totals from PMS
     const perTeamMap = new Map<
       number,
-      { goals: number; assists: number; appearances: number; goals_conceded: number }
+      {
+        goals: number;
+        assists: number;
+        appearances: number;
+        goals_conceded: number;
+      }
     >();
     for (let i = 0; i < pmsRows.length; i++) {
       const r = pmsRows[i];
       const tid = r.team_id as number | null;
       if (!tid) continue;
       if (!perTeamMap.has(tid))
-        perTeamMap.set(tid, { goals: 0, assists: 0, appearances: 0, goals_conceded: 0 });
+        perTeamMap.set(tid, {
+          goals: 0,
+          assists: 0,
+          appearances: 0,
+          goals_conceded: 0,
+        });
       const bucket = perTeamMap.get(tid)!;
       bucket.goals += r.goals ?? 0;
       bucket.assists += r.assists ?? 0;
-      
+
       // Helper function to check if appearance is goalkeeper
-      const isGoalkeeperAppearance = (position: string | null, goals_conceded: number | null): boolean => {
-        return position === 'GK' || (position !== 'GK' && (goals_conceded || 0) > 0);
+      const isGoalkeeperAppearance = (
+        position: string | null,
+        goals_conceded: number | null
+      ): boolean => {
+        return (
+          position === 'GK' || (position !== 'GK' && (goals_conceded || 0) > 0)
+        );
       };
-      
+
       // Add goals conceded only for goalkeeper appearances
       if (isGoalkeeperAppearance(r.position, r.goals_conceded)) {
         bucket.goals_conceded += r.goals_conceded ?? 0;
       }
-      
+
       // Only count appearances when minutes_played > 0
       const playedMinutes = (r.minutes_played ?? 0) as number;
       if (playedMinutes > 0) {
@@ -357,7 +382,12 @@ export async function GET(
 
     // Totals for selected team (if requested)
     let totals_for_team:
-      | { goals: number; assists: number; appearances: number; goals_conceded: number }
+      | {
+          goals: number;
+          assists: number;
+          appearances: number;
+          goals_conceded: number;
+        }
       | undefined = undefined;
     if (filterTeamId) {
       const b = perTeamMap.get(filterTeamId);

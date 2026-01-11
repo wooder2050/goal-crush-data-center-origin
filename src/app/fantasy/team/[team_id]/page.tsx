@@ -86,21 +86,34 @@ export default async function TeamDetailPage({ params }: PageProps) {
   const rankPosition = betterTeamsCount + 1;
 
   // 선수들을 포지션별로 정리 (데이터베이스에서 가져온 포지션 사용)
-  const playersWithPosition = fantasyTeam.player_selections.map((selection, index) => {
-    const defaultPositions = ['GK', 'DF', 'MF', 'FW', 'FW'] as const;
-    
-    return {
-      ...selection.player,
-      profile_image_url: selection.player.profile_image_url || undefined,
-      points_earned: selection.points_earned,
-      position: (selection.position as Position) || defaultPositions[index] || 'FW',
-      season_stats: {
-        goals: Math.round(selection.match_performances.reduce((sum, perf) => sum + (perf.goal_points || 0) / 4, 0)),
-        assists: Math.round(selection.match_performances.reduce((sum, perf) => sum + (perf.assist_points || 0) / 2, 0)),
-        matches_played: selection.match_performances.length,
-      },
-    };
-  });
+  const playersWithPosition = fantasyTeam.player_selections.map(
+    (selection, index) => {
+      const defaultPositions = ['GK', 'DF', 'MF', 'FW', 'FW'] as const;
+
+      return {
+        ...selection.player,
+        profile_image_url: selection.player.profile_image_url || undefined,
+        points_earned: selection.points_earned,
+        position:
+          (selection.position as Position) || defaultPositions[index] || 'FW',
+        season_stats: {
+          goals: Math.round(
+            selection.match_performances.reduce(
+              (sum, perf) => sum + (perf.goal_points || 0) / 4,
+              0
+            )
+          ),
+          assists: Math.round(
+            selection.match_performances.reduce(
+              (sum, perf) => sum + (perf.assist_points || 0) / 2,
+              0
+            )
+          ),
+          matches_played: selection.match_performances.length,
+        },
+      };
+    }
+  );
 
   return (
     <TeamDetailClient

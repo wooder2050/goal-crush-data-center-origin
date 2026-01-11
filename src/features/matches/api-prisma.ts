@@ -186,7 +186,7 @@ export const getSeasonMatchesPagePrisma = async (
     page: page.toString(),
     limit: limit.toString(),
   });
-  
+
   if (tournamentStage && tournamentStage !== 'all') {
     params.append('tournament_stage', tournamentStage);
   }

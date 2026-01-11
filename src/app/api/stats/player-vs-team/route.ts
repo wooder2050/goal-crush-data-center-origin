@@ -37,10 +37,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!player) {
-      return NextResponse.json(
-        { error: 'Player not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Player not found' }, { status: 404 });
     }
 
     // Build where clause for season filter
@@ -99,7 +96,10 @@ export async function GET(request: NextRequest) {
       let opponentTeamId: number;
       if (match.home_team_id === playerTeamId && match.away_team_id !== null) {
         opponentTeamId = match.away_team_id;
-      } else if (match.away_team_id === playerTeamId && match.home_team_id !== null) {
+      } else if (
+        match.away_team_id === playerTeamId &&
+        match.home_team_id !== null
+      ) {
         opponentTeamId = match.home_team_id;
       } else {
         continue; // Skip if team ID doesn't match home or away or opponent team ID is null
@@ -150,15 +150,18 @@ export async function GET(request: NextRequest) {
           goals: stats.goals,
           assists: stats.assists,
           attack_points: stats.attack_points,
-          goals_per_match: stats.matches_played > 0 
-            ? (stats.goals / stats.matches_played).toFixed(2)
-            : '0.00',
-          assists_per_match: stats.matches_played > 0
-            ? (stats.assists / stats.matches_played).toFixed(2)
-            : '0.00',
-          attack_points_per_match: stats.matches_played > 0
-            ? (stats.attack_points / stats.matches_played).toFixed(2)
-            : '0.00',
+          goals_per_match:
+            stats.matches_played > 0
+              ? (stats.goals / stats.matches_played).toFixed(2)
+              : '0.00',
+          assists_per_match:
+            stats.matches_played > 0
+              ? (stats.assists / stats.matches_played).toFixed(2)
+              : '0.00',
+          attack_points_per_match:
+            stats.matches_played > 0
+              ? (stats.attack_points / stats.matches_played).toFixed(2)
+              : '0.00',
         };
       })
       .filter(Boolean)

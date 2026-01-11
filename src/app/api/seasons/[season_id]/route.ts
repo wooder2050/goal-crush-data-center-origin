@@ -12,7 +12,7 @@ export async function PUT(
 ) {
   try {
     const seasonId = parseInt(params.season_id);
-    
+
     if (isNaN(seasonId)) {
       return NextResponse.json(
         { error: '유효하지 않은 시즌 ID입니다.' },
@@ -56,8 +56,8 @@ export async function PUT(
     const duplicateSeason = await prisma.season.findFirst({
       where: {
         season_name,
-        season_id: { not: seasonId }
-      }
+        season_id: { not: seasonId },
+      },
     });
 
     if (duplicateSeason) {
@@ -71,7 +71,7 @@ export async function PUT(
     if (start_date && end_date) {
       const start = new Date(start_date);
       const end = new Date(end_date);
-      
+
       if (start >= end) {
         return NextResponse.json(
           { error: '시작일은 종료일보다 이전이어야 합니다.' },
@@ -81,7 +81,16 @@ export async function PUT(
     }
 
     // 카테고리 유효성 검증
-    const validCategories = ['SUPER_LEAGUE', 'CHALLENGE_LEAGUE', 'G_LEAGUE', 'PLAYOFF', 'SBS_CUP', 'CHAMPION_MATCH', 'GIFA_CUP', 'OTHER'];
+    const validCategories = [
+      'SUPER_LEAGUE',
+      'CHALLENGE_LEAGUE',
+      'G_LEAGUE',
+      'PLAYOFF',
+      'SBS_CUP',
+      'CHAMPION_MATCH',
+      'GIFA_CUP',
+      'OTHER',
+    ];
     if (category && !validCategories.includes(category)) {
       return NextResponse.json(
         { error: '유효하지 않은 카테고리입니다.' },
@@ -103,7 +112,7 @@ export async function PUT(
 
     return NextResponse.json({
       message: '시즌이 성공적으로 수정되었습니다.',
-      season: updatedSeason
+      season: updatedSeason,
     });
   } catch (error) {
     console.error('Error updating season:', error);

@@ -346,7 +346,7 @@ export default function GoalkeeperRankingsPageContent() {
                                 )}
                                 <div>
                                   <div className="font-medium text-gray-900">
-                                    <Link 
+                                    <Link
                                       href={`/players/${player.player_id}`}
                                       className="hover:text-blue-600 hover:underline"
                                     >
@@ -377,7 +377,7 @@ export default function GoalkeeperRankingsPageContent() {
                                   )}
                                 <div className="hidden sm:block text-sm text-gray-900">
                                   {player.first_team_id ? (
-                                    <Link 
+                                    <Link
                                       href={`/teams/${player.first_team_id}`}
                                       className="hover:text-blue-600 hover:underline"
                                     >
@@ -521,7 +521,7 @@ export default function GoalkeeperRankingsPageContent() {
                       {/* 선수 이름 및 팀 정보 */}
                       <div className="flex-1 ml-3 min-w-0">
                         <div className="font-medium text-gray-900 truncate">
-                          <Link 
+                          <Link
                             href={`/players/${player.player_id}`}
                             className="hover:text-blue-600 hover:underline"
                           >
@@ -543,7 +543,7 @@ export default function GoalkeeperRankingsPageContent() {
                             )}
                           <span className="text-sm text-gray-600 truncate">
                             {player.first_team_id ? (
-                              <Link 
+                              <Link
                                 href={`/teams/${player.first_team_id}`}
                                 className="hover:text-blue-600 hover:underline"
                               >

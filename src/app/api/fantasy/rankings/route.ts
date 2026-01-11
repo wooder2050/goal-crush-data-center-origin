@@ -6,9 +6,15 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 const rankingQuerySchema = z.object({
-  fantasy_season_id: z.string().transform(val => parseInt(val)),
-  page: z.string().optional().transform(val => val ? parseInt(val) : 1),
-  limit: z.string().optional().transform(val => val ? parseInt(val) : 20),
+  fantasy_season_id: z.string().transform((val) => parseInt(val)),
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val) : 20)),
 });
 
 // GET - 월간 판타지 랭킹 조회
@@ -16,8 +22,9 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const queryParams = Object.fromEntries(searchParams.entries());
-    
-    const { fantasy_season_id, page, limit } = rankingQuerySchema.parse(queryParams);
+
+    const { fantasy_season_id, page, limit } =
+      rankingQuerySchema.parse(queryParams);
 
     // 판타지 시즌 확인
     const fantasySeason = await prisma.fantasySeason.findUnique({
@@ -119,7 +126,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('판타지 랭킹 조회 중 오류:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: '잘못된 쿼리 파라미터입니다.', details: error.errors },
@@ -167,10 +174,7 @@ export async function POST(request: NextRequest) {
     // 현재 랭킹 조회
     const currentRankings = await prisma.fantasyTeam.findMany({
       where: { fantasy_season_id: parseInt(fantasy_season_id) },
-      orderBy: [
-        { total_points: 'desc' },
-        { created_at: 'asc' },
-      ],
+      orderBy: [{ total_points: 'desc' }, { created_at: 'asc' }],
     });
 
     // 랭킹 스냅샷 생성

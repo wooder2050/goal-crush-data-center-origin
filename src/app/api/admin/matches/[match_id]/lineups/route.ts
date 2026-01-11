@@ -58,7 +58,8 @@ export async function POST(
     }
 
     const data = await request.json();
-    const { player_id, team_id, position, minutes_played, goals_conceded } = data;
+    const { player_id, team_id, position, minutes_played, goals_conceded } =
+      data;
 
     // 필수 필드 검증
     if (!player_id || !team_id || !position) {
@@ -104,7 +105,7 @@ export async function POST(
     });
 
     let lineup;
-    
+
     if (existingLineup) {
       // 기존 라인업이 있으면 업데이트
       lineup = await prisma.playerMatchStats.update({
@@ -115,7 +116,10 @@ export async function POST(
           team_id,
           position,
           minutes_played: minutes_played || existingLineup.minutes_played || 0,
-          goals_conceded: goals_conceded !== undefined ? goals_conceded : existingLineup.goals_conceded,
+          goals_conceded:
+            goals_conceded !== undefined
+              ? goals_conceded
+              : existingLineup.goals_conceded,
           updated_at: new Date(),
         },
         include: {

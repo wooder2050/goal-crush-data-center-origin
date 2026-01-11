@@ -58,36 +58,37 @@ export async function GET(
     }
 
     // 페이지네이션이 요청된 경우 총 개수와 토너먼트별 통계도 조회
-    const [matches, totalCount, tournamentStats, totalMatchesCount] = await Promise.all([
-      prisma.match.findMany({
-        where: whereCondition,
-        include: {
-          home_team: true,
-          away_team: true,
-          season: true,
-        },
-        orderBy: {
-          match_date: 'asc',
-        },
-        ...(isPaginated && {
-          skip: (pageNum - 1) * limitNum,
-          take: limitNum,
+    const [matches, totalCount, tournamentStats, totalMatchesCount] =
+      await Promise.all([
+        prisma.match.findMany({
+          where: whereCondition,
+          include: {
+            home_team: true,
+            away_team: true,
+            season: true,
+          },
+          orderBy: {
+            match_date: 'asc',
+          },
+          ...(isPaginated && {
+            skip: (pageNum - 1) * limitNum,
+            take: limitNum,
+          }),
         }),
-      }),
-      isPaginated
-        ? prisma.match.count({ where: whereCondition })
-        : Promise.resolve(0),
-      isPaginated
-        ? prisma.match.groupBy({
-            by: ['tournament_stage'],
-            where: { season_id: seasonId }, // 전체 통계이므로 필터 조건 제외
-            _count: true,
-          })
-        : Promise.resolve([]),
-      isPaginated
-        ? prisma.match.count({ where: { season_id: seasonId } }) // 전체 경기 수
-        : Promise.resolve(0),
-    ]);
+        isPaginated
+          ? prisma.match.count({ where: whereCondition })
+          : Promise.resolve(0),
+        isPaginated
+          ? prisma.match.groupBy({
+              by: ['tournament_stage'],
+              where: { season_id: seasonId }, // 전체 통계이므로 필터 조건 제외
+              _count: true,
+            })
+          : Promise.resolve([]),
+        isPaginated
+          ? prisma.match.count({ where: { season_id: seasonId } }) // 전체 경기 수
+          : Promise.resolve(0),
+      ]);
 
     if (matches.length === 0) {
       return NextResponse.json(
@@ -176,7 +177,11 @@ export async function GET(
       };
 
       tournamentStats.forEach((stat) => {
-        const stage = stat.tournament_stage as 'group_stage' | 'championship' | 'relegation' | null;
+        const stage = stat.tournament_stage as
+          | 'group_stage'
+          | 'championship'
+          | 'relegation'
+          | null;
         if (stage && stage in tournamentStatsObject) {
           tournamentStatsObject[stage] = stat._count;
         }

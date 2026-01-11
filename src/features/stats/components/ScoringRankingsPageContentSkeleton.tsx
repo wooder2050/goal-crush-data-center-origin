@@ -52,8 +52,21 @@ export default function ScoringRankingsPageContentSkeleton() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    {['순위', '선수명', '팀', '포지션', '경기', '득점', '어시스트', '공격P', '득점/경기'].map((header, i) => (
-                      <th key={i} className="px-3 py-3 text-left font-medium text-gray-700">
+                    {[
+                      '순위',
+                      '선수명',
+                      '팀',
+                      '포지션',
+                      '경기',
+                      '득점',
+                      '어시스트',
+                      '공격P',
+                      '득점/경기',
+                    ].map((header, i) => (
+                      <th
+                        key={i}
+                        className="px-3 py-3 text-left font-medium text-gray-700"
+                      >
                         {header}
                       </th>
                     ))}

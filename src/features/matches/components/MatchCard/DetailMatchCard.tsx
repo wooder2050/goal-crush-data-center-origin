@@ -104,7 +104,7 @@ function DetailMatchCardInner({
             <GoalWrapper fallback={<CoachHeadToHeadListSkeleton />}>
               <CoachHeadToHeadList matchId={match.match_id} />
             </GoalWrapper>
-            
+
             {/* Goalkeeper stats for completed matches */}
             {match.home_score != null && match.away_score != null && (
               <div className="mt-4">

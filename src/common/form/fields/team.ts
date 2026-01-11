@@ -15,8 +15,7 @@ export const teamFormSchema = z.object({
     })
     .refine(
       (val) =>
-        val === undefined ||
-        (val >= 1900 && val <= new Date().getFullYear()),
+        val === undefined || (val >= 1900 && val <= new Date().getFullYear()),
       {
         message: `창단년도는 1900년~${new Date().getFullYear()}년 범위 내에서 입력해주세요`,
       }

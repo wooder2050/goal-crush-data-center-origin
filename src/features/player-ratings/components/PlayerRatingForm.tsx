@@ -2,16 +2,22 @@
 
 import { useState } from 'react';
 
-import { 
+import {
   Button,
-  Card, 
+  Card,
   CardContent,
   CardHeader,
   CardTitle,
-  Label
+  Label,
 } from '@/components/ui';
-import type { CreateRatingRequest, PlayerAbilities } from '@/features/player-ratings/types';
-import { ABILITY_CATEGORIES, ABILITY_METADATA } from '@/features/player-ratings/types';
+import type {
+  CreateRatingRequest,
+  PlayerAbilities,
+} from '@/features/player-ratings/types';
+import {
+  ABILITY_CATEGORIES,
+  ABILITY_METADATA,
+} from '@/features/player-ratings/types';
 
 interface PlayerRatingFormProps {
   playerId: number;
@@ -27,7 +33,12 @@ interface AbilitySliderProps {
   onChange: (value: number) => void;
 }
 
-function AbilitySlider({ label, description, value, onChange }: AbilitySliderProps) {
+function AbilitySlider({
+  label,
+  description,
+  value,
+  onChange,
+}: AbilitySliderProps) {
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
@@ -47,11 +58,11 @@ function AbilitySlider({ label, description, value, onChange }: AbilitySliderPro
   );
 }
 
-export function PlayerRatingForm({ 
-  playerId, 
-  seasonId, 
-  onSubmit, 
-  isLoading = false 
+export function PlayerRatingForm({
+  playerId,
+  seasonId,
+  onSubmit,
+  isLoading = false,
 }: PlayerRatingFormProps) {
   const [abilities, setAbilities] = useState<PlayerAbilities>({
     // 모든 능력치를 50으로 초기화
@@ -87,10 +98,12 @@ export function PlayerRatingForm({
 
   const [overallRating, setOverallRating] = useState<number>(50);
   const [comment, setComment] = useState<string>('');
-  const [activeCategory, setActiveCategory] = useState<string>(ABILITY_CATEGORIES.ATTACK);
+  const [activeCategory, setActiveCategory] = useState<string>(
+    ABILITY_CATEGORIES.ATTACK
+  );
 
   const handleAbilityChange = (key: keyof PlayerAbilities, value: number) => {
-    setAbilities(prev => ({
+    setAbilities((prev) => ({
       ...prev,
       [key]: value,
     }));
@@ -109,16 +122,26 @@ export function PlayerRatingForm({
   };
 
   // 카테고리별 능력치 그룹화
-  const abilityGroups = Object.entries(ABILITY_METADATA).reduce((groups, [key, meta]) => {
-    if (!groups[meta.category]) {
-      groups[meta.category] = [];
-    }
-    groups[meta.category].push({
-      key: key as keyof PlayerAbilities,
-      ...meta,
-    });
-    return groups;
-  }, {} as Record<string, Array<{ key: keyof PlayerAbilities } & typeof ABILITY_METADATA[keyof typeof ABILITY_METADATA]>>);
+  const abilityGroups = Object.entries(ABILITY_METADATA).reduce(
+    (groups, [key, meta]) => {
+      if (!groups[meta.category]) {
+        groups[meta.category] = [];
+      }
+      groups[meta.category].push({
+        key: key as keyof PlayerAbilities,
+        ...meta,
+      });
+      return groups;
+    },
+    {} as Record<
+      string,
+      Array<
+        {
+          key: keyof PlayerAbilities;
+        } & (typeof ABILITY_METADATA)[keyof typeof ABILITY_METADATA]
+      >
+    >
+  );
 
   return (
     <Card className="w-full max-w-4xl">
@@ -126,7 +149,7 @@ export function PlayerRatingForm({
         <CardTitle className="text-xl font-bold">선수 능력치 평가</CardTitle>
         <p className="text-gray-600">각 능력치를 1-99점 척도로 평가해주세요.</p>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* 카테고리 탭 */}
         <div className="flex flex-wrap gap-2 border-b">
@@ -155,7 +178,7 @@ export function PlayerRatingForm({
 
         {/* 능력치 슬라이더들 */}
         <div className="grid gap-4 md:grid-cols-2">
-          {abilityGroups[activeCategory]?.map(ability => (
+          {abilityGroups[activeCategory]?.map((ability) => (
             <AbilitySlider
               key={ability.key}
               label={ability.name}
@@ -180,7 +203,10 @@ export function PlayerRatingForm({
 
         {/* 코멘트 */}
         <div className="space-y-2">
-          <label htmlFor="comment" className="text-sm font-medium text-gray-700">
+          <label
+            htmlFor="comment"
+            className="text-sm font-medium text-gray-700"
+          >
             평가 코멘트 (선택사항)
           </label>
           <textarea
@@ -195,11 +221,7 @@ export function PlayerRatingForm({
 
         {/* 제출 버튼 */}
         <div className="flex justify-end pt-4">
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isLoading}
-            className="px-8"
-          >
+          <Button onClick={handleSubmit} disabled={isLoading} className="px-8">
             {isLoading ? '평가 제출 중...' : '평가 제출'}
           </Button>
         </div>
@@ -214,7 +236,7 @@ export function PlayerRatingForm({
           background: #3b82f6;
           cursor: pointer;
         }
-        
+
         .slider::-moz-range-thumb {
           width: 20px;
           height: 20px;

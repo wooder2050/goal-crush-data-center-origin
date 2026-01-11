@@ -7,7 +7,8 @@ const meta: Meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Spacing scale and semantic spacing tokens used throughout the Goal Crush design system.',
+        component:
+          'Spacing scale and semantic spacing tokens used throughout the Goal Crush design system.',
       },
     },
   },
@@ -15,7 +16,11 @@ const meta: Meta = {
 
 export default meta;
 
-const SpacingDemo = ({ value, label, description }: {
+const SpacingDemo = ({
+  value,
+  label,
+  description,
+}: {
   value: string;
   label: string;
   description?: string;
@@ -23,7 +28,7 @@ const SpacingDemo = ({ value, label, description }: {
   <div className="flex items-center space-x-4 p-3 border rounded-lg">
     <div className="flex items-center space-x-3">
       <div className="text-sm font-mono w-16">{label}</div>
-      <div 
+      <div
         className="bg-blue-100 border-l-2 border-r-2 border-blue-300"
         style={{ width: value, minWidth: '2px' }}
       >
@@ -40,13 +45,17 @@ const SpacingDemo = ({ value, label, description }: {
 export const BaseSpacing: StoryObj = {
   render: () => {
     const baseSpacing = Object.fromEntries(
-      Object.entries(spacing).filter(([key, value]) => 
-        !key.includes('component') && 
-        !key.includes('interactive') && 
-        !key.includes('layout') &&
-        key !== 'px' && key !== '0' &&
-        typeof value === 'string'
-      ).slice(0, 20) // Show first 20 for readability
+      Object.entries(spacing)
+        .filter(
+          ([key, value]) =>
+            !key.includes('component') &&
+            !key.includes('interactive') &&
+            !key.includes('layout') &&
+            key !== 'px' &&
+            key !== '0' &&
+            typeof value === 'string'
+        )
+        .slice(0, 20) // Show first 20 for readability
     );
 
     return (
@@ -54,16 +63,13 @@ export const BaseSpacing: StoryObj = {
         <div>
           <h3 className="text-lg font-semibold">Base Spacing Scale</h3>
           <p className="text-sm text-gray-600">
-            Foundational spacing values based on 0.25rem (4px) increments, compatible with Tailwind CSS.
+            Foundational spacing values based on 0.25rem (4px) increments,
+            compatible with Tailwind CSS.
           </p>
         </div>
         <div className="space-y-2">
           {Object.entries(baseSpacing).map(([key, value]) => (
-            <SpacingDemo 
-              key={key}
-              label={key}
-              value={value as string}
-            />
+            <SpacingDemo key={key} label={key} value={value as string} />
           ))}
         </div>
       </div>
@@ -85,22 +91,26 @@ export const ComponentSpacing: StoryObj = {
       <div className="space-y-4">
         <h4 className="font-semibold">Button Padding</h4>
         <div className="space-y-2">
-          {Object.entries(spacing.component.buttonPaddingX).map(([size, value]) => (
-            <SpacingDemo 
-              key={`btn-x-${size}`}
-              label={`x-${size}`}
-              value={value}
-              description={`Horizontal padding for ${size} buttons`}
-            />
-          ))}
-          {Object.entries(spacing.component.buttonPaddingY).map(([size, value]) => (
-            <SpacingDemo 
-              key={`btn-y-${size}`}
-              label={`y-${size}`}
-              value={value}
-              description={`Vertical padding for ${size} buttons`}
-            />
-          ))}
+          {Object.entries(spacing.component.buttonPaddingX).map(
+            ([size, value]) => (
+              <SpacingDemo
+                key={`btn-x-${size}`}
+                label={`x-${size}`}
+                value={value}
+                description={`Horizontal padding for ${size} buttons`}
+              />
+            )
+          )}
+          {Object.entries(spacing.component.buttonPaddingY).map(
+            ([size, value]) => (
+              <SpacingDemo
+                key={`btn-y-${size}`}
+                label={`y-${size}`}
+                value={value}
+                description={`Vertical padding for ${size} buttons`}
+              />
+            )
+          )}
         </div>
       </div>
 
@@ -108,14 +118,16 @@ export const ComponentSpacing: StoryObj = {
       <div className="space-y-4">
         <h4 className="font-semibold">Card Padding</h4>
         <div className="space-y-2">
-          {Object.entries(spacing.component.cardPadding).map(([size, value]) => (
-            <SpacingDemo 
-              key={`card-${size}`}
-              label={size}
-              value={value}
-              description={`Card padding for ${size} screens`}
-            />
-          ))}
+          {Object.entries(spacing.component.cardPadding).map(
+            ([size, value]) => (
+              <SpacingDemo
+                key={`card-${size}`}
+                label={size}
+                value={value}
+                description={`Card padding for ${size} screens`}
+              />
+            )
+          )}
         </div>
       </div>
 
@@ -124,7 +136,7 @@ export const ComponentSpacing: StoryObj = {
         <h4 className="font-semibold">Gap Spacing</h4>
         <div className="space-y-2">
           {Object.entries(spacing.component.gap).map(([size, value]) => (
-            <SpacingDemo 
+            <SpacingDemo
               key={`gap-${size}`}
               label={size}
               value={value}
@@ -143,22 +155,28 @@ export const LayoutSpacing: StoryObj = {
       <div>
         <h3 className="text-lg font-semibold">Layout Spacing</h3>
         <p className="text-sm text-gray-600">
-          Spacing values for major layout elements like headers, sidebars, and modals.
+          Spacing values for major layout elements like headers, sidebars, and
+          modals.
         </p>
       </div>
       <div className="space-y-2">
         {Object.entries(spacing.layout).map(([key, value]) => (
-          <SpacingDemo 
+          <SpacingDemo
             key={key}
             label={key}
             value={value}
             description={
-              key === 'headerHeight' ? 'Standard header/navigation height' :
-              key === 'navItemSpacing' ? 'Space between navigation items' :
-              key === 'sidebarWidth' ? 'Standard sidebar width' :
-              key === 'modalPadding' ? 'Internal padding for modals' :
-              key === 'modalMargin' ? 'External margin for modals' :
-              ''
+              key === 'headerHeight'
+                ? 'Standard header/navigation height'
+                : key === 'navItemSpacing'
+                  ? 'Space between navigation items'
+                  : key === 'sidebarWidth'
+                    ? 'Standard sidebar width'
+                    : key === 'modalPadding'
+                      ? 'Internal padding for modals'
+                      : key === 'modalMargin'
+                        ? 'External margin for modals'
+                        : ''
             }
           />
         ))}
@@ -177,18 +195,18 @@ export const InteractiveSpacing: StoryObj = {
         </p>
       </div>
       <div className="space-y-2">
-        <SpacingDemo 
+        <SpacingDemo
           label="touch"
           value={spacing.interactive.minTouchTarget}
           description="Minimum touch target size for accessibility"
         />
-        <SpacingDemo 
+        <SpacingDemo
           label="focus"
           value={spacing.interactive.focusRingOffset}
           description="Focus ring offset distance"
         />
         {Object.entries(spacing.interactive.iconMargin).map(([size, value]) => (
-          <SpacingDemo 
+          <SpacingDemo
             key={`icon-${size}`}
             label={`icon-${size}`}
             value={value}
@@ -233,15 +251,21 @@ export const SpacingInAction: StoryObj = {
         <div className="grid gap-4 md:grid-cols-3">
           <div className="border rounded p-2">
             <div className="text-sm font-medium">Mobile Card (p-2)</div>
-            <div className="text-xs text-gray-500 mt-1">Compact spacing for mobile</div>
+            <div className="text-xs text-gray-500 mt-1">
+              Compact spacing for mobile
+            </div>
           </div>
           <div className="border rounded p-4">
             <div className="text-sm font-medium">Desktop Card (p-4)</div>
-            <div className="text-xs text-gray-500 mt-1">Standard desktop spacing</div>
+            <div className="text-xs text-gray-500 mt-1">
+              Standard desktop spacing
+            </div>
           </div>
           <div className="border rounded p-6">
             <div className="text-sm font-medium">Large Card (p-6)</div>
-            <div className="text-xs text-gray-500 mt-1">Spacious layout for emphasis</div>
+            <div className="text-xs text-gray-500 mt-1">
+              Spacious layout for emphasis
+            </div>
           </div>
         </div>
       </div>
@@ -288,18 +312,20 @@ export const AllSpacing: StoryObj = {
         <p className="text-sm text-gray-600 mb-6">
           Goal Crush 디자인 시스템의 전체 간격 체계입니다.
         </p>
-        
+
         <div className="space-y-6">
           {/* Base spacing sample */}
           <div>
             <h3 className="text-lg font-semibold mb-3">기본 간격 (샘플)</h3>
             <div className="space-y-2">
-              {[['1', '0.25rem'], ['2', '0.5rem'], ['4', '1rem'], ['6', '1.5rem'], ['8', '2rem']].map(([key, value]) => (
-                <SpacingDemo 
-                  key={key}
-                  label={key}
-                  value={value}
-                />
+              {[
+                ['1', '0.25rem'],
+                ['2', '0.5rem'],
+                ['4', '1rem'],
+                ['6', '1.5rem'],
+                ['8', '2rem'],
+              ].map(([key, value]) => (
+                <SpacingDemo key={key} label={key} value={value} />
               ))}
             </div>
           </div>

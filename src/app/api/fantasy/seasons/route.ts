@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const activeOnly = searchParams.get('active') === 'true';
 
     const where: Record<string, unknown> = {};
-    
+
     if (year) where.year = parseInt(year);
     if (month) where.month = parseInt(month);
     if (activeOnly) where.is_active = true;
@@ -41,10 +41,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: [
-        { year: 'desc' },
-        { month: 'desc' },
-      ],
+      orderBy: [{ year: 'desc' }, { month: 'desc' }],
     });
 
     return NextResponse.json(fantasySeasons);
@@ -111,7 +108,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(fantasySeason, { status: 201 });
   } catch (error) {
     console.error('판타지 시즌 생성 중 오류:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: '입력값이 올바르지 않습니다.', details: error.errors },
@@ -132,7 +129,7 @@ function getMonthlySeasonDates(year: number, month: number) {
   const firstDay = new Date(year, month - 1, 1);
   const firstMonday = new Date(firstDay);
   const dayOfWeek = firstDay.getDay();
-  
+
   let daysToAdd;
   if (dayOfWeek === 1) {
     // 이미 월요일
@@ -144,7 +141,7 @@ function getMonthlySeasonDates(year: number, month: number) {
     // 월요일까지 남은 일수
     daysToAdd = 8 - dayOfWeek;
   }
-  
+
   firstMonday.setDate(firstDay.getDate() + daysToAdd);
 
   // 편성 시작일 (첫 번째 월요일 00:00 KST)

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('Querying MVP votes for seasonId:', seasonId);
-    
+
     // 특정 시즌의 선수별 투표 결과 조회
     const voteResults = await prisma.mvpVote.groupBy({
       by: ['player_id'],
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         },
       },
     });
-    
+
     console.log('Grouped vote results:', voteResults);
 
     if (voteResults.length === 0) {

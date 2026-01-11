@@ -10,12 +10,17 @@ interface PlayerDataProviderProps {
   children: (player: NonNullable<PlayerData>) => React.ReactNode;
 }
 
-export function PlayerDataProvider({ playerId, children }: PlayerDataProviderProps) {
-  const { data: player } = useGoalSuspenseQuery(getPlayerByIdPrisma, [playerId]);
-  
+export function PlayerDataProvider({
+  playerId,
+  children,
+}: PlayerDataProviderProps) {
+  const { data: player } = useGoalSuspenseQuery(getPlayerByIdPrisma, [
+    playerId,
+  ]);
+
   if (!player) {
     throw new Error('Player data is required but was null');
   }
-  
+
   return <>{children(player)}</>;
 }

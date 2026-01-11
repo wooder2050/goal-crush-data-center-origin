@@ -53,9 +53,7 @@ export async function POST() {
     matches.forEach((match) => {
       // home_team_id, away_team_id가 null인 경우 건너뛰기
       if (!match.home_team_id || !match.away_team_id) {
-        console.log(
-          `Skipping match ${match.match_id} - missing team data`
-        );
+        console.log(`Skipping match ${match.match_id} - missing team data`);
         skippedMatches++;
         return;
       }
@@ -104,7 +102,9 @@ export async function POST() {
       processedMatches++;
     });
 
-    console.log(`처리된 경기: ${processedMatches}개, 건너뛴 경기: ${skippedMatches}개`);
+    console.log(
+      `처리된 경기: ${processedMatches}개, 건너뛴 경기: ${skippedMatches}개`
+    );
     console.log(`생성될 H2H 페어: ${h2hStats.size}개`);
 
     // H2H 통계를 데이터베이스에 저장

@@ -29,7 +29,7 @@ import { getCoachesForAdmin } from '@/features/coaches/api-admin';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 
 import { CreateCoachForm } from './CreateCoachForm';
-import { CoachType,EditCoachForm } from './EditCoachForm';
+import { CoachType, EditCoachForm } from './EditCoachForm';
 
 export function CoachesManagement() {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -42,7 +42,10 @@ export function CoachesManagement() {
   const [searchName, setSearchName] = useState('');
 
   // 감독 목록 조회
-  const { data: coaches = [], isLoading } = useGoalQuery(getCoachesForAdmin, []);
+  const { data: coaches = [], isLoading } = useGoalQuery(
+    getCoachesForAdmin,
+    []
+  );
 
   // Mutations
   const createCoachMutation = useCreateCoachManagementMutation();
@@ -154,7 +157,8 @@ export function CoachesManagement() {
         <div className="flex justify-between items-center">
           <H1>감독 관리</H1>
           <Button onClick={() => setShowCreateForm(true)}>
-            <Plus className="h-4 w-4 mr-2" />감독 추가
+            <Plus className="h-4 w-4 mr-2" />
+            감독 추가
           </Button>
         </div>
 

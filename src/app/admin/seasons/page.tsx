@@ -22,7 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -215,7 +215,8 @@ export default function AdminSeasonsPage() {
                     <h3 className="font-medium">{season.season_name}</h3>
                     <p className="text-sm text-muted-foreground">
                       {season.year}년
-                      {season.category && ` • ${getCategoryLabel(season.category)}`}
+                      {season.category &&
+                        ` • ${getCategoryLabel(season.category)}`}
                       {season.start_date &&
                         ` • ${new Date(season.start_date).toLocaleDateString()}`}
                       {season.end_date &&
@@ -504,7 +505,10 @@ function EditSeasonForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>카테고리</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="카테고리 선택" />
@@ -512,12 +516,16 @@ function EditSeasonForm({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="SUPER_LEAGUE">슈퍼리그</SelectItem>
-                      <SelectItem value="CHALLENGE_LEAGUE">챌린지리그</SelectItem>
+                      <SelectItem value="CHALLENGE_LEAGUE">
+                        챌린지리그
+                      </SelectItem>
                       <SelectItem value="G_LEAGUE">G리그</SelectItem>
                       <SelectItem value="PLAYOFF">플레이오프</SelectItem>
                       <SelectItem value="SBS_CUP">SBS컵</SelectItem>
                       <SelectItem value="GIFA_CUP">GIFA컵</SelectItem>
-                      <SelectItem value="CHAMPION_MATCH">챔피언 경기</SelectItem>
+                      <SelectItem value="CHAMPION_MATCH">
+                        챔피언 경기
+                      </SelectItem>
                       <SelectItem value="OTHER">기타</SelectItem>
                     </SelectContent>
                   </Select>
@@ -677,7 +685,10 @@ function CreateSeasonForm({ onSuccess }: { onSuccess: () => void }) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>카테고리</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="카테고리 선택" />
@@ -685,12 +696,16 @@ function CreateSeasonForm({ onSuccess }: { onSuccess: () => void }) {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="SUPER_LEAGUE">슈퍼리그</SelectItem>
-                      <SelectItem value="CHALLENGE_LEAGUE">챌린지리그</SelectItem>
+                      <SelectItem value="CHALLENGE_LEAGUE">
+                        챌린지리그
+                      </SelectItem>
                       <SelectItem value="G_LEAGUE">G리그</SelectItem>
                       <SelectItem value="PLAYOFF">플레이오프</SelectItem>
                       <SelectItem value="SBS_CUP">SBS컵</SelectItem>
                       <SelectItem value="GIFA_CUP">GIFA컵</SelectItem>
-                      <SelectItem value="CHAMPION_MATCH">챔피언 경기</SelectItem>
+                      <SelectItem value="CHAMPION_MATCH">
+                        챔피언 경기
+                      </SelectItem>
                       <SelectItem value="OTHER">기타</SelectItem>
                     </SelectContent>
                   </Select>

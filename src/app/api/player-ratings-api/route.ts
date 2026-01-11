@@ -6,7 +6,6 @@ import { prisma } from '@/lib/prisma';
 
 // 타입 정의
 
-
 export const dynamic = 'force-dynamic';
 
 // GET - 특정 선수의 능력치 평가 데이터 조회
@@ -88,7 +87,9 @@ export async function GET(request: NextRequest) {
     }
 
     // 사용자 평가들 조회 (최신순)
-    const ratingsWhere: { player_id: number; season_id?: number } = { player_id: playerIdInt };
+    const ratingsWhere: { player_id: number; season_id?: number } = {
+      player_id: playerIdInt,
+    };
     if (seasonId && seasonId !== 'all') {
       ratingsWhere.season_id = parseInt(seasonId);
     }
@@ -190,7 +191,8 @@ export async function GET(request: NextRequest) {
     let currentUser = null;
     try {
       currentUser = await getCurrentUser();
-    } catch {// error unused
+    } catch {
+      // error unused
       console.log('사용자 인증 정보 없음 (게스트 모드)');
     }
 
@@ -210,12 +212,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Helper function to convert null to undefined and format dates
-    const formatRating = (rating: Record<string, unknown>): Record<string, unknown> => {
+    const formatRating = (
+      rating: Record<string, unknown>
+    ): Record<string, unknown> => {
       return {
         ...rating,
         user: {
           ...(rating.user as Record<string, unknown>),
-          profile_image_url: (rating.user as Record<string, unknown>).profile_image_url ?? undefined,
+          profile_image_url:
+            (rating.user as Record<string, unknown>).profile_image_url ??
+            undefined,
         },
         season: rating.season
           ? {
@@ -224,14 +230,18 @@ export async function GET(request: NextRequest) {
           : undefined,
         ...(rating.reviews
           ? {
-              reviews: (rating.reviews as Record<string, unknown>[]).map((review) => ({
-                ...review,
-                user: {
-                  ...(review.user as Record<string, unknown>),
-                  profile_image_url: (review.user as Record<string, unknown>).profile_image_url ?? undefined,
-                },
-                created_at: (review.created_at as Date).toISOString(),
-              })),
+              reviews: (rating.reviews as Record<string, unknown>[]).map(
+                (review) => ({
+                  ...review,
+                  user: {
+                    ...(review.user as Record<string, unknown>),
+                    profile_image_url:
+                      (review.user as Record<string, unknown>)
+                        .profile_image_url ?? undefined,
+                  },
+                  created_at: (review.created_at as Date).toISOString(),
+                })
+              ),
             }
           : {}),
         created_at: (rating.created_at as Date).toISOString(),
@@ -245,13 +255,17 @@ export async function GET(request: NextRequest) {
         profile_image_url: player.profile_image_url ?? undefined,
       },
       aggregate: aggregate
-        ? {
+        ? ({
             ...aggregate,
             last_updated: aggregate.last_updated.toISOString(),
-          } as PlayerRatingsResponse['aggregate']
+          } as PlayerRatingsResponse['aggregate'])
         : undefined,
-      user_ratings: userRatings.map(formatRating) as unknown as PlayerRatingsResponse['user_ratings'],
-      top_ratings: topRatings.map(formatRating) as unknown as PlayerRatingsResponse['top_ratings'],
+      user_ratings: userRatings.map(
+        formatRating
+      ) as unknown as PlayerRatingsResponse['user_ratings'],
+      top_ratings: topRatings.map(
+        formatRating
+      ) as unknown as PlayerRatingsResponse['top_ratings'],
       has_user_rated: hasUserRated, // 현재 사용자 평가 여부 추가
     };
 
@@ -264,7 +278,10 @@ export async function GET(request: NextRequest) {
       name: error instanceof Error ? error.name : 'Unknown',
     });
     return NextResponse.json(
-      { error: 'Failed to fetch player ratings', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to fetch player ratings',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

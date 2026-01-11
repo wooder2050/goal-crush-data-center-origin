@@ -5,7 +5,10 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 // 골키퍼로 출전했는지 판단하는 함수
-function isGoalkeeperAppearance(position: string | null, goals_conceded: number | null): boolean {
+function isGoalkeeperAppearance(
+  position: string | null,
+  goals_conceded: number | null
+): boolean {
   // 포지션이 GK이거나, 필드 선수였지만 실점이 있는 경우 (골키퍼로 교체됨)
   return position === 'GK' || (position !== 'GK' && (goals_conceded || 0) > 0);
 }
@@ -30,24 +33,24 @@ export async function GET(
           select: {
             team_id: true,
             team_name: true,
-            logo: true
-          }
+            logo: true,
+          },
         },
         away_team: {
           select: {
             team_id: true,
             team_name: true,
-            logo: true
-          }
+            logo: true,
+          },
         },
         season: {
           select: {
             season_id: true,
             season_name: true,
-            year: true
-          }
-        }
-      }
+            year: true,
+          },
+        },
+      },
     });
 
     if (!match) {
@@ -62,25 +65,27 @@ export async function GET(
           select: {
             player_id: true,
             name: true,
-            profile_image_url: true
-          }
+            profile_image_url: true,
+          },
         },
         team: {
           select: {
             team_id: true,
             team_name: true,
-            logo: true
-          }
-        }
-      }
+            logo: true,
+          },
+        },
+      },
     });
 
     // 골키퍼로 출전한 선수들만 필터링
     const goalkeeperStats = playerMatchStats
-      .filter(stat => isGoalkeeperAppearance(stat.position, stat.goals_conceded))
-      .map(stat => {
+      .filter((stat) =>
+        isGoalkeeperAppearance(stat.position, stat.goals_conceded)
+      )
+      .map((stat) => {
         const isHome = stat.team?.team_id === match.home_team_id;
-        
+
         return {
           player_id: stat.player?.player_id,
           player_name: stat.player?.name,
@@ -92,7 +97,8 @@ export async function GET(
           position: stat.position,
           goals_conceded: stat.goals_conceded || 0,
           // 교체 여부 판단 (필드 포지션으로 시작했지만 실점이 있는 경우)
-          was_substituted_in: stat.position !== 'GK' && (stat.goals_conceded || 0) > 0
+          was_substituted_in:
+            stat.position !== 'GK' && (stat.goals_conceded || 0) > 0,
         };
       })
       .sort((a, b) => {
@@ -103,14 +109,23 @@ export async function GET(
       });
 
     // 팀별로 그룹화
-    const homeGoalkeepers = goalkeeperStats.filter(gk => gk.is_home);
-    const awayGoalkeepers = goalkeeperStats.filter(gk => !gk.is_home);
+    const homeGoalkeepers = goalkeeperStats.filter((gk) => gk.is_home);
+    const awayGoalkeepers = goalkeeperStats.filter((gk) => !gk.is_home);
 
     // 경기 요약 통계
     const matchSummary = {
-      total_goals_conceded: goalkeeperStats.reduce((sum, gk) => sum + gk.goals_conceded, 0),
-      home_team_goals_conceded: homeGoalkeepers.reduce((sum, gk) => sum + gk.goals_conceded, 0),
-      away_team_goals_conceded: awayGoalkeepers.reduce((sum, gk) => sum + gk.goals_conceded, 0)
+      total_goals_conceded: goalkeeperStats.reduce(
+        (sum, gk) => sum + gk.goals_conceded,
+        0
+      ),
+      home_team_goals_conceded: homeGoalkeepers.reduce(
+        (sum, gk) => sum + gk.goals_conceded,
+        0
+      ),
+      away_team_goals_conceded: awayGoalkeepers.reduce(
+        (sum, gk) => sum + gk.goals_conceded,
+        0
+      ),
     };
 
     return NextResponse.json({
@@ -121,14 +136,13 @@ export async function GET(
         away_team: match.away_team,
         season: match.season,
         home_score: match.home_score,
-        away_score: match.away_score
+        away_score: match.away_score,
       },
       goalkeeper_stats: goalkeeperStats,
       home_goalkeepers: homeGoalkeepers,
       away_goalkeepers: awayGoalkeepers,
-      match_summary: matchSummary
+      match_summary: matchSummary,
     });
-
   } catch (error) {
     console.error('Error fetching match goalkeeper stats:', error);
     return NextResponse.json(

@@ -17,7 +17,9 @@ export const coachManagementFormSchema = z.object({
     .or(z.literal('')),
 });
 
-export type CoachManagementFormValues = z.infer<typeof coachManagementFormSchema>;
+export type CoachManagementFormValues = z.infer<
+  typeof coachManagementFormSchema
+>;
 
 export type CoachManagementFormInput = {
   name: string;

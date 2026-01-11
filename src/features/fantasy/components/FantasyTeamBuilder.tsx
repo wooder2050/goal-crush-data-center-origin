@@ -29,11 +29,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGoalMutation } from '@/hooks/useGoalMutation';
-import { 
-  type PlayerSelection, 
+import {
+  type PlayerSelection,
   type PlayerWithPosition,
   type Position,
-  validateTeamComposition} from '@/types/fantasy';
+  validateTeamComposition,
+} from '@/types/fantasy';
 
 import FantasyPlayerCard from './FantasyPlayerCard';
 import FootballPitch from './FootballPitch';

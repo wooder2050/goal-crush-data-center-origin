@@ -9,9 +9,7 @@ import { RatingsContent } from '@/features/player-ratings/components/RatingsCont
 
 export default function RatingsPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState<'recent' | 'popular'>(
-    'recent'
-  );
+  const [sortBy, setSortBy] = useState<'recent' | 'popular'>('recent');
   const ratingsPerPage = 12;
 
   const handleSortChange = (newSort: 'recent' | 'popular') => {

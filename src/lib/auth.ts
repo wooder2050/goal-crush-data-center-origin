@@ -133,7 +133,10 @@ export async function getCurrentUser() {
       dbUser = await prisma.user.create({
         data: {
           user_id: user.id,
-          korean_nickname: user.user_metadata?.korean_nickname || user.email?.split('@')[0] || 'User',
+          korean_nickname:
+            user.user_metadata?.korean_nickname ||
+            user.email?.split('@')[0] ||
+            'User',
           display_name: user.user_metadata?.display_name,
           profile_image_url: user.user_metadata?.avatar_url,
         },

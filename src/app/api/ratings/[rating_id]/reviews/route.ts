@@ -26,10 +26,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const limit = parseInt(url.searchParams.get('limit') || '10');
 
     if (isNaN(ratingId)) {
-      return NextResponse.json(
-        { error: 'Invalid rating ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid rating ID' }, { status: 400 });
     }
 
     // 평가 존재 확인
@@ -38,15 +35,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!rating) {
-      return NextResponse.json(
-        { error: 'Rating not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Rating not found' }, { status: 404 });
     }
 
-    const where: { rating_id: number; review_type?: string } = { rating_id: ratingId };
-    
-    if (reviewType && ['helpful', 'not_helpful', 'comment'].includes(reviewType)) {
+    const where: { rating_id: number; review_type?: string } = {
+      rating_id: ratingId,
+    };
+
+    if (
+      reviewType &&
+      ['helpful', 'not_helpful', 'comment'].includes(reviewType)
+    ) {
       where.review_type = reviewType;
     }
 
@@ -85,7 +84,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       per_page: limit,
       total_pages: Math.ceil(totalCount / limit),
     });
-
   } catch (error) {
     console.error('Error fetching rating reviews:', error);
     return NextResponse.json(
@@ -102,16 +100,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { review_type, comment } = await request.json();
 
     if (isNaN(ratingId)) {
-      return NextResponse.json(
-        { error: 'Invalid rating ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid rating ID' }, { status: 400 });
     }
 
     // 리뷰 타입 검증
     if (!['helpful', 'not_helpful', 'comment'].includes(review_type)) {
       return NextResponse.json(
-        { error: 'Invalid review type. Must be helpful, not_helpful, or comment' },
+        {
+          error:
+            'Invalid review type. Must be helpful, not_helpful, or comment',
+        },
         { status: 400 }
       );
     }
@@ -141,10 +139,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!rating) {
-      return NextResponse.json(
-        { error: 'Rating not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Rating not found' }, { status: 404 });
     }
 
     // 자신의 평가에는 리뷰할 수 없음
@@ -168,14 +163,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (existingReview) {
       return NextResponse.json(
-        { error: 'You have already submitted this type of review for this rating' },
+        {
+          error:
+            'You have already submitted this type of review for this rating',
+        },
         { status: 409 }
       );
     }
 
     // helpful/not_helpful의 경우 반대 타입이 있으면 삭제
     if (review_type === 'helpful' || review_type === 'not_helpful') {
-      const oppositeType = review_type === 'helpful' ? 'not_helpful' : 'helpful';
+      const oppositeType =
+        review_type === 'helpful' ? 'not_helpful' : 'helpful';
       await prisma.ratingReview.deleteMany({
         where: {
           rating_id: ratingId,
@@ -215,7 +214,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
       created_at: review.created_at.toISOString(),
     });
-
   } catch (error) {
     console.error('Error creating rating review:', error);
     return NextResponse.json(

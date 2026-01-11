@@ -24,7 +24,7 @@ export default function PlayerVsTeamPage() {
           </p>
         </div>
       </div>
-      
+
       <PlayerVsTeamPageContent />
     </div>
   );

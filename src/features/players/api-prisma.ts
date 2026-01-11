@@ -27,7 +27,12 @@ export type PlayersPageItem = {
   created_at: string | null;
   updated_at: string | null;
   seasons: Array<{ season_name: string | null; year: number | null }>;
-  totals: { appearances: number; goals: number; assists: number; goals_conceded: number };
+  totals: {
+    appearances: number;
+    goals: number;
+    assists: number;
+    goals_conceded: number;
+  };
 };
 export type PlayersPageResponse = {
   items: PlayersPageItem[];
@@ -70,7 +75,12 @@ export const getPlayersSummariesPrisma = async (
     number,
     {
       seasons: Array<{ season_name: string | null; year: number | null }>;
-      totals: { appearances: number; goals: number; assists: number; goals_conceded: number };
+      totals: {
+        appearances: number;
+        goals: number;
+        assists: number;
+        goals_conceded: number;
+      };
     }
   >
 > => {
@@ -174,8 +184,18 @@ export const getPlayerSummaryPrisma = async (
     penalty_goals: number;
     positions: string[];
   }>;
-  totals: { goals: number; assists: number; appearances: number; goals_conceded: number };
-  totals_for_team?: { goals: number; assists: number; appearances: number; goals_conceded: number };
+  totals: {
+    goals: number;
+    assists: number;
+    appearances: number;
+    goals_conceded: number;
+  };
+  totals_for_team?: {
+    goals: number;
+    assists: number;
+    appearances: number;
+    goals_conceded: number;
+  };
   per_team_totals?: Array<{
     team_id: number;
     team_name: string | null;

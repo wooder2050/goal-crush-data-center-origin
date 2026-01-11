@@ -167,20 +167,26 @@ export default function HomePage() {
             <div className="w-16 h-16 mx-auto rounded-full bg-[#ff4800]/10 flex items-center justify-center mb-4">
               <Trophy className="h-8 w-8 text-[#ff4800]" />
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">현재 득점왕 TOP 5</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              현재 득점왕 TOP 5
+            </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               이번 시즌 가장 많은 골을 넣은 선수들을 확인해보세요
             </p>
           </div>
-          
+
           <div className="max-w-2xl mx-auto">
             <GoalWrapper fallback={<TopScorersLoading />}>
               <TopScorersList />
             </GoalWrapper>
-            
+
             <div className="text-center mt-8">
               <Link href="/stats/scoring">
-                <Button variant="outline" size="lg" className="text-[#ff4800] border-[#ff4800] hover:bg-[#ff4800] hover:text-white">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-[#ff4800] border-[#ff4800] hover:bg-[#ff4800] hover:text-white"
+                >
                   전체 득점 랭킹 보기
                 </Button>
               </Link>

@@ -83,7 +83,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    
+
     // 입력값 유효성 검사
     const validatedData = updateCoachSchema.parse(body);
 
@@ -123,7 +123,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       name: validatedData.name,
       nationality: validatedData.nationality,
       profile_image_url: validatedData.profile_image_url,
-      birth_date: validatedData.birth_date ? new Date(validatedData.birth_date) : null,
+      birth_date: validatedData.birth_date
+        ? new Date(validatedData.birth_date)
+        : null,
     };
 
     const updatedCoach = await prisma.coach.update({
@@ -134,7 +136,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(updatedCoach);
   } catch (error) {
     console.error('감독 수정 중 오류:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: '입력값이 올바르지 않습니다.', details: error.errors },
@@ -180,10 +182,7 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     const relatedData = await prisma.$transaction([
       prisma.match.count({
         where: {
-          OR: [
-            { home_coach_id: coachId },
-            { away_coach_id: coachId },
-          ],
+          OR: [{ home_coach_id: coachId }, { away_coach_id: coachId }],
         },
       }),
       prisma.matchCoach.count({
@@ -198,13 +197,13 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
 
     if (matchCount > 0 || matchCoachCount > 0 || teamHistoryCount > 0) {
       return NextResponse.json(
-        { 
+        {
           error: '연관된 경기나 팀 기록이 있어 삭제할 수 없습니다.',
           details: {
             matches: matchCount,
             matchCoaches: matchCoachCount,
             teamHistory: teamHistoryCount,
-          }
+          },
         },
         { status: 400 }
       );

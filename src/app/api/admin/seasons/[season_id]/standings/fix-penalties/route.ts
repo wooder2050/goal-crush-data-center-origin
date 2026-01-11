@@ -20,7 +20,10 @@ export async function POST(
 
     // season_id=23에 대한 승부차기 결과 반영 업데이트
     if (seasonId !== 23) {
-      return NextResponse.json({ error: 'This fix is only for season 23' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'This fix is only for season 23' },
+        { status: 400 }
+      );
     }
 
     const updates = [

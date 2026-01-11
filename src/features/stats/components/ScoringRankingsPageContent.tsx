@@ -6,18 +6,19 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
-import { 
+import {
   Button,
-  Card, 
+  Card,
   CardContent,
-  H1, 
+  H1,
   Pagination,
   Section,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue} from '@/components/ui';
+  SelectValue,
+} from '@/components/ui';
 import InfiniteSeasonSelect from '@/features/stats/components/InfiniteSeasonSelect';
 import ScoringRankingsPageContentSkeleton from '@/features/stats/components/ScoringRankingsPageContentSkeleton';
 import type { ScoringRankingsResponse } from '@/features/stats/types';
@@ -55,12 +56,7 @@ function ScoringRankingsPageContentInner() {
   const [sortBy, setSortBy] = useState('attack_points');
   const [minMatches, setMinMatches] = useState(3);
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch
-  } = useGoalQuery(
+  const { data, isLoading, error, refetch } = useGoalQuery(
     getScoringRankings,
     [seasonId, page, 10, sortBy, minMatches],
     {
@@ -86,7 +82,6 @@ function ScoringRankingsPageContentInner() {
     setMinMatches(parseInt(newMinMatches));
     setPage(1);
   };
-
 
   // 시즌 표시를 최대 3개로 제한하고 나머지는 +N으로 표시
   const formatSeasonDisplay = (seasonsStr: string) => {
@@ -154,13 +149,23 @@ function ScoringRankingsPageContentInner() {
                     <SelectValue placeholder="정렬 기준 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="attack_points">공격포인트 많은 순</SelectItem>
+                    <SelectItem value="attack_points">
+                      공격포인트 많은 순
+                    </SelectItem>
                     <SelectItem value="goals">득점 많은 순</SelectItem>
                     <SelectItem value="assists">도움 많은 순</SelectItem>
-                    <SelectItem value="matches_played">출전경기 많은 순</SelectItem>
-                    <SelectItem value="attack_points_per_match">경기당 공격포인트 많은 순</SelectItem>
-                    <SelectItem value="goals_per_match">경기당 골 많은 순</SelectItem>
-                    <SelectItem value="assists_per_match">경기당 도움 많은 순</SelectItem>
+                    <SelectItem value="matches_played">
+                      출전경기 많은 순
+                    </SelectItem>
+                    <SelectItem value="attack_points_per_match">
+                      경기당 공격포인트 많은 순
+                    </SelectItem>
+                    <SelectItem value="goals_per_match">
+                      경기당 골 많은 순
+                    </SelectItem>
+                    <SelectItem value="assists_per_match">
+                      경기당 도움 많은 순
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -224,16 +229,36 @@ function ScoringRankingsPageContentInner() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 py-3 text-left font-medium text-gray-700">순위</th>
-                    <th className="px-3 py-3 text-left font-medium text-gray-700">선수</th>
-                    <th className="px-3 py-3 text-left font-medium text-gray-700">소속팀</th>
-                    <th className="px-3 py-3 text-center font-medium text-gray-700">경기</th>
-                    <th className="px-3 py-3 text-center font-medium text-gray-700">득점</th>
-                    <th className="px-3 py-3 text-center font-medium text-gray-700">도움</th>
-                    <th className="px-3 py-3 text-center font-medium text-gray-700">공격포인트</th>
-                    <th className="px-3 py-3 text-center font-medium text-gray-700 hidden lg:table-cell">경기당 득점</th>
-                    <th className="px-3 py-3 text-center font-medium text-gray-700 hidden lg:table-cell">경기당 도움</th>
-                    <th className="px-3 py-3 text-center font-medium text-gray-700">경기당 공격P</th>
+                    <th className="px-3 py-3 text-left font-medium text-gray-700">
+                      순위
+                    </th>
+                    <th className="px-3 py-3 text-left font-medium text-gray-700">
+                      선수
+                    </th>
+                    <th className="px-3 py-3 text-left font-medium text-gray-700">
+                      소속팀
+                    </th>
+                    <th className="px-3 py-3 text-center font-medium text-gray-700">
+                      경기
+                    </th>
+                    <th className="px-3 py-3 text-center font-medium text-gray-700">
+                      득점
+                    </th>
+                    <th className="px-3 py-3 text-center font-medium text-gray-700">
+                      도움
+                    </th>
+                    <th className="px-3 py-3 text-center font-medium text-gray-700">
+                      공격포인트
+                    </th>
+                    <th className="px-3 py-3 text-center font-medium text-gray-700 hidden lg:table-cell">
+                      경기당 득점
+                    </th>
+                    <th className="px-3 py-3 text-center font-medium text-gray-700 hidden lg:table-cell">
+                      경기당 도움
+                    </th>
+                    <th className="px-3 py-3 text-center font-medium text-gray-700">
+                      경기당 공격P
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -245,9 +270,7 @@ function ScoringRankingsPageContentInner() {
                       >
                         <div className="flex items-center justify-center">
                           <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-blue-500"></div>
-                          <span className="ml-2">
-                            데이터를 불러오는 중...
-                          </span>
+                          <span className="ml-2">데이터를 불러오는 중...</span>
                         </div>
                       </td>
                     </tr>
@@ -302,7 +325,7 @@ function ScoringRankingsPageContentInner() {
                             )}
                             <div>
                               <div className="font-medium text-gray-900">
-                                <Link 
+                                <Link
                                   href={`/players/${player.player_id}`}
                                   className="hover:text-blue-600 hover:underline"
                                 >
@@ -333,7 +356,7 @@ function ScoringRankingsPageContentInner() {
                               )}
                             <div className="hidden sm:block text-sm text-gray-900">
                               {player.first_team_id ? (
-                                <Link 
+                                <Link
                                   href={`/teams/${player.first_team_id}`}
                                   className="hover:text-blue-600 hover:underline"
                                 >
@@ -346,25 +369,39 @@ function ScoringRankingsPageContentInner() {
                           </div>
                         </td>
                         <td className="px-3 py-3 text-center">
-                          <span className="text-gray-900 font-medium">{player.matches_played}</span>
+                          <span className="text-gray-900 font-medium">
+                            {player.matches_played}
+                          </span>
                         </td>
                         <td className="px-3 py-3 text-center">
-                          <span className="font-bold text-blue-600">{player.goals}</span>
+                          <span className="font-bold text-blue-600">
+                            {player.goals}
+                          </span>
                         </td>
                         <td className="px-3 py-3 text-center">
-                          <span className="font-bold text-green-600">{player.assists}</span>
+                          <span className="font-bold text-green-600">
+                            {player.assists}
+                          </span>
                         </td>
                         <td className="px-3 py-3 text-center">
-                          <span className="font-bold text-amber-600">{player.attack_points}</span>
+                          <span className="font-bold text-amber-600">
+                            {player.attack_points}
+                          </span>
                         </td>
                         <td className="px-3 py-3 text-center hidden lg:table-cell">
-                          <span className="text-xs text-gray-600">{player.goals_per_match}</span>
+                          <span className="text-xs text-gray-600">
+                            {player.goals_per_match}
+                          </span>
                         </td>
                         <td className="px-3 py-3 text-center hidden lg:table-cell">
-                          <span className="text-xs text-gray-600">{player.assists_per_match}</span>
+                          <span className="text-xs text-gray-600">
+                            {player.assists_per_match}
+                          </span>
                         </td>
                         <td className="px-3 py-3 text-center">
-                          <span className="text-xs text-gray-600">{player.attack_points_per_match}</span>
+                          <span className="text-xs text-gray-600">
+                            {player.attack_points_per_match}
+                          </span>
                         </td>
                       </tr>
                     ))
@@ -450,7 +487,7 @@ function ScoringRankingsPageContentInner() {
                     {/* 선수 이름 및 팀 정보 */}
                     <div className="flex-1 ml-3 min-w-0">
                       <div className="font-medium text-gray-900 truncate">
-                        <Link 
+                        <Link
                           href={`/players/${player.player_id}`}
                           className="hover:text-blue-600 hover:underline"
                         >
@@ -458,21 +495,20 @@ function ScoringRankingsPageContentInner() {
                         </Link>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
-                        {player.team_logos &&
-                          player.team_logos.length > 0 && (
-                            <span className="relative h-4 w-4 overflow-hidden rounded-full flex-shrink-0">
-                              <Image
-                                src={player.team_logos[0]}
-                                alt="팀 로고"
-                                fill
-                                sizes="16px"
-                                className="object-cover"
-                              />
-                            </span>
-                          )}
+                        {player.team_logos && player.team_logos.length > 0 && (
+                          <span className="relative h-4 w-4 overflow-hidden rounded-full flex-shrink-0">
+                            <Image
+                              src={player.team_logos[0]}
+                              alt="팀 로고"
+                              fill
+                              sizes="16px"
+                              className="object-cover"
+                            />
+                          </span>
+                        )}
                         <span className="text-sm text-gray-600 truncate">
                           {player.first_team_id ? (
-                            <Link 
+                            <Link
                               href={`/teams/${player.first_team_id}`}
                               className="hover:text-blue-600 hover:underline"
                             >

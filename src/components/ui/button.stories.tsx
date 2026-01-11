@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Download, Heart,Mail, Plus, Trash2 } from 'lucide-react';
+import { Download, Heart, Mail, Plus, Trash2 } from 'lucide-react';
 
 import { Button } from './button';
 
@@ -9,14 +9,22 @@ const meta: Meta<typeof Button> = {
   parameters: {
     docs: {
       description: {
-        component: 'A versatile button component with multiple variants and sizes. Built with class-variance-authority for consistent styling.',
+        component:
+          'A versatile button component with multiple variants and sizes. Built with class-variance-authority for consistent styling.',
       },
     },
   },
   argTypes: {
     variant: {
       control: { type: 'select' },
-      options: ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'],
+      options: [
+        'default',
+        'destructive',
+        'outline',
+        'secondary',
+        'ghost',
+        'link',
+      ],
       description: 'Visual style variant of the button',
     },
     size: {
@@ -126,7 +134,9 @@ export const FullWidth: Story = {
   render: () => (
     <div className="w-full max-w-md space-y-2">
       <Button className="w-full">전체 너비 버튼</Button>
-      <Button variant="outline" className="w-full">전체 너비 외곽선 버튼</Button>
+      <Button variant="outline" className="w-full">
+        전체 너비 외곽선 버튼
+      </Button>
     </div>
   ),
 };
@@ -143,7 +153,7 @@ export const SportsContext: Story = {
           <Button variant="secondary">랭킹 보기</Button>
         </div>
       </div>
-      
+
       <div>
         <h4 className="text-sm font-semibold mb-3">Player Actions</h4>
         <div className="flex flex-wrap gap-3">
@@ -152,7 +162,9 @@ export const SportsContext: Story = {
             <Trash2 className="mr-1 h-3 w-3" />
             선수 제거
           </Button>
-          <Button variant="ghost" size="sm">선수 정보</Button>
+          <Button variant="ghost" size="sm">
+            선수 정보
+          </Button>
         </div>
       </div>
 

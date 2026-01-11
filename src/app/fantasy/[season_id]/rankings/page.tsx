@@ -1,4 +1,4 @@
-import { Calendar, Share2,Trophy, Users } from 'lucide-react';
+import { Calendar, Share2, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -71,10 +71,7 @@ async function getFantasySeasonWithRankings(
         take: 3, // 상위 3명만
       },
     },
-    orderBy: [
-      { total_points: 'desc' },
-      { created_at: 'asc' },
-    ],
+    orderBy: [{ total_points: 'desc' }, { created_at: 'asc' }],
     skip,
     take: limit,
   });
@@ -137,7 +134,10 @@ async function getUserRanking(fantasySeasonId: number, userId: string) {
   };
 }
 
-export default async function FantasyRankingsPage({ params, searchParams }: PageProps) {
+export default async function FantasyRankingsPage({
+  params,
+  searchParams,
+}: PageProps) {
   const user = await getCurrentUser();
   const fantasySeasonId = parseInt(params.season_id);
   const page = parseInt(searchParams.page || '1');
@@ -173,7 +173,8 @@ export default async function FantasyRankingsPage({ params, searchParams }: Page
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {formatMonthYear(fantasy_season.year, fantasy_season.month)} 시즌 랭킹
+              {formatMonthYear(fantasy_season.year, fantasy_season.month)} 시즌
+              랭킹
             </h1>
             <div className="flex items-center space-x-4 text-gray-600">
               <div className="flex items-center space-x-1">
@@ -185,8 +186,8 @@ export default async function FantasyRankingsPage({ params, searchParams }: Page
                 <span>{pagination.total_teams}팀 참여</span>
               </div>
               {fantasy_season.is_active && (
-                <Badge variant={isSeasonActive() ? "default" : "secondary"}>
-                  {isSeasonActive() ? "진행 중" : "편성 마감"}
+                <Badge variant={isSeasonActive() ? 'default' : 'secondary'}>
+                  {isSeasonActive() ? '진행 중' : '편성 마감'}
                 </Badge>
               )}
             </div>
@@ -197,7 +198,7 @@ export default async function FantasyRankingsPage({ params, searchParams }: Page
               <Share2 className="w-4 h-4 mr-2" />
               공유하기
             </Button>
-            
+
             {user && (
               <Link href={`/fantasy/${fantasySeasonId}/my-team`}>
                 <Button size="sm">내 팀 보기</Button>
@@ -244,28 +245,28 @@ export default async function FantasyRankingsPage({ params, searchParams }: Page
             <Trophy className="w-5 h-5 text-yellow-500" />
             <span>TOP 3</span>
           </h2>
-          
+
           <div className="grid md:grid-cols-3 gap-6">
             {rankings.slice(0, 3).map((team, index) => (
               <Card
                 key={team.fantasy_team_id}
                 className={`relative ${
-                  index === 0 
-                    ? 'ring-2 ring-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50' 
+                  index === 0
+                    ? 'ring-2 ring-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50'
                     : index === 1
-                    ? 'ring-2 ring-gray-400 bg-gradient-to-br from-gray-50 to-slate-50'
-                    : 'ring-2 ring-amber-600 bg-gradient-to-br from-amber-50 to-orange-50'
+                      ? 'ring-2 ring-gray-400 bg-gradient-to-br from-gray-50 to-slate-50'
+                      : 'ring-2 ring-amber-600 bg-gradient-to-br from-amber-50 to-orange-50'
                 }`}
               >
                 {/* 순위 배지 */}
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
-                      index === 0 
-                        ? 'bg-yellow-500' 
-                        : index === 1 
-                        ? 'bg-gray-400'
-                        : 'bg-amber-600'
+                      index === 0
+                        ? 'bg-yellow-500'
+                        : index === 1
+                          ? 'bg-gray-400'
+                          : 'bg-amber-600'
                     }`}
                   >
                     {index + 1}
@@ -276,7 +277,7 @@ export default async function FantasyRankingsPage({ params, searchParams }: Page
                   <h3 className="font-bold text-lg mb-2">
                     {team.user.display_name || team.user.korean_nickname}
                   </h3>
-                  
+
                   {team.team_name && (
                     <p className="text-gray-600 mb-3">{team.team_name}</p>
                   )}
@@ -287,15 +288,21 @@ export default async function FantasyRankingsPage({ params, searchParams }: Page
 
                   {/* 상위 선수 3명 */}
                   <div className="space-y-2">
-                    {team.player_selections.slice(0, 3).map((selection, playerIndex) => (
-                      <div
-                        key={playerIndex}
-                        className="flex items-center justify-between text-sm bg-white/50 rounded px-2 py-1"
-                      >
-                        <span className="font-medium">{selection.player.name}</span>
-                        <span className="text-gray-600">{selection.points_earned}pt</span>
-                      </div>
-                    ))}
+                    {team.player_selections
+                      .slice(0, 3)
+                      .map((selection, playerIndex) => (
+                        <div
+                          key={playerIndex}
+                          className="flex items-center justify-between text-sm bg-white/50 rounded px-2 py-1"
+                        >
+                          <span className="font-medium">
+                            {selection.player.name}
+                          </span>
+                          <span className="text-gray-600">
+                            {selection.points_earned}pt
+                          </span>
+                        </div>
+                      ))}
                   </div>
                 </CardContent>
               </Card>
@@ -317,42 +324,56 @@ export default async function FantasyRankingsPage({ params, searchParams }: Page
         <div className="flex justify-center space-x-2 mt-8">
           {/* 이전 페이지 */}
           {pagination.current_page > 1 && (
-            <Link href={`/fantasy/${fantasySeasonId}/rankings?page=${pagination.current_page - 1}`}>
+            <Link
+              href={`/fantasy/${fantasySeasonId}/rankings?page=${pagination.current_page - 1}`}
+            >
               <Button variant="outline">이전</Button>
             </Link>
           )}
 
           {/* 페이지 번호들 */}
-          {Array.from({ length: Math.min(5, pagination.total_pages) }, (_, i) => {
-            let pageNumber;
-            if (pagination.total_pages <= 5) {
-              pageNumber = i + 1;
-            } else if (pagination.current_page <= 3) {
-              pageNumber = i + 1;
-            } else if (pagination.current_page >= pagination.total_pages - 2) {
-              pageNumber = pagination.total_pages - 4 + i;
-            } else {
-              pageNumber = pagination.current_page - 2 + i;
-            }
+          {Array.from(
+            { length: Math.min(5, pagination.total_pages) },
+            (_, i) => {
+              let pageNumber;
+              if (pagination.total_pages <= 5) {
+                pageNumber = i + 1;
+              } else if (pagination.current_page <= 3) {
+                pageNumber = i + 1;
+              } else if (
+                pagination.current_page >=
+                pagination.total_pages - 2
+              ) {
+                pageNumber = pagination.total_pages - 4 + i;
+              } else {
+                pageNumber = pagination.current_page - 2 + i;
+              }
 
-            return (
-              <Link
-                key={pageNumber}
-                href={`/fantasy/${fantasySeasonId}/rankings?page=${pageNumber}`}
-              >
-                <Button
-                  variant={pageNumber === pagination.current_page ? "default" : "outline"}
-                  size="sm"
+              return (
+                <Link
+                  key={pageNumber}
+                  href={`/fantasy/${fantasySeasonId}/rankings?page=${pageNumber}`}
                 >
-                  {pageNumber}
-                </Button>
-              </Link>
-            );
-          })}
+                  <Button
+                    variant={
+                      pageNumber === pagination.current_page
+                        ? 'default'
+                        : 'outline'
+                    }
+                    size="sm"
+                  >
+                    {pageNumber}
+                  </Button>
+                </Link>
+              );
+            }
+          )}
 
           {/* 다음 페이지 */}
           {pagination.current_page < pagination.total_pages && (
-            <Link href={`/fantasy/${fantasySeasonId}/rankings?page=${pagination.current_page + 1}`}>
+            <Link
+              href={`/fantasy/${fantasySeasonId}/rankings?page=${pagination.current_page + 1}`}
+            >
               <Button variant="outline">다음</Button>
             </Link>
           )}
@@ -367,9 +388,7 @@ export default async function FantasyRankingsPage({ params, searchParams }: Page
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               아직 참여한 팀이 없습니다
             </h3>
-            <p className="text-gray-600 mb-6">
-              첫 번째로 팀을 만들어 보세요!
-            </p>
+            <p className="text-gray-600 mb-6">첫 번째로 팀을 만들어 보세요!</p>
             {isSeasonActive() && (
               <Link href={`/fantasy/${fantasySeasonId}/create-team`}>
                 <Button>팀 만들기</Button>
