@@ -3,18 +3,13 @@
  */
 
 // Head-to-head types
-export type {
-  HeadToHeadMatch,
-  HeadToHeadStats,
-} from './head-to-head';
+export type { HeadToHeadMatch, HeadToHeadStats } from './head-to-head';
 
-// Matches types  
+// Matches types
 export type {
   MatchTeamSeasonNameResult,
   TeamSeasonNameResult,
 } from './matches';
 
 // Lineups types
-export type {
-  PlayerMatchStatWithRelations,
-} from './lineups';
+export type { PlayerMatchStatWithRelations } from './lineups';

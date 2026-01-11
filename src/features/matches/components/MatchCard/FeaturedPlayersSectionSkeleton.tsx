@@ -8,7 +8,9 @@ interface Props {
   className?: string;
 }
 
-export default function FeaturedPlayersSectionSkeleton({ className = '' }: Props) {
+export default function FeaturedPlayersSectionSkeleton({
+  className = '',
+}: Props) {
   return (
     <Card className={`p-3 sm:p-4 ${className}`}>
       <div className="mb-3 text-sm font-semibold text-gray-800">

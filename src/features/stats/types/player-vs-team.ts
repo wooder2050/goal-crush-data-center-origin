@@ -33,10 +33,10 @@ export interface Player {
   } | null;
 }
 
-export type SortOption = 
-  | 'attack_points' 
-  | 'goals' 
-  | 'assists' 
-  | 'goals_per_match' 
-  | 'assists_per_match' 
+export type SortOption =
+  | 'attack_points'
+  | 'goals'
+  | 'assists'
+  | 'goals_per_match'
+  | 'assists_per_match'
   | 'attack_points_per_match';

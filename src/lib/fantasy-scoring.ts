@@ -3,8 +3,8 @@ import { FantasyRules } from '@/types/fantasy';
 
 // 판타지 점수 규칙 (JSON에서 정의한 규칙)
 export const FANTASY_RULES: FantasyRules = {
-  version: "1.0.0",
-  effective_date: "2025-09-05",
+  version: '1.0.0',
+  effective_date: '2025-09-05',
   rules: {
     appearance: {
       played: 2,
@@ -68,7 +68,7 @@ export function calculatePlayerFantasyPoints(
   total_points: number;
 } {
   const rules = FANTASY_RULES.rules;
-  
+
   let appearance_points = 0;
   let goal_points = 0;
   let assist_points = 0;
@@ -82,7 +82,7 @@ export function calculatePlayerFantasyPoints(
   // 출전 점수
   if (performance.minutes_played > 0) {
     appearance_points = rules.appearance.played;
-    
+
     // 선발 출전 보너스
     if (isStarter) {
       appearance_points += rules.appearance.starter_bonus;
@@ -92,9 +92,9 @@ export function calculatePlayerFantasyPoints(
   // 골 점수
   if (performance.goals > 0) {
     goal_points = performance.goals * rules.attack.goal;
-    
+
     // 여러 골 기여 보너스 (골 + 어시스트 >= 2)
-    if ((performance.goals + performance.assists) >= 2) {
+    if (performance.goals + performance.assists >= 2) {
       bonus_points += rules.attack.multiple_goal_contribution_bonus;
     }
   }
@@ -105,15 +105,20 @@ export function calculatePlayerFantasyPoints(
   }
 
   // 무실점 보너스 (골키퍼와 수비수만)
-  if (teamData.is_clean_sheet && 
-      performance.position && 
-      ['GK', 'CB', 'LB', 'RB', 'LWB', 'RWB'].includes(performance.position.toUpperCase())) {
+  if (
+    teamData.is_clean_sheet &&
+    performance.position &&
+    ['GK', 'CB', 'LB', 'RB', 'LWB', 'RWB'].includes(
+      performance.position.toUpperCase()
+    )
+  ) {
     clean_sheet_points = rules.defense.clean_sheet;
   }
 
   // 골키퍼 세이브 점수
   if (performance.saves > 0) {
-    save_points = Math.floor(performance.saves / 2) * rules.defense.goalkeeper_save_per_2;
+    save_points =
+      Math.floor(performance.saves / 2) * rules.defense.goalkeeper_save_per_2;
   }
 
   // 중요한 수비 액션 점수 (임시로 0, 추후 데이터 수집 시 구현)
@@ -126,7 +131,7 @@ export function calculatePlayerFantasyPoints(
   if (performance.yellow_cards > 0) {
     card_points += performance.yellow_cards * rules.deductions.yellow_card;
   }
-  
+
   if (performance.red_cards > 0) {
     card_points += performance.red_cards * rules.deductions.red_card;
   }
@@ -134,15 +139,15 @@ export function calculatePlayerFantasyPoints(
   // 자책골 감점 (임시로 0, 추후 Goal 모델에 own_goal 필드 추가 시 구현)
   // own_goal_points = own_goals * rules.deductions.own_goal;
 
-  const total_points = 
-    appearance_points + 
-    goal_points + 
-    assist_points + 
-    clean_sheet_points + 
-    save_points + 
-    defensive_points + 
-    penalty_points + 
-    card_points + 
+  const total_points =
+    appearance_points +
+    goal_points +
+    assist_points +
+    clean_sheet_points +
+    save_points +
+    defensive_points +
+    penalty_points +
+    card_points +
     bonus_points;
 
   return {
@@ -221,14 +226,19 @@ export async function calculateMatchFantasyScores(matchId: number) {
         team_id: playerStats.team_id,
       };
 
-      const teamData = performance.team_id === homeTeamData.team_id 
-        ? homeTeamData 
-        : awayTeamData;
+      const teamData =
+        performance.team_id === homeTeamData.team_id
+          ? homeTeamData
+          : awayTeamData;
 
       // 선발 출전 여부 (90분 이상 출전한 경우를 선발로 가정)
       const isStarter = (performance.minutes_played || 0) >= 60;
 
-      const points = calculatePlayerFantasyPoints(performance, teamData, isStarter);
+      const points = calculatePlayerFantasyPoints(
+        performance,
+        teamData,
+        isStarter
+      );
 
       // 해당 선수가 포함된 판타지 팀들 찾기
       for (const fantasySeason of activeFantasySeasons) {
@@ -279,9 +289,13 @@ export async function calculateMatchFantasyScores(matchId: number) {
     }
 
     // 판타지 팀 총점 업데이트
-    await updateFantasyTeamTotals(activeFantasySeasons.map(s => s.fantasy_season_id));
+    await updateFantasyTeamTotals(
+      activeFantasySeasons.map((s) => s.fantasy_season_id)
+    );
 
-    console.log(`경기 ${matchId}의 판타지 점수 계산 완료: ${fantasyPerformances.length}개 성과 처리`);
+    console.log(
+      `경기 ${matchId}의 판타지 점수 계산 완료: ${fantasyPerformances.length}개 성과 처리`
+    );
 
     return {
       match_id: matchId,
@@ -358,8 +372,10 @@ export async function recalculateSeasonFantasyScores(seasonId: number) {
       results.push(result);
     }
 
-    console.log(`시즌 ${seasonId}의 판타지 점수 재계산 완료: ${results.length}개 경기 처리`);
-    
+    console.log(
+      `시즌 ${seasonId}의 판타지 점수 재계산 완료: ${results.length}개 경기 처리`
+    );
+
     return {
       season_id: seasonId,
       processed_matches: results.length,

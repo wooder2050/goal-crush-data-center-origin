@@ -187,11 +187,15 @@ export async function GET(request: NextRequest) {
         },
       });
 
-
       // Group by player_id and count only appearances where minutes_played > 0
       const totalsMap = new Map<
         number,
-        { appearances: number; goals: number; assists: number; goals_conceded: number }
+        {
+          appearances: number;
+          goals: number;
+          assists: number;
+          goals_conceded: number;
+        }
       >();
 
       for (const stat of allPlayerStats) {
@@ -202,7 +206,12 @@ export async function GET(request: NextRequest) {
         const goalsConceded = (stat.goals_conceded ?? 0) as number;
 
         if (!totalsMap.has(pid)) {
-          totalsMap.set(pid, { appearances: 0, goals: 0, assists: 0, goals_conceded: 0 });
+          totalsMap.set(pid, {
+            appearances: 0,
+            goals: 0,
+            assists: 0,
+            goals_conceded: 0,
+          });
         }
 
         const playerTotal = totalsMap.get(pid)!;
@@ -212,9 +221,12 @@ export async function GET(request: NextRequest) {
         }
         playerTotal.goals += goals;
         playerTotal.assists += assists;
-        
+
         // Add goals conceded only for goalkeeper appearances
-        if (stat.position === 'GK' || (stat.position !== 'GK' && (stat.goals_conceded || 0) > 0)) {
+        if (
+          stat.position === 'GK' ||
+          (stat.position !== 'GK' && (stat.goals_conceded || 0) > 0)
+        ) {
           playerTotal.goals_conceded += goalsConceded;
         }
       }
@@ -296,7 +308,6 @@ export async function GET(request: NextRequest) {
           goals_conceded: true,
         },
       });
-
 
       // Group by player_id and count only appearances where minutes_played > 0
       const orderMap = new Map<
@@ -434,7 +445,6 @@ export async function GET(request: NextRequest) {
         },
       });
 
-
       // Group by player_id and count only appearances where minutes_played > 0
       const orderMap = new Map<
         number,
@@ -553,7 +563,6 @@ export async function GET(request: NextRequest) {
           goals_conceded: true,
         },
       });
-
 
       // Group by player_id and count only appearances where minutes_played > 0
       const orderMap = new Map<

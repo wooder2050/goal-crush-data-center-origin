@@ -124,13 +124,15 @@ export function RatingsContent({
                 <Card
                   key={rating.rating_id}
                   className="relative overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => window.location.href = `/players/${rating.player.player_id}/ratings`}
+                  onClick={() =>
+                    (window.location.href = `/players/${rating.player.player_id}/ratings`)
+                  }
                 >
                   <CardContent className="p-4">
                     {/* 선수 정보 */}
                     <div className="flex items-center gap-3 mb-3">
                       {/* 선수 사진 - 선수 페이지로 이동 */}
-                      <Link 
+                      <Link
                         href={`/players/${rating.player.player_id}`}
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -176,91 +178,89 @@ export function RatingsContent({
                     {/* 주요 능력치 표시 */}
                     <div className="mb-3">
                       <div className="grid grid-cols-3 gap-2 text-xs">
-                          {rating.finishing && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">피니싱</span>
-                              <span className="font-medium">
-                                {rating.finishing}
-                              </span>
-                            </div>
-                          )}
-                          {rating.short_passing && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">패스</span>
-                              <span className="font-medium">
-                                {rating.short_passing}
-                              </span>
-                            </div>
-                          )}
-                          {rating.dribbling && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">드리블</span>
-                              <span className="font-medium">
-                                {rating.dribbling}
-                              </span>
-                            </div>
-                          )}
-                          {rating.speed && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">스피드</span>
-                              <span className="font-medium">
-                                {rating.speed}
-                              </span>
-                            </div>
-                          )}
-                          {rating.strength && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">피지컬</span>
-                              <span className="font-medium">
-                                {rating.strength}
-                              </span>
-                            </div>
-                          )}
-                          {rating.marking && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">수비</span>
-                              <span className="font-medium">
-                                {rating.marking}
-                              </span>
-                            </div>
-                          )}
+                        {rating.finishing && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">피니싱</span>
+                            <span className="font-medium">
+                              {rating.finishing}
+                            </span>
+                          </div>
+                        )}
+                        {rating.short_passing && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">패스</span>
+                            <span className="font-medium">
+                              {rating.short_passing}
+                            </span>
+                          </div>
+                        )}
+                        {rating.dribbling && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">드리블</span>
+                            <span className="font-medium">
+                              {rating.dribbling}
+                            </span>
+                          </div>
+                        )}
+                        {rating.speed && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">스피드</span>
+                            <span className="font-medium">{rating.speed}</span>
+                          </div>
+                        )}
+                        {rating.strength && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">피지컬</span>
+                            <span className="font-medium">
+                              {rating.strength}
+                            </span>
+                          </div>
+                        )}
+                        {rating.marking && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">수비</span>
+                            <span className="font-medium">
+                              {rating.marking}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 코멘트 미리보기 */}
+                    {rating.comment && (
+                      <div className="p-2 bg-gray-50 rounded text-xs mb-3">
+                        <p className="text-gray-700 line-clamp-2 italic">
+                          &ldquo;{rating.comment}&rdquo;
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 하단 정보 */}
+                    <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3" />
+                          <span>{rating.helpful_count || 0} 도움</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="w-3 h-3" />
+                          <span>{rating.total_reviews || 0} 댓글</span>
                         </div>
                       </div>
-
-                      {/* 코멘트 미리보기 */}
-                      {rating.comment && (
-                        <div className="p-2 bg-gray-50 rounded text-xs mb-3">
-                          <p className="text-gray-700 line-clamp-2 italic">
-                            &ldquo;{rating.comment}&rdquo;
-                          </p>
-                        </div>
-                      )}
-
-                      {/* 하단 정보 */}
-                      <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1">
-                            <TrendingUp className="w-3 h-3" />
-                            <span>{rating.helpful_count || 0} 도움</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MessageCircle className="w-3 h-3" />
-                            <span>{rating.total_reviews || 0} 댓글</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="truncate max-w-20">
-                            {rating.user?.korean_nickname || '익명'}
-                          </span>
-                          <span>·</span>
-                          <span>
-                            {new Date(rating.created_at).toLocaleDateString(
-                              'ko-KR',
-                              { month: 'short', day: 'numeric' }
-                            )}
-                          </span>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <span className="truncate max-w-20">
+                          {rating.user?.korean_nickname || '익명'}
+                        </span>
+                        <span>·</span>
+                        <span>
+                          {new Date(rating.created_at).toLocaleDateString(
+                            'ko-KR',
+                            { month: 'short', day: 'numeric' }
+                          )}
+                        </span>
                       </div>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

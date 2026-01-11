@@ -1,4 +1,4 @@
-import type { Player,PlayerAbilityRating, Season, User } from '@prisma/client';
+import type { Player, PlayerAbilityRating, Season, User } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
@@ -178,7 +178,10 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error('Error fetching all ratings:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch ratings', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to fetch ratings',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

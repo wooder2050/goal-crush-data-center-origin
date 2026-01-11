@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // 권한 확인 생략 (다른 admin/stats 엔드포인트와 동일)
 
     const body = await request.json();
-    
+
     // 입력값 유효성 검사
     const validatedData = createCoachSchema.parse(body);
 
@@ -39,7 +39,9 @@ export async function POST(request: NextRequest) {
     const coach = await prisma.coach.create({
       data: {
         name: validatedData.name,
-        birth_date: validatedData.birth_date ? new Date(validatedData.birth_date) : null,
+        birth_date: validatedData.birth_date
+          ? new Date(validatedData.birth_date)
+          : null,
         nationality: validatedData.nationality,
         profile_image_url: validatedData.profile_image_url,
       },
@@ -48,7 +50,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(coach, { status: 201 });
   } catch (error) {
     console.error('감독 생성 중 오류:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: '입력값이 올바르지 않습니다.', details: error.errors },

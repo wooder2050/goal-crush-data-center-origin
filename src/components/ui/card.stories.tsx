@@ -1,10 +1,17 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { Calendar, MapPin, Star,Trophy, Users } from 'lucide-react';
+import { Calendar, MapPin, Star, Trophy, Users } from 'lucide-react';
 
 // Avatar component not available - using placeholder
 import { Badge } from './badge';
 import { Button } from './button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from './card';
 
 const meta: Meta<typeof Card> = {
   title: 'Design System/Components/Card',
@@ -12,7 +19,8 @@ const meta: Meta<typeof Card> = {
   parameters: {
     docs: {
       description: {
-        component: 'A flexible card component with header, content, and footer sections. Perfect for displaying structured information with custom shadows.',
+        component:
+          'A flexible card component with header, content, and footer sections. Perfect for displaying structured information with custom shadows.',
       },
     },
   },
@@ -31,7 +39,8 @@ export const Default: Story = {
       </CardHeader>
       <CardContent>
         <p className="text-sm text-gray-600">
-          카드의 주요 내용이 이곳에 들어갑니다. 다양한 정보를 구조화하여 보여줄 수 있습니다.
+          카드의 주요 내용이 이곳에 들어갑니다. 다양한 정보를 구조화하여 보여줄
+          수 있습니다.
         </p>
       </CardContent>
       <CardFooter>
@@ -66,7 +75,9 @@ export const BasicStructure: Story = {
           <CardTitle>헤더 + 컨텐츠</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-600">헤더와 컨텐츠가 함께 있는 카드입니다.</p>
+          <p className="text-sm text-gray-600">
+            헤더와 컨텐츠가 함께 있는 카드입니다.
+          </p>
         </CardContent>
       </Card>
 
@@ -77,7 +88,9 @@ export const BasicStructure: Story = {
           <CardDescription>모든 섹션이 포함된 카드</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-600">헤더, 컨텐츠, 푸터가 모두 있습니다.</p>
+          <p className="text-sm text-gray-600">
+            헤더, 컨텐츠, 푸터가 모두 있습니다.
+          </p>
         </CardContent>
         <CardFooter>
           <Button size="sm">액션</Button>
@@ -151,13 +164,13 @@ export const MatchCard: Story = {
             </div>
             <div className="font-semibold">FC 서울</div>
           </div>
-          
+
           {/* Score */}
           <div className="text-center px-6">
             <div className="text-3xl font-bold">2 - 1</div>
             <div className="text-sm text-gray-500 mt-1">전반 45분</div>
           </div>
-          
+
           {/* Away Team */}
           <div className="text-center">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -166,7 +179,7 @@ export const MatchCard: Story = {
             <div className="font-semibold">수원 삼성</div>
           </div>
         </div>
-        
+
         <div className="mt-4 flex items-center justify-center text-sm text-gray-500">
           <MapPin className="mr-1 h-4 w-4" />
           서울월드컵경기장
@@ -174,7 +187,9 @@ export const MatchCard: Story = {
       </CardContent>
       <CardFooter>
         <div className="flex w-full space-x-2">
-          <Button variant="outline" className="flex-1">하이라이트</Button>
+          <Button variant="outline" className="flex-1">
+            하이라이트
+          </Button>
           <Button className="flex-1">상세보기</Button>
         </div>
       </CardFooter>
@@ -221,7 +236,9 @@ export const FantasySeasonCard: Story = {
       </CardContent>
       <CardFooter>
         <div className="flex w-full space-x-2">
-          <Button variant="outline" className="flex-1">내 팀 관리</Button>
+          <Button variant="outline" className="flex-1">
+            내 팀 관리
+          </Button>
           <Button className="flex-1">랭킹 보기</Button>
         </div>
       </CardFooter>
@@ -304,7 +321,9 @@ export const VariousWidths: Story = {
           <CardTitle>중간 크기 카드</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-600">일반적으로 사용되는 중간 크기의 카드입니다.</p>
+          <p className="text-sm text-gray-600">
+            일반적으로 사용되는 중간 크기의 카드입니다.
+          </p>
         </CardContent>
       </Card>
 
@@ -315,7 +334,8 @@ export const VariousWidths: Story = {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-600">
-            컨테이너의 전체 너비를 사용하는 카드입니다. 더 많은 정보를 표시할 수 있습니다.
+            컨테이너의 전체 너비를 사용하는 카드입니다. 더 많은 정보를 표시할 수
+            있습니다.
           </p>
         </CardContent>
       </Card>

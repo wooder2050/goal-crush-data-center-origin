@@ -6,11 +6,11 @@
 export const colors = {
   // Brand Colors
   brand: {
-    primary: '#ff4800',      // Orange-red brand color
+    primary: '#ff4800', // Orange-red brand color
     primaryLight: '#ff4800/10',
     primaryDark: '#e6410a',
   },
-  
+
   // Neutral Colors (from CSS custom properties)
   neutral: {
     50: 'hsl(210, 40%, 98%)',
@@ -59,7 +59,7 @@ export const colors = {
       500: 'hsl(217, 91%, 60%)',
       600: 'hsl(221, 83%, 53%)',
       900: 'hsl(224, 76%, 48%)',
-    }
+    },
   },
 
   // Component-specific colors (used in existing components)
@@ -67,18 +67,18 @@ export const colors = {
     // Card shadows and borders
     cardShadow: 'rgba(0, 0, 0, 0.1)',
     cardBorder: 'hsl(214.3, 31.8%, 91.4%)',
-    
+
     // Input and form elements
     inputBorder: 'hsl(214.3, 31.8%, 91.4%)',
     inputFocus: 'hsl(222.2, 47.4%, 11.2%)',
-    
+
     // Sports-specific colors
-    trophy: '#fbbf24',      // Gold for trophies
+    trophy: '#fbbf24', // Gold for trophies
     trophyOutline: '#f59e0b',
-    
+
     // Hover states
     hoverOverlay: 'rgba(0, 0, 0, 0.05)',
-  }
+  },
 } as const;
 
 export type ColorScale = typeof colors;

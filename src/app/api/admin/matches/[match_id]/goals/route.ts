@@ -115,8 +115,9 @@ export async function POST(
 
     if (!playerMatchStats) {
       return NextResponse.json(
-        { 
-          error: 'Player must be registered in lineup before scoring goals. Please add the player to lineup first.' 
+        {
+          error:
+            'Player must be registered in lineup before scoring goals. Please add the player to lineup first.',
         },
         { status: 400 }
       );

@@ -27,7 +27,9 @@ interface MatchGoalkeeperStatsSectionProps {
   matchId: number;
 }
 
-export default function MatchGoalkeeperStatsSection({ matchId }: MatchGoalkeeperStatsSectionProps) {
+export default function MatchGoalkeeperStatsSection({
+  matchId,
+}: MatchGoalkeeperStatsSectionProps) {
   const { data: stats } = useGoalSuspenseQuery(getMatchGoalkeeperStats, [
     matchId,
   ]);
@@ -42,7 +44,6 @@ export default function MatchGoalkeeperStatsSection({ matchId }: MatchGoalkeeper
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-900">🥅 골키퍼 통계</h3>
-      
 
       {/* 홈팀 골키퍼 */}
       {home_goalkeepers.length > 0 && (
@@ -55,9 +56,15 @@ export default function MatchGoalkeeperStatsSection({ matchId }: MatchGoalkeeper
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium text-gray-700">선수</th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">포지션</th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">실점</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-700">
+                      선수
+                    </th>
+                    <th className="px-3 py-2 text-center font-medium text-gray-700">
+                      포지션
+                    </th>
+                    <th className="px-3 py-2 text-center font-medium text-gray-700">
+                      실점
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -80,7 +87,9 @@ export default function MatchGoalkeeperStatsSection({ matchId }: MatchGoalkeeper
                               {(gk.player_name ?? '-').charAt(0)}
                             </span>
                           )}
-                          <span className="text-sm font-medium">{gk.player_name}</span>
+                          <span className="text-sm font-medium">
+                            {gk.player_name}
+                          </span>
                           {gk.was_substituted_in && (
                             <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-1 text-[10px] font-medium text-orange-700">
                               교체
@@ -94,7 +103,13 @@ export default function MatchGoalkeeperStatsSection({ matchId }: MatchGoalkeeper
                         </span>
                       </td>
                       <td className="px-3 py-2 text-center">
-                        <span className={gk.goals_conceded === 0 ? 'text-green-600 font-medium' : 'text-red-600'}>
+                        <span
+                          className={
+                            gk.goals_conceded === 0
+                              ? 'text-green-600 font-medium'
+                              : 'text-red-600'
+                          }
+                        >
                           {gk.goals_conceded}
                         </span>
                       </td>
@@ -118,9 +133,15 @@ export default function MatchGoalkeeperStatsSection({ matchId }: MatchGoalkeeper
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium text-gray-700">선수</th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">포지션</th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">실점</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-700">
+                      선수
+                    </th>
+                    <th className="px-3 py-2 text-center font-medium text-gray-700">
+                      포지션
+                    </th>
+                    <th className="px-3 py-2 text-center font-medium text-gray-700">
+                      실점
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -143,7 +164,9 @@ export default function MatchGoalkeeperStatsSection({ matchId }: MatchGoalkeeper
                               {(gk.player_name ?? '-').charAt(0)}
                             </span>
                           )}
-                          <span className="text-sm font-medium">{gk.player_name}</span>
+                          <span className="text-sm font-medium">
+                            {gk.player_name}
+                          </span>
                           {gk.was_substituted_in && (
                             <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-1 text-[10px] font-medium text-orange-700">
                               교체
@@ -157,7 +180,13 @@ export default function MatchGoalkeeperStatsSection({ matchId }: MatchGoalkeeper
                         </span>
                       </td>
                       <td className="px-3 py-2 text-center">
-                        <span className={gk.goals_conceded === 0 ? 'text-green-600 font-medium' : 'text-red-600'}>
+                        <span
+                          className={
+                            gk.goals_conceded === 0
+                              ? 'text-green-600 font-medium'
+                              : 'text-red-600'
+                          }
+                        >
                           {gk.goals_conceded}
                         </span>
                       </td>

@@ -112,11 +112,9 @@ const FantasyTeamsInner = ({ user }: { user: AuthenticatedUser | null }) => {
     getActiveFantasySeasons,
     []
   ) as { data: FantasySeasonWithCounts[] | null };
-  const { data: userTeams } = useGoalQuery(
-    getUserFantasyTeams,
-    [],
-    { enabled: !!user }
-  ) as { data: UserFantasyTeam[] | null };
+  const { data: userTeams } = useGoalQuery(getUserFantasyTeams, [], {
+    enabled: !!user,
+  }) as { data: UserFantasyTeam[] | null };
 
   return (
     <Container className="py-8">

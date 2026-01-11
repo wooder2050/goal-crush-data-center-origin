@@ -18,22 +18,22 @@ export async function GET(request: NextRequest) {
     // 모든 선수 경기 통계 가져오기
     const playerMatchStats = await prisma.playerMatchStats.findMany({
       where: {
-        ...(filterSeasonId && { match: { season_id: filterSeasonId } })
+        ...(filterSeasonId && { match: { season_id: filterSeasonId } }),
       },
       include: {
         player: {
           select: {
             player_id: true,
             name: true,
-            profile_image_url: true
-          }
+            profile_image_url: true,
+          },
         },
         team: {
           select: {
             team_id: true,
             team_name: true,
-            logo: true
-          }
+            logo: true,
+          },
         },
         match: {
           select: {
@@ -42,22 +42,22 @@ export async function GET(request: NextRequest) {
               select: {
                 season_id: true,
                 season_name: true,
-                year: true
-              }
-            }
-          }
-        }
-      }
+                year: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // 선수별로 통계 집계
     const playerStatsMap = new Map();
 
-    playerMatchStats.forEach(stat => {
+    playerMatchStats.forEach((stat) => {
       const playerId = stat.player?.player_id;
       if (!playerId) return;
 
-      const key = filterSeasonId 
+      const key = filterSeasonId
         ? `${playerId}` // 특정 시즌만 필터링
         : `${playerId}`; // 전체 커리어
 
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
           team_ids: new Set(),
           seasons: new Set(),
           first_team_id: null,
-          first_team_name: null
+          first_team_name: null,
         });
       }
 
@@ -93,15 +93,15 @@ export async function GET(request: NextRequest) {
           playerStats.first_team_name = stat.team.team_name;
         }
       }
-      
+
       if (stat.team?.logo) {
         playerStats.team_logos.add(stat.team.logo);
       }
-      
+
       if (stat.team?.team_id) {
         playerStats.team_ids.add(stat.team.team_id);
       }
-      
+
       if (stat.match?.season?.season_name) {
         playerStats.seasons.add(stat.match.season.season_name);
       }
@@ -109,23 +109,26 @@ export async function GET(request: NextRequest) {
 
     // 통계를 배열로 변환하고 계산된 값들 추가
     const rankings = Array.from(playerStatsMap.values())
-      .filter(stats => stats.matches_played >= minMatches) // 최소 출전 경기 수 필터
-      .map(stats => {
+      .filter((stats) => stats.matches_played >= minMatches) // 최소 출전 경기 수 필터
+      .map((stats) => {
         return {
           ...stats,
           teams: Array.from(stats.teams).join(', '),
           team_logos: Array.from(stats.team_logos),
           team_ids: Array.from(stats.team_ids),
           seasons: Array.from(stats.seasons).join(', '),
-          goals_per_match: stats.matches_played > 0 
-            ? (stats.goals / stats.matches_played).toFixed(2) 
-            : '0.00',
-          assists_per_match: stats.matches_played > 0 
-            ? (stats.assists / stats.matches_played).toFixed(2) 
-            : '0.00',
-          attack_points_per_match: stats.matches_played > 0 
-            ? (stats.attack_points / stats.matches_played).toFixed(2) 
-            : '0.00'
+          goals_per_match:
+            stats.matches_played > 0
+              ? (stats.goals / stats.matches_played).toFixed(2)
+              : '0.00',
+          assists_per_match:
+            stats.matches_played > 0
+              ? (stats.assists / stats.matches_played).toFixed(2)
+              : '0.00',
+          attack_points_per_match:
+            stats.matches_played > 0
+              ? (stats.attack_points / stats.matches_played).toFixed(2)
+              : '0.00',
         };
       });
 
@@ -141,9 +144,14 @@ export async function GET(request: NextRequest) {
         case 'goals_per_match':
           return parseFloat(b.goals_per_match) - parseFloat(a.goals_per_match);
         case 'assists_per_match':
-          return parseFloat(b.assists_per_match) - parseFloat(a.assists_per_match);
+          return (
+            parseFloat(b.assists_per_match) - parseFloat(a.assists_per_match)
+          );
         case 'attack_points_per_match':
-          return parseFloat(b.attack_points_per_match) - parseFloat(a.attack_points_per_match);
+          return (
+            parseFloat(b.attack_points_per_match) -
+            parseFloat(a.attack_points_per_match)
+          );
         case 'attack_points':
         default:
           return b.attack_points - a.attack_points;
@@ -159,7 +167,7 @@ export async function GET(request: NextRequest) {
     // 순위 추가 (전체 순위 기준)
     const rankedResults = paginatedRankings.map((player, index) => ({
       ...player,
-      rank: offset + index + 1
+      rank: offset + index + 1,
     }));
 
     return NextResponse.json({
@@ -170,9 +178,8 @@ export async function GET(request: NextRequest) {
       total_pages: totalPages,
       current_page: page,
       per_page: limit,
-      rankings: rankedResults
+      rankings: rankedResults,
     });
-
   } catch (error) {
     console.error('Error fetching scoring rankings:', error);
     return NextResponse.json(

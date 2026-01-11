@@ -22,7 +22,10 @@ export default function KeyPlayersSectionSkeleton({ className = '' }: Props) {
           </div>
           <div className="space-y-2">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+              <div
+                key={index}
+                className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+              >
                 <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
                 <div className="flex-1">
                   <div className="h-3 bg-gray-200 rounded w-24 animate-pulse mb-1"></div>
@@ -43,7 +46,10 @@ export default function KeyPlayersSectionSkeleton({ className = '' }: Props) {
           </div>
           <div className="space-y-2">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+              <div
+                key={index}
+                className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+              >
                 <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
                 <div className="flex-1">
                   <div className="h-3 bg-gray-200 rounded w-24 animate-pulse mb-1"></div>

@@ -9,14 +9,26 @@ const meta: Meta<typeof Badge> = {
   parameters: {
     docs: {
       description: {
-        component: 'A flexible badge component for displaying status, categories, and achievements. Includes sports-specific variants for trophies and categories.',
+        component:
+          'A flexible badge component for displaying status, categories, and achievements. Includes sports-specific variants for trophies and categories.',
       },
     },
   },
   argTypes: {
     variant: {
       control: { type: 'select' },
-      options: ['default', 'secondary', 'destructive', 'outline', 'discount', 'category', 'emphasis', 'emphasisOutline', 'trophy', 'trophyOutline'],
+      options: [
+        'default',
+        'secondary',
+        'destructive',
+        'outline',
+        'discount',
+        'category',
+        'emphasis',
+        'emphasisOutline',
+        'trophy',
+        'trophyOutline',
+      ],
       description: 'Visual style variant of the badge',
     },
   },
@@ -85,7 +97,7 @@ export const StatusBadges: Story = {
           <Badge variant="destructive">시즌 종료</Badge>
         </div>
       </div>
-      
+
       <div>
         <h4 className="text-sm font-semibold mb-2">Player Status</h4>
         <div className="flex flex-wrap gap-2">
@@ -123,7 +135,7 @@ export const ScoringBadges: Story = {
           <Badge variant="secondary">12점</Badge>
         </div>
       </div>
-      
+
       <div>
         <h4 className="text-sm font-semibold mb-2">Player Stats</h4>
         <div className="flex flex-wrap gap-2">
@@ -162,7 +174,7 @@ export const CategoryBadges: Story = {
           <Badge variant="category">G리그</Badge>
         </div>
       </div>
-      
+
       <div>
         <h4 className="text-sm font-semibold mb-2">Position Tags</h4>
         <div className="flex flex-wrap gap-2">
@@ -208,22 +220,22 @@ export const Interactive: Story = {
       <div>
         <h4 className="text-sm font-semibold mb-2">Clickable Badges</h4>
         <div className="flex flex-wrap gap-2">
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className="cursor-pointer hover:bg-gray-100"
             onClick={() => alert('Category clicked')}
           >
             클릭 가능한 카테고리
           </Badge>
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className="cursor-pointer hover:bg-gray-200"
             onClick={() => alert('Filter clicked')}
           >
             필터: 공격수
           </Badge>
-          <Badge 
-            variant="emphasis" 
+          <Badge
+            variant="emphasis"
             className="cursor-pointer hover:bg-[#ff4800]/90"
             onClick={() => alert('Action clicked')}
           >
@@ -231,9 +243,7 @@ export const Interactive: Story = {
           </Badge>
         </div>
       </div>
-      <div className="text-xs text-gray-600">
-        위 배지들을 클릭해보세요!
-      </div>
+      <div className="text-xs text-gray-600">위 배지들을 클릭해보세요!</div>
     </div>
   ),
 };

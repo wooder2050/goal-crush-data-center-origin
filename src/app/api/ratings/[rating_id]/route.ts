@@ -9,7 +9,6 @@ type ReviewWithUser = RatingReview & {
   user: Pick<User, 'user_id' | 'korean_nickname' | 'profile_image_url'>;
 };
 
-
 export const dynamic = 'force-dynamic';
 
 interface RouteParams {
@@ -24,10 +23,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const ratingId = parseInt(params.rating_id);
 
     if (isNaN(ratingId)) {
-      return NextResponse.json(
-        { error: 'Invalid rating ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid rating ID' }, { status: 400 });
     }
 
     const rating = await prisma.playerAbilityRating.findUnique({
@@ -71,10 +67,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!rating) {
-      return NextResponse.json(
-        { error: 'Rating not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Rating not found' }, { status: 404 });
     }
 
     // Helper function to convert null to undefined
@@ -82,37 +75,44 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       if (obj === null) return undefined as T;
       if (typeof obj !== 'object') return obj;
       if (Array.isArray(obj)) return obj.map(convertNullToUndefined) as T;
-      
+
       const converted: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-        converted[key] = value === null ? undefined : 
-          (typeof value === 'object' ? convertNullToUndefined(value) : value);
+      for (const [key, value] of Object.entries(
+        obj as Record<string, unknown>
+      )) {
+        converted[key] =
+          value === null
+            ? undefined
+            : typeof value === 'object'
+              ? convertNullToUndefined(value)
+              : value;
       }
       return converted as T;
     };
 
-    return NextResponse.json(convertNullToUndefined({
-      ...rating,
-      player: {
-        ...rating.player,
-        profile_image_url: rating.player.profile_image_url ?? undefined,
-      },
-      user: {
-        ...rating.user,
-        profile_image_url: rating.user.profile_image_url ?? undefined,
-      },
-      reviews: rating.reviews.map((review: ReviewWithUser) => ({
-        ...review,
-        user: {
-          ...review.user,
-          profile_image_url: review.user.profile_image_url ?? undefined,
+    return NextResponse.json(
+      convertNullToUndefined({
+        ...rating,
+        player: {
+          ...rating.player,
+          profile_image_url: rating.player.profile_image_url ?? undefined,
         },
-        created_at: review.created_at.toISOString(),
-      })),
-      created_at: rating.created_at.toISOString(),
-      updated_at: rating.updated_at.toISOString(),
-    }));
-
+        user: {
+          ...rating.user,
+          profile_image_url: rating.user.profile_image_url ?? undefined,
+        },
+        reviews: rating.reviews.map((review: ReviewWithUser) => ({
+          ...review,
+          user: {
+            ...review.user,
+            profile_image_url: review.user.profile_image_url ?? undefined,
+          },
+          created_at: review.created_at.toISOString(),
+        })),
+        created_at: rating.created_at.toISOString(),
+        updated_at: rating.updated_at.toISOString(),
+      })
+    );
   } catch (error) {
     console.error('Error fetching rating:', error);
     return NextResponse.json(
@@ -129,10 +129,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const data: UpdateRatingRequest = await request.json();
 
     if (isNaN(ratingId)) {
-      return NextResponse.json(
-        { error: 'Invalid rating ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid rating ID' }, { status: 400 });
     }
 
     // 사용자 인증 확인
@@ -152,10 +149,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!existingRating) {
-      return NextResponse.json(
-        { error: 'Rating not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Rating not found' }, { status: 404 });
     }
 
     if (existingRating.user_id !== userId) {
@@ -167,13 +161,35 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // 능력치 값 검증 (1-99 범위)
     const abilityFields = [
-      'finishing', 'shot_power', 'shot_accuracy', 'heading',
-      'short_passing', 'long_passing', 'vision', 'crossing',
-      'dribbling', 'ball_control', 'agility', 'balance',
-      'marking', 'tackling', 'interceptions', 'defensive_heading',
-      'speed', 'acceleration', 'stamina', 'strength',
-      'determination', 'work_rate', 'leadership', 'composure',
-      'reflexes', 'diving', 'handling', 'kicking', 'overall_rating'
+      'finishing',
+      'shot_power',
+      'shot_accuracy',
+      'heading',
+      'short_passing',
+      'long_passing',
+      'vision',
+      'crossing',
+      'dribbling',
+      'ball_control',
+      'agility',
+      'balance',
+      'marking',
+      'tackling',
+      'interceptions',
+      'defensive_heading',
+      'speed',
+      'acceleration',
+      'stamina',
+      'strength',
+      'determination',
+      'work_rate',
+      'leadership',
+      'composure',
+      'reflexes',
+      'diving',
+      'handling',
+      'kicking',
+      'overall_rating',
     ];
 
     const updateData: Partial<UpdateRatingRequest> = {};
@@ -230,29 +246,37 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       if (obj === null) return undefined as T;
       if (typeof obj !== 'object') return obj;
       if (Array.isArray(obj)) return obj.map(convertNullToUndefined) as T;
-      
+
       const converted: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-        converted[key] = value === null ? undefined : 
-          (typeof value === 'object' ? convertNullToUndefined(value) : value);
+      for (const [key, value] of Object.entries(
+        obj as Record<string, unknown>
+      )) {
+        converted[key] =
+          value === null
+            ? undefined
+            : typeof value === 'object'
+              ? convertNullToUndefined(value)
+              : value;
       }
       return converted as T;
     };
 
-    return NextResponse.json(convertNullToUndefined({
-      ...updatedRating,
-      player: {
-        ...updatedRating.player,
-        profile_image_url: updatedRating.player.profile_image_url ?? undefined,
-      },
-      user: {
-        ...updatedRating.user,
-        profile_image_url: updatedRating.user.profile_image_url ?? undefined,
-      },
-      created_at: updatedRating.created_at.toISOString(),
-      updated_at: updatedRating.updated_at.toISOString(),
-    }));
-
+    return NextResponse.json(
+      convertNullToUndefined({
+        ...updatedRating,
+        player: {
+          ...updatedRating.player,
+          profile_image_url:
+            updatedRating.player.profile_image_url ?? undefined,
+        },
+        user: {
+          ...updatedRating.user,
+          profile_image_url: updatedRating.user.profile_image_url ?? undefined,
+        },
+        created_at: updatedRating.created_at.toISOString(),
+        updated_at: updatedRating.updated_at.toISOString(),
+      })
+    );
   } catch (error) {
     console.error('Error updating rating:', error);
     return NextResponse.json(
@@ -268,10 +292,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const ratingId = parseInt(params.rating_id);
 
     if (isNaN(ratingId)) {
-      return NextResponse.json(
-        { error: 'Invalid rating ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid rating ID' }, { status: 400 });
     }
 
     // 사용자 인증 확인
@@ -291,10 +312,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!existingRating) {
-      return NextResponse.json(
-        { error: 'Rating not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Rating not found' }, { status: 404 });
     }
 
     if (existingRating.user_id !== userId) {
@@ -309,11 +327,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       where: { rating_id: ratingId },
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Rating deleted successfully' 
+    return NextResponse.json({
+      success: true,
+      message: 'Rating deleted successfully',
     });
-
   } catch (error) {
     console.error('Error deleting rating:', error);
     return NextResponse.json(

@@ -10,7 +10,7 @@ import { fetchTopScorers } from '../api';
 
 export function TopScorersList() {
   const { data: topScorers } = useGoalSuspenseQuery(fetchTopScorers, [5]);
-  
+
   if (!topScorers || topScorers.length === 0) {
     return (
       <div className="text-center py-8">
@@ -28,16 +28,21 @@ export function TopScorersList() {
           className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow group"
         >
           <div className="flex-shrink-0">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-              index === 0 ? 'bg-yellow-100 text-yellow-700' :
-              index === 1 ? 'bg-gray-100 text-gray-700' :
-              index === 2 ? 'bg-orange-100 text-orange-700' :
-              'bg-blue-50 text-blue-600'
-            }`}>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                index === 0
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : index === 1
+                    ? 'bg-gray-100 text-gray-700'
+                    : index === 2
+                      ? 'bg-orange-100 text-orange-700'
+                      : 'bg-blue-50 text-blue-600'
+              }`}
+            >
               {index + 1}
             </div>
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-1">
               <h3 className="font-bold text-gray-900 group-hover:text-[#ff4800] transition-colors">
@@ -64,7 +69,7 @@ export function TopScorersList() {
               <span>{player.matches_played}경기</span>
             </div>
           </div>
-          
+
           <div className="text-2xl font-bold text-[#ff4800]">
             {player.goals}
           </div>
@@ -78,7 +83,10 @@ export function TopScorersLoading() {
   return (
     <div className="space-y-4">
       {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 animate-pulse">
+        <div
+          key={i}
+          className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 animate-pulse"
+        >
           <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
           <div className="flex-1">
             <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>

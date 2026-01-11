@@ -8,7 +8,7 @@ import {
 } from '@/types/fantasy-pages';
 
 interface RouteParams {
-  params: { 
+  params: {
     team_id: string;
   };
 }

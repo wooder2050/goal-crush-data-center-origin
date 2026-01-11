@@ -5,7 +5,7 @@ export default function MatchGoalkeeperStatsSectionSkeleton() {
     <div className="space-y-4">
       {/* 헤더 스켈레톤 */}
       <div className="h-7 w-32 bg-gray-200 rounded animate-pulse"></div>
-      
+
       {/* 홈팀 골키퍼 카드 스켈레톤 */}
       <Card>
         <CardContent className="px-0 py-4">
@@ -13,7 +13,7 @@ export default function MatchGoalkeeperStatsSectionSkeleton() {
           <div className="mb-3 px-4">
             <div className="h-4 w-40 bg-gray-200 rounded animate-pulse"></div>
           </div>
-          
+
           {/* 테이블 헤더 */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -61,7 +61,7 @@ export default function MatchGoalkeeperStatsSectionSkeleton() {
           <div className="mb-3 px-4">
             <div className="h-4 w-40 bg-gray-200 rounded animate-pulse"></div>
           </div>
-          
+
           {/* 테이블 헤더 */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

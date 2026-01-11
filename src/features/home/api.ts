@@ -10,15 +10,20 @@ export interface TopScorer {
   total_seasons?: number;
 }
 
-export const fetchTopScorers = async (limit: number = 5): Promise<TopScorer[]> => {
-  const response = await fetch(`/api/stats/player-season/top-scorers?limit=${limit}`, {
-    cache: 'no-store'
-  });
-  
+export const fetchTopScorers = async (
+  limit: number = 5
+): Promise<TopScorer[]> => {
+  const response = await fetch(
+    `/api/stats/player-season/top-scorers?limit=${limit}`,
+    {
+      cache: 'no-store',
+    }
+  );
+
   if (!response.ok) {
     throw new Error('Failed to fetch top scorers');
   }
-  
+
   return response.json();
 };
 

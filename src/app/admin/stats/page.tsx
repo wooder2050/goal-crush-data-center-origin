@@ -103,16 +103,21 @@ export default function AdminStatsPage() {
   });
 
   // 선수 통계 디버깅 mutation
-  const debugPlayerStatsMutation = useGoalMutation(async (season_id?: string) => {
-    const queryParams = season_id && season_id !== 'all' ? `?season_id=${season_id}` : '';
-    const response = await fetch(`/api/admin/stats/player-stats-debug${queryParams}`);
+  const debugPlayerStatsMutation = useGoalMutation(
+    async (season_id?: string) => {
+      const queryParams =
+        season_id && season_id !== 'all' ? `?season_id=${season_id}` : '';
+      const response = await fetch(
+        `/api/admin/stats/player-stats-debug${queryParams}`
+      );
 
-    if (!response.ok) {
-      throw new Error('선수 통계 디버깅에 실패했습니다.');
+      if (!response.ok) {
+        throw new Error('선수 통계 디버깅에 실패했습니다.');
+      }
+
+      return response.json();
     }
-
-    return response.json();
-  });
+  );
 
   // 전체 통계 재생성
   const handleRegenerateAll = async () => {
@@ -201,23 +206,23 @@ export default function AdminStatsPage() {
   const handleDebugPlayerStats = async () => {
     try {
       const result = await debugPlayerStatsMutation.mutateAsync(selectedSeason);
-      
+
       console.log('선수 통계 디버깅 결과:', result);
-      
+
       const debugInfo = result.debug_info;
       const existing = result.existing_player_season_stats;
       const calculated = result.calculated_season_stats;
-      
+
       alert(
         `선수 통계 디버깅 결과:\n\n` +
-        `📊 현재 DB 상태:\n` +
-        `- 기존 선수-시즌 통계: ${existing.count}개\n\n` +
-        `🔍 경기 데이터 분석:\n` +
-        `- 전체 경기별 선수 통계: ${debugInfo.total_match_stats}개\n` +
-        `- 완료된 경기 통계: ${debugInfo.completed_match_stats}개\n\n` +
-        `📈 계산된 시즌 통계:\n` +
-        `- 계산 가능한 선수-시즌 조합: ${calculated.count}개\n\n` +
-        `자세한 내용은 콘솔을 확인하세요.`
+          `📊 현재 DB 상태:\n` +
+          `- 기존 선수-시즌 통계: ${existing.count}개\n\n` +
+          `🔍 경기 데이터 분석:\n` +
+          `- 전체 경기별 선수 통계: ${debugInfo.total_match_stats}개\n` +
+          `- 완료된 경기 통계: ${debugInfo.completed_match_stats}개\n\n` +
+          `📈 계산된 시즌 통계:\n` +
+          `- 계산 가능한 선수-시즌 조합: ${calculated.count}개\n\n` +
+          `자세한 내용은 콘솔을 확인하세요.`
       );
     } catch (error) {
       console.error('선수 통계 디버깅 실패:', error);
@@ -264,15 +269,26 @@ export default function AdminStatsPage() {
             <div className="mt-3 p-3 rounded-lg bg-gray-50">
               {selectedSeason === 'all' ? (
                 <div className="text-sm">
-                  <p className="font-medium text-gray-700 mb-1">📊 전체 시즌 모드</p>
-                  <p className="text-gray-600">모든 시즌의 경기 데이터를 사용하여 통계를 계산합니다.</p>
+                  <p className="font-medium text-gray-700 mb-1">
+                    📊 전체 시즌 모드
+                  </p>
+                  <p className="text-gray-600">
+                    모든 시즌의 경기 데이터를 사용하여 통계를 계산합니다.
+                  </p>
                 </div>
               ) : (
                 <div className="text-sm">
-                  <p className="font-medium text-blue-700 mb-1">🎯 특정 시즌 모드</p>
+                  <p className="font-medium text-blue-700 mb-1">
+                    🎯 특정 시즌 모드
+                  </p>
                   <p className="text-blue-600">
-                    선택된 시즌 ({seasons.find(s => s.season_id.toString() === selectedSeason)?.season_name})의 
-                    경기 데이터만 사용하여 통계를 계산합니다.
+                    선택된 시즌 (
+                    {
+                      seasons.find(
+                        (s) => s.season_id.toString() === selectedSeason
+                      )?.season_name
+                    }
+                    )의 경기 데이터만 사용하여 통계를 계산합니다.
                   </p>
                 </div>
               )}
@@ -376,7 +392,7 @@ export default function AdminStatsPage() {
               <h3 className="font-medium">상대전적 (h2h_pair_stats)</h3>
               <p className="text-sm text-muted-foreground">
                 팀간 맞대결 기록
-                {selectedSeason === 'all' 
+                {selectedSeason === 'all'
                   ? ' (전체 시즌 누적 데이터)'
                   : ` (선택된 시즌 기준)`}
               </p>

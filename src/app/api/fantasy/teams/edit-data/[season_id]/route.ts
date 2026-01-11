@@ -11,7 +11,7 @@ import {
 } from '@/types/fantasy-pages';
 
 interface RouteParams {
-  params: { 
+  params: {
     season_id: string;
   };
 }

@@ -6,8 +6,11 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 const recommendationQuerySchema = z.object({
-  fantasy_season_id: z.string().transform(val => parseInt(val)),
-  limit: z.string().optional().transform(val => val ? parseInt(val) : 10),
+  fantasy_season_id: z.string().transform((val) => parseInt(val)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val) : 10)),
 });
 
 // GET - AI 판타지 선수 추천 조회
@@ -15,8 +18,9 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const queryParams = Object.fromEntries(searchParams.entries());
-    
-    const { fantasy_season_id, limit } = recommendationQuerySchema.parse(queryParams);
+
+    const { fantasy_season_id, limit } =
+      recommendationQuerySchema.parse(queryParams);
 
     // 판타지 시즌 확인
     const fantasySeason = await prisma.fantasySeason.findUnique({
@@ -74,9 +78,15 @@ export async function GET(request: NextRequest) {
     });
 
     // 추천 데이터가 없거나 오래된 경우 새로 생성
-    if (recommendations.length === 0 || isRecommendationOutdated(recommendations[0]?.created_at)) {
-      await generateAIRecommendations(fantasy_season_id, fantasySeason.season_id);
-      
+    if (
+      recommendations.length === 0 ||
+      isRecommendationOutdated(recommendations[0]?.created_at)
+    ) {
+      await generateAIRecommendations(
+        fantasy_season_id,
+        fantasySeason.season_id
+      );
+
       // 새로 생성된 추천 데이터 조회
       recommendations = await prisma.fantasyAIRecommendation.findMany({
         where: { fantasy_season_id },
@@ -116,7 +126,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       fantasy_season_id,
-      recommendations: recommendations.map(rec => ({
+      recommendations: recommendations.map((rec) => ({
         ...rec,
         player: {
           ...rec.player,
@@ -128,7 +138,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('AI 추천 조회 중 오류:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: '잘못된 쿼리 파라미터입니다.', details: error.errors },
@@ -193,7 +203,7 @@ export async function POST(request: NextRequest) {
  */
 function isRecommendationOutdated(createdAt: Date | undefined): boolean {
   if (!createdAt) return true;
-  
+
   const now = new Date();
   const diffHours = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
   return diffHours > 24;
@@ -202,7 +212,10 @@ function isRecommendationOutdated(createdAt: Date | undefined): boolean {
 /**
  * AI 추천 데이터 생성 (간단한 규칙 기반)
  */
-async function generateAIRecommendations(fantasySeasonId: number, seasonId: number) {
+async function generateAIRecommendations(
+  fantasySeasonId: number,
+  seasonId: number
+) {
   // 기존 추천 삭제
   await prisma.fantasyAIRecommendation.deleteMany({
     where: { fantasy_season_id: fantasySeasonId },
@@ -223,7 +236,7 @@ async function generateAIRecommendations(fantasySeasonId: number, seasonId: numb
 
   // 간단한 추천 스코어 계산 (실제로는 더 복잡한 알고리즘 사용)
   const recommendations = playerStats
-    .map(stat => {
+    .map((stat) => {
       const goals = stat.goals || 0;
       const assists = stat.assists || 0;
       const matchesPlayed = stat.matches_played || 1;
@@ -231,15 +244,15 @@ async function generateAIRecommendations(fantasySeasonId: number, seasonId: numb
       const redCards = stat.red_cards || 0;
 
       // 기본 점수 계산
-      let formScore = ((goals * 4) + (assists * 2)) / matchesPlayed;
-      formScore = Math.max(0, formScore - (yellowCards * 0.5) - (redCards * 2));
+      let formScore = (goals * 4 + assists * 2) / matchesPlayed;
+      formScore = Math.max(0, formScore - yellowCards * 0.5 - redCards * 2);
 
       // 출전률 고려
       const appearanceRate = matchesPlayed / 10; // 가정: 시즌 총 10경기
       const appearanceBonus = Math.min(1, appearanceRate) * 2;
 
       // 최종 추천 스코어
-      const recommendationScore = (formScore * 0.7) + (appearanceBonus * 0.3);
+      const recommendationScore = formScore * 0.7 + appearanceBonus * 0.3;
 
       // 추천 이유 생성
       let reason = '';
@@ -247,7 +260,7 @@ async function generateAIRecommendations(fantasySeasonId: number, seasonId: numb
       if (assists > 3) reason += '어시스트 능력 우수, ';
       if (matchesPlayed >= 8) reason += '높은 출전률, ';
       if (yellowCards + redCards === 0) reason += '깨끗한 경기 운영, ';
-      
+
       reason = reason.replace(/, $/, '') || '안정적인 성과';
 
       return {
@@ -260,7 +273,7 @@ async function generateAIRecommendations(fantasySeasonId: number, seasonId: numb
         price_value: Math.round(recommendationScore * 10) / 10,
       };
     })
-    .filter(rec => rec.recommendation_score > 0)
+    .filter((rec) => rec.recommendation_score > 0)
     .sort((a, b) => b.recommendation_score - a.recommendation_score)
     .slice(0, 50); // 상위 50명만
 

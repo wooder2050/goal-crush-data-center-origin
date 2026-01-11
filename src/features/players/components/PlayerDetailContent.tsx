@@ -5,7 +5,10 @@ import Image from 'next/image';
 import { Card, CardContent, Grid } from '@/components/ui';
 import { getPositionColor } from '@/features/matches/lib/matchUtils';
 import { PlayerAbilitySummary } from '@/features/player-ratings/components/PlayerAbilitySummary';
-import type { getPlayerByIdPrisma, getPlayerSummaryPrisma } from '@/features/players/api-prisma';
+import type {
+  getPlayerByIdPrisma,
+  getPlayerSummaryPrisma,
+} from '@/features/players/api-prisma';
 import { shortenSeasonName } from '@/lib/utils';
 
 import GoalkeeperStatsSection from './GoalkeeperStatsSection';

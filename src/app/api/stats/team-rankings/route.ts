@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   let filterSeasonId: number | undefined;
   let sortBy: string = 'win_rate';
-  
+
   try {
     const url = new URL(request.url);
     const seasonIdParam = url.searchParams.get('season_id');
@@ -17,17 +17,19 @@ export async function GET(request: NextRequest) {
 
     filterSeasonId = seasonIdParam ? Number(seasonIdParam) : undefined;
 
-    console.log('Team rankings API called with:', { filterSeasonId, page, limit, sortBy });
+    console.log('Team rankings API called with:', {
+      filterSeasonId,
+      page,
+      limit,
+      sortBy,
+    });
 
     // 먼저 매치 수를 확인
     const matchCount = await prisma.match.count({
       where: {
         ...(filterSeasonId && { season_id: filterSeasonId }),
-        AND: [
-          { home_score: { not: null } },
-          { away_score: { not: null } }
-        ]
-      }
+        AND: [{ home_score: { not: null } }, { away_score: { not: null } }],
+      },
     });
 
     console.log('Found matches with scores:', matchCount);
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
         total_pages: 0,
         current_page: page,
         per_page: limit,
-        rankings: []
+        rankings: [],
       });
     }
 
@@ -49,40 +51,37 @@ export async function GET(request: NextRequest) {
       where: {
         ...(filterSeasonId && { season_id: filterSeasonId }),
         // 스코어가 있는 경기만 (완료된 경기)
-        AND: [
-          { home_score: { not: null } },
-          { away_score: { not: null } }
-        ]
+        AND: [{ home_score: { not: null } }, { away_score: { not: null } }],
       },
       include: {
         home_team: {
           select: {
             team_id: true,
             team_name: true,
-            logo: true
-          }
+            logo: true,
+          },
         },
         away_team: {
           select: {
             team_id: true,
             team_name: true,
-            logo: true
-          }
+            logo: true,
+          },
         },
         season: {
           select: {
             season_id: true,
             season_name: true,
-            year: true
-          }
-        }
-      }
+            year: true,
+          },
+        },
+      },
     });
 
     // 팀별 통계 집계
     const teamStatsMap = new Map();
 
-    matches.forEach(match => {
+    matches.forEach((match) => {
       const homeTeamId = match.home_team?.team_id;
       const awayTeamId = match.away_team?.team_id;
       const homeScore = match.home_score || 0;
@@ -104,7 +103,7 @@ export async function GET(request: NextRequest) {
           goals_against: 0,
           goal_difference: 0,
           win_rate: 0,
-          seasons: new Set()
+          seasons: new Set(),
         });
       }
 
@@ -139,7 +138,7 @@ export async function GET(request: NextRequest) {
           goals_against: 0,
           goal_difference: 0,
           win_rate: 0,
-          seasons: new Set()
+          seasons: new Set(),
         });
       }
 
@@ -163,22 +162,25 @@ export async function GET(request: NextRequest) {
 
     // 통계를 배열로 변환하고 계산된 값들 추가
     const rankings = Array.from(teamStatsMap.values())
-      .filter(stats => stats.matches_played > 0) // 경기를 한 팀만
-      .map(stats => {
+      .filter((stats) => stats.matches_played > 0) // 경기를 한 팀만
+      .map((stats) => {
         stats.goal_difference = stats.goals_for - stats.goals_against;
-        stats.win_rate = stats.matches_played > 0 
-          ? ((stats.wins / stats.matches_played) * 100).toFixed(1)
-          : '0.0';
+        stats.win_rate =
+          stats.matches_played > 0
+            ? ((stats.wins / stats.matches_played) * 100).toFixed(1)
+            : '0.0';
 
         return {
           ...stats,
           seasons: Array.from(stats.seasons).join(', '),
-          goals_for_per_match: stats.matches_played > 0 
-            ? (stats.goals_for / stats.matches_played).toFixed(1) 
-            : '0.0',
-          goals_against_per_match: stats.matches_played > 0 
-            ? (stats.goals_against / stats.matches_played).toFixed(1) 
-            : '0.0'
+          goals_for_per_match:
+            stats.matches_played > 0
+              ? (stats.goals_for / stats.matches_played).toFixed(1)
+              : '0.0',
+          goals_against_per_match:
+            stats.matches_played > 0
+              ? (stats.goals_against / stats.matches_played).toFixed(1)
+              : '0.0',
         };
       });
 
@@ -192,9 +194,15 @@ export async function GET(request: NextRequest) {
         case 'goals_against':
           return a.goals_against - b.goals_against; // 적을수록 좋음
         case 'goals_for_per_match':
-          return parseFloat(b.goals_for_per_match) - parseFloat(a.goals_for_per_match);
+          return (
+            parseFloat(b.goals_for_per_match) -
+            parseFloat(a.goals_for_per_match)
+          );
         case 'goals_against_per_match':
-          return parseFloat(a.goals_against_per_match) - parseFloat(b.goals_against_per_match); // 적을수록 좋음
+          return (
+            parseFloat(a.goals_against_per_match) -
+            parseFloat(b.goals_against_per_match)
+          ); // 적을수록 좋음
         case 'matches_played':
           return b.matches_played - a.matches_played;
         case 'win_rate':
@@ -203,11 +211,11 @@ export async function GET(request: NextRequest) {
           const aWinRate = parseFloat(a.win_rate);
           const bWinRate = parseFloat(b.win_rate);
           if (aWinRate !== bWinRate) return bWinRate - aWinRate;
-          
+
           const aPoints = a.wins * 3 + a.draws;
           const bPoints = b.wins * 3 + b.draws;
           if (aPoints !== bPoints) return bPoints - aPoints;
-          
+
           return b.goal_difference - a.goal_difference;
         }
       }
@@ -223,7 +231,7 @@ export async function GET(request: NextRequest) {
     const rankedResults = paginatedRankings.map((team, index) => ({
       ...team,
       rank: offset + index + 1,
-      points: team.wins * 3 + team.draws // 승점 추가
+      points: team.wins * 3 + team.draws, // 승점 추가
     }));
 
     return NextResponse.json({
@@ -233,21 +241,20 @@ export async function GET(request: NextRequest) {
       total_pages: totalPages,
       current_page: page,
       per_page: limit,
-      rankings: rankedResults
+      rankings: rankedResults,
     });
-
   } catch (error) {
     console.error('Error fetching team rankings:', error);
     console.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
       filterSeasonId,
-      sortBy
+      sortBy,
     });
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch team rankings',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

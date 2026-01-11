@@ -248,7 +248,8 @@ export default async function EditTeamPage({ params }: { params: Params }) {
       name: selection.player.name,
       profile_image_url: selection.player.profile_image_url || undefined,
       jersey_number: selection.player.jersey_number || undefined,
-      position: (selection.position as Position) || defaultPositions[index] || 'FW',
+      position:
+        (selection.position as Position) || defaultPositions[index] || 'FW',
       current_team: selection.player.player_team_history[0]?.team
         ? {
             team_id: selection.player.player_team_history[0].team.team_id,

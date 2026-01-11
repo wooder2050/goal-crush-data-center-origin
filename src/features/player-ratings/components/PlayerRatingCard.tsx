@@ -466,4 +466,3 @@ function getCategoryColor(category: string): string {
 
   return colors[category] || '#6b7280';
 }
-

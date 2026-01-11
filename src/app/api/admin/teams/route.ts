@@ -8,10 +8,21 @@ import { prisma } from '@/lib/prisma';
 // 팀 생성 스키마
 const createTeamSchema = z.object({
   team_name: z.string().min(1, '팀명을 입력해주세요').max(100),
-  founded_year: z.number().int().min(1900).max(new Date().getFullYear()).optional(),
+  founded_year: z
+    .number()
+    .int()
+    .min(1900)
+    .max(new Date().getFullYear())
+    .optional(),
   description: z.string().max(500).optional(),
-  primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-  secondary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  primary_color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
+  secondary_color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
   logo: z.string().url().optional(),
 });
 
@@ -71,7 +82,7 @@ export async function POST(request: NextRequest) {
     if (authError) return authError;
 
     const body = await request.json();
-    
+
     // 입력값 유효성 검사
     const validatedData = createTeamSchema.parse(body);
 
@@ -104,7 +115,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(team, { status: 201 });
   } catch (error) {
     console.error('팀 생성 중 오류:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: '입력값이 올바르지 않습니다.', details: error.errors },

@@ -28,16 +28,15 @@ export async function GET(request: NextRequest) {
         season: { select: { season_name: true } },
         team: { select: { team_name: true } },
       },
-      orderBy: [
-        { season_id: 'desc' },
-        { goals: 'desc' },
-      ],
+      orderBy: [{ season_id: 'desc' }, { goals: 'desc' }],
     });
 
     // player_match_stats에서 실제 경기별 통계
     const matchStats = await prisma.playerMatchStats.findMany({
       where: {
-        match: seasonFilter.season_id ? { season_id: seasonFilter.season_id } : {},
+        match: seasonFilter.season_id
+          ? { season_id: seasonFilter.season_id }
+          : {},
         ...playerFilter,
       },
       include: {
@@ -61,32 +60,35 @@ export async function GET(request: NextRequest) {
     });
 
     // 완료된 경기만 필터링하여 실제 계산해야 할 통계
-    const completedMatchStats = matchStats.filter(stat => 
-      stat.match?.status === 'completed'
+    const completedMatchStats = matchStats.filter(
+      (stat) => stat.match?.status === 'completed'
     );
 
     // 시즌별 통계 계산
-    const calculatedStats = new Map<string, {
-      season_id: number;
-      season_name: string;
-      player_id: number;
-      player_name: string;
-      team_id: number;
-      team_name: string;
-      matches_played: number;
-      goals: number;
-      assists: number;
-      yellow_cards: number;
-      red_cards: number;
-      minutes_played: number;
-      saves: number;
-    }>();
+    const calculatedStats = new Map<
+      string,
+      {
+        season_id: number;
+        season_name: string;
+        player_id: number;
+        player_name: string;
+        team_id: number;
+        team_name: string;
+        matches_played: number;
+        goals: number;
+        assists: number;
+        yellow_cards: number;
+        red_cards: number;
+        minutes_played: number;
+        saves: number;
+      }
+    >();
 
-    completedMatchStats.forEach(stat => {
+    completedMatchStats.forEach((stat) => {
       if (!stat.player_id || !stat.team_id || !stat.match?.season_id) return;
 
       const key = `${stat.match.season_id}-${stat.player_id}-${stat.team_id}`;
-      
+
       if (!calculatedStats.has(key)) {
         calculatedStats.set(key, {
           season_id: stat.match.season_id,
@@ -106,7 +108,7 @@ export async function GET(request: NextRequest) {
       }
 
       const calculated = calculatedStats.get(key)!;
-      
+
       // 경기 출장 카운트 (출장 시간이 0보다 큰 경우)
       if ((stat.minutes_played || 0) > 0) {
         calculated.matches_played++;
@@ -133,14 +135,14 @@ export async function GET(request: NextRequest) {
       },
       recent_match_stats: {
         count: matchStats.length,
-        data: matchStats.map(stat => ({
+        data: matchStats.map((stat) => ({
           match_id: stat.match?.match_id,
           match_date: stat.match?.match_date,
           season_id: stat.match?.season_id,
           status: stat.match?.status,
           player_name: stat.player?.name,
           team_name: stat.team?.team_name,
-          opponent: stat.match 
+          opponent: stat.match
             ? `${stat.match.home_team?.team_name} vs ${stat.match.away_team?.team_name}`
             : 'Unknown',
           goals: stat.goals,
