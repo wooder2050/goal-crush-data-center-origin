@@ -50,6 +50,40 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // 현재 소속팀 정보 가져오기 (is_active = true)
+    const activeTeamHistories = await prisma.playerTeamHistory.findMany({
+      where: {
+        is_active: true,
+      },
+      include: {
+        team: {
+          select: {
+            team_id: true,
+            team_name: true,
+            logo: true,
+          },
+        },
+      },
+    });
+
+    // player_id -> 현재 소속팀 매핑
+    const playerCurrentTeamMap = new Map<
+      number,
+      { team_id: number; team_name: string; logo: string | null }
+    >();
+    activeTeamHistories.forEach((history) => {
+      if (history.player_id && history.team) {
+        // 이미 등록된 경우 덮어쓰지 않음 (첫 번째 active 팀 유지)
+        if (!playerCurrentTeamMap.has(history.player_id)) {
+          playerCurrentTeamMap.set(history.player_id, {
+            team_id: history.team.team_id,
+            team_name: history.team.team_name,
+            logo: history.team.logo,
+          });
+        }
+      }
+    });
+
     // 선수별로 통계 집계
     const playerStatsMap = new Map();
 
@@ -62,6 +96,9 @@ export async function GET(request: NextRequest) {
         : `${playerId}`; // 전체 커리어
 
       if (!playerStatsMap.has(key)) {
+        // 현재 소속팀 정보 가져오기
+        const currentTeam = playerCurrentTeamMap.get(playerId);
+
         playerStatsMap.set(key, {
           player_id: playerId,
           player_name: stat.player?.name,
@@ -74,8 +111,10 @@ export async function GET(request: NextRequest) {
           team_logos: new Set(),
           team_ids: new Set(),
           seasons: new Set(),
-          first_team_id: null,
-          first_team_name: null,
+          // 현재 소속팀 정보 (player_team_history 기준)
+          current_team_id: currentTeam?.team_id || null,
+          current_team_name: currentTeam?.team_name || null,
+          current_team_logo: currentTeam?.logo || null,
         });
       }
 
@@ -87,11 +126,6 @@ export async function GET(request: NextRequest) {
 
       if (stat.team?.team_name) {
         playerStats.teams.add(stat.team.team_name);
-        // 첫 번째 팀 정보 저장
-        if (!playerStats.first_team_id && stat.team.team_id) {
-          playerStats.first_team_id = stat.team.team_id;
-          playerStats.first_team_name = stat.team.team_name;
-        }
       }
 
       if (stat.team?.logo) {
@@ -111,12 +145,27 @@ export async function GET(request: NextRequest) {
     const rankings = Array.from(playerStatsMap.values())
       .filter((stats) => stats.matches_played >= minMatches) // 최소 출전 경기 수 필터
       .map((stats) => {
+        // 현재 소속팀 로고를 team_logos 배열 맨 앞에 추가
+        const teamLogosArray = Array.from(stats.team_logos) as string[];
+        if (stats.current_team_logo) {
+          // 현재 팀 로고가 이미 있으면 제거하고 맨 앞에 추가
+          const filteredLogos = teamLogosArray.filter(
+            (logo) => logo !== stats.current_team_logo
+          );
+          filteredLogos.unshift(stats.current_team_logo);
+          teamLogosArray.length = 0;
+          teamLogosArray.push(...filteredLogos);
+        }
+
         return {
           ...stats,
           teams: Array.from(stats.teams).join(', '),
-          team_logos: Array.from(stats.team_logos),
+          team_logos: teamLogosArray,
           team_ids: Array.from(stats.team_ids),
           seasons: Array.from(stats.seasons).join(', '),
+          // 프론트엔드 호환성을 위해 first_team_* 필드에 현재 소속팀 정보 매핑
+          first_team_id: stats.current_team_id,
+          first_team_name: stats.current_team_name,
           goals_per_match:
             stats.matches_played > 0
               ? (stats.goals / stats.matches_played).toFixed(2)
