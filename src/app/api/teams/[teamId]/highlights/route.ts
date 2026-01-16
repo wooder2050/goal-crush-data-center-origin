@@ -57,6 +57,8 @@ export async function GET(
     ]);
 
     // Championships and best position from standings
+    // 시즌 종료된 경우만 우승으로 인정 (end_date가 존재하고 현재 날짜 이전)
+    const now = new Date();
     const standings = await prisma.standing.findMany({
       where: { team_id: teamId },
       select: {
@@ -67,6 +69,7 @@ export async function GET(
             season_name: true,
             year: true,
             category: true,
+            end_date: true,
           },
         },
       },
@@ -75,6 +78,11 @@ export async function GET(
 
     const championships = standings
       .filter((s) => (s.position ?? 0) === 1)
+      // 시즌 종료 여부 체크
+      .filter((s) => {
+        const endDate = s.season?.end_date;
+        return endDate && new Date(endDate) <= now;
+      })
       .filter((s) => {
         const league = inferLeague(s.season?.season_name ?? null);
         return (
@@ -84,10 +92,6 @@ export async function GET(
           s.season?.season_id === 2 ||
           s.season?.season_id === 1
         );
-      })
-      .filter((s) => {
-        // Exclude GIFA_CUP from championship records
-        return s.season?.category !== 'GIFA_CUP';
       })
       .map((s) => ({
         season_id: s.season?.season_id ?? 0,

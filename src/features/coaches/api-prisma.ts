@@ -313,12 +313,22 @@ export async function computeCoachTrophies(
   db: PrismaClient,
   coachId: number
 ): Promise<CoachTrophies> {
+  // 시즌 종료된 경우만 우승으로 인정 (end_date가 존재하고 현재 날짜 이전)
+  const now = new Date();
   const wins = await db.standing.findMany({
-    where: { position: 1 },
+    where: {
+      position: 1,
+      season: {
+        end_date: {
+          not: null,
+          lte: now,
+        },
+      },
+    },
     select: {
       season_id: true,
       team_id: true,
-      season: { select: { season_name: true, category: true } },
+      season: { select: { season_name: true, category: true, end_date: true } },
     },
   });
   const seasonTeamPairs = wins
@@ -363,11 +373,6 @@ export async function computeCoachTrophies(
       if (it.season_name?.includes('조별')) return false;
       if (it.category === 'PLAYOFF' || it.category === 'CHALLENGE_LEAGUE')
         return false;
-
-      // Exclude GIFA_CUP from championship records
-      if (it.category === 'GIFA_CUP') {
-        return false;
-      }
 
       return true;
     });
