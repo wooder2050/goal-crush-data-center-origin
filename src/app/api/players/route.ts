@@ -247,6 +247,7 @@ export async function GET(request: NextRequest) {
             }
           : null;
         const latestPosition = p.playerPosition?.[0]?.position ?? null;
+
         return {
           player_id: p.player_id,
           name: p.name,
@@ -270,7 +271,7 @@ export async function GET(request: NextRequest) {
       });
     };
 
-    // If team filter exists, compute order by that team's appearances/goals and paginate correctly
+    // If team filter exists, filter players who played for the team, but sort by TOTAL career stats
     if (teamId) {
       // Candidate players: by name AND have stats with the team
       const candidateIdsRaw = await prisma.player.findMany({
@@ -294,10 +295,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json([]);
       }
 
-      // Aggregate by team for ordering
-      // Get all player match stats for the team to filter by minutes_played > 0
-      const teamPlayerStats = await prisma.playerMatchStats.findMany({
-        where: { team_id: teamId, player_id: { in: candidateIds } },
+      // Get ALL player match stats (not filtered by team) for career total ordering
+      const allPlayerStats = await prisma.playerMatchStats.findMany({
+        where: { player_id: { in: candidateIds } },
         select: {
           player_id: true,
           match_id: true,
@@ -315,7 +315,7 @@ export async function GET(request: NextRequest) {
         { apps: number; goals: number; assists: number }
       >();
 
-      for (const stat of teamPlayerStats) {
+      for (const stat of allPlayerStats) {
         const pid = stat.player_id ?? 0;
         const playedMinutes = (stat.minutes_played ?? 0) as number;
         const goals = (stat.goals ?? 0) as number;
@@ -407,6 +407,8 @@ export async function GET(request: NextRequest) {
         (a, b) => orderIndex.get(a.player_id)! - orderIndex.get(b.player_id)!
       );
 
+      // TODO: 성능 최적화 - 현재 allPlayerStats와 mapPlayers 내부에서 같은 데이터를 두 번 조회함
+      // orderMap에 goals_conceded를 추가하고 mapPlayers에 전달하면 중복 조회 제거 가능
       const mapped = await mapPlayers(players);
 
       if (isPaged) {

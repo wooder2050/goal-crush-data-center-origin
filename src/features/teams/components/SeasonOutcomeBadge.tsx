@@ -11,6 +11,7 @@ interface SeasonOutcomeBadgeProps {
   position: number | null | undefined;
   seasonName: string | null | undefined;
   category?: string | null;
+  isSeasonEnded?: boolean;
 }
 
 function getSeasonIndex(seasonName: string | null | undefined): number | null {
@@ -27,11 +28,27 @@ export default function SeasonOutcomeBadge({
   position,
   seasonName,
   category,
+  isSeasonEnded = true,
 }: SeasonOutcomeBadgeProps) {
   const seasonIndex = getSeasonIndex(seasonName) ?? 0;
 
-  // Don't show championship badges for GIFA_CUP
+  // 시즌이 아직 끝나지 않았으면 결과 배지를 표시하지 않음
+  if (!isSeasonEnded) {
+    return null;
+  }
+
+  // GIFA_CUP: show championship badge only for position 1
   if (category === 'GIFA_CUP') {
+    if (position === 1) {
+      return (
+        <Badge
+          variant={'emphasisOutline'}
+          className={`px-2.5 py-0.5 text-[11px] shadow-sm border-2 border-[#ff4800] text-[#ff4800] bg-white font-semibold`}
+        >
+          🏆 우승
+        </Badge>
+      );
+    }
     return null;
   }
 
