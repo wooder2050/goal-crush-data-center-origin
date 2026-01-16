@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
@@ -170,38 +169,46 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 현재팀 검증: team_current_head_coach 뷰 기준으로 매칭
-    let verifiedRows: Array<{
-      team_id: number;
-      team_name: string;
-      logo: string | null;
-      coach_id: number;
-      last_match_date: Date;
-    }> = [];
+    // 현재팀 검증: team_coach_history.is_current = true 기준으로 매칭
     const coachIds = coaches.map((c) => c.coach_id);
-    if (coachIds.length > 0) {
-      verifiedRows = await prisma.$queryRaw<
-        Array<{
-          team_id: number;
-          team_name: string;
-          logo: string | null;
-          coach_id: number;
-          last_match_date: Date;
-        }>
-      >`SELECT team_id, team_name, logo, coach_id, last_match_date
-        FROM public.team_current_head_coach
-        WHERE coach_id IN (${Prisma.join(coachIds)})`;
-    }
+    const currentTeamHistories =
+      coachIds.length > 0
+        ? await prisma.teamCoachHistory.findMany({
+            where: {
+              coach_id: { in: coachIds },
+              is_current: true,
+            },
+            include: {
+              team: {
+                select: {
+                  team_id: true,
+                  team_name: true,
+                  logo: true,
+                },
+              },
+            },
+          })
+        : [];
+
     const coachIdToVerified = new Map<
       number,
       {
         team_id: number;
         team_name: string;
         logo: string | null;
-        last_match_date: Date;
+        last_match_date: string;
       }
     >();
-    for (const row of verifiedRows) coachIdToVerified.set(row.coach_id, row);
+    for (const history of currentTeamHistories) {
+      if (history.team) {
+        coachIdToVerified.set(history.coach_id, {
+          team_id: history.team.team_id,
+          team_name: history.team.team_name,
+          logo: history.team.logo,
+          last_match_date: history.start_date?.toISOString() ?? '',
+        });
+      }
+    }
 
     // 코치별 총 경기 수 집계 (match_coaches 기준)
     // 총 경기수 (needsComputedOrder 분기에서는 이미 채워짐)
