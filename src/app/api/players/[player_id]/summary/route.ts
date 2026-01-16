@@ -46,7 +46,10 @@ export async function GET(
           },
         },
       },
-      orderBy: [{ end_date: 'desc' }, { created_at: 'desc' }],
+      orderBy: [
+        { end_date: { sort: 'desc', nulls: 'last' } },
+        { created_at: 'desc' },
+      ],
     });
 
     // Backfill map from player_match_stats if needed
