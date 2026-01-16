@@ -135,6 +135,14 @@ export async function computeCoachSeasonStats(
     if (!match) continue;
     const seasonId = match.season_id;
     if (seasonId == null) continue;
+
+    const isHomeTeam = match.home_team_id === team?.team_id;
+    const teamScore = isHomeTeam ? match.home_score : match.away_score;
+    const opponentScore = isHomeTeam ? match.away_score : match.home_score;
+
+    // 경기 결과가 있는 경기만 카운트
+    if (teamScore == null || opponentScore == null) continue;
+
     const seasonName = match.season?.season_name || 'Unknown';
 
     if (!seasonStatsMap.has(seasonId)) {
@@ -156,9 +164,6 @@ export async function computeCoachSeasonStats(
     const stats = seasonStatsMap.get(seasonId)!;
     stats.matches_played++;
 
-    const isHomeTeam = match.home_team_id === team?.team_id;
-    const teamScore = isHomeTeam ? match.home_score : match.away_score;
-    const opponentScore = isHomeTeam ? match.away_score : match.home_score;
     const pkTeam = isHomeTeam
       ? match.penalty_home_score
       : match.penalty_away_score;
@@ -166,21 +171,19 @@ export async function computeCoachSeasonStats(
       ? match.penalty_away_score
       : match.penalty_home_score;
 
-    if (teamScore !== null && opponentScore !== null) {
-      if (teamScore > opponentScore) {
-        stats.wins++;
-      } else if (teamScore < opponentScore) {
-        stats.losses++;
-      } else {
-        if (pkTeam !== null && pkOpp !== null) {
-          if (pkTeam > pkOpp) stats.wins++;
-          else if (pkTeam < pkOpp) stats.losses++;
-        }
+    if (teamScore > opponentScore) {
+      stats.wins++;
+    } else if (teamScore < opponentScore) {
+      stats.losses++;
+    } else {
+      if (pkTeam !== null && pkOpp !== null) {
+        if (pkTeam > pkOpp) stats.wins++;
+        else if (pkTeam < pkOpp) stats.losses++;
       }
-
-      stats.goals_for += teamScore ?? 0;
-      stats.goals_against += opponentScore ?? 0;
     }
+
+    stats.goals_for += teamScore;
+    stats.goals_against += opponentScore;
 
     if (team?.team_name) stats.teams.add(team.team_name);
     if (team?.team_id != null) stats.teamIds.add(team.team_id);

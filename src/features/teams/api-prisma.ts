@@ -28,6 +28,7 @@ export type TeamSeasonStandingRow = {
   position: number | null;
   matches_played: number;
   points: number;
+  isSeasonEnded?: boolean;
 };
 
 // Prisma-based Teams API client functions

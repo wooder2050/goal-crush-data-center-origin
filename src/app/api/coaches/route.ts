@@ -69,25 +69,28 @@ export async function GET(request: NextRequest) {
         const coachId = r.coach_id;
         const teamId = r.team_id ?? null;
         const m = metrics.get(coachId)!;
-        m.total += 1;
         const match = r.match;
-        if (teamId != null && match?.away_team_id === teamId) m.away += 1;
         const isHome = teamId != null && match?.home_team_id === teamId;
         const ts = isHome ? match?.home_score : match?.away_score;
         const os = isHome ? match?.away_score : match?.home_score;
+
+        // 경기 결과가 있는 경기만 카운트
+        if (ts == null || os == null) continue;
+
+        m.total += 1;
+        if (teamId != null && match?.away_team_id === teamId) m.away += 1;
+
         const pkT = isHome
           ? match?.penalty_home_score
           : match?.penalty_away_score;
         const pkO = isHome
           ? match?.penalty_away_score
           : match?.penalty_home_score;
-        if (ts != null && os != null) {
-          if (ts > os) m.wins += 1;
-          else if (ts < os) {
-            // no-op
-          } else if (pkT != null && pkO != null) {
-            if (pkT > pkO) m.wins += 1;
-          }
+        if (ts > os) m.wins += 1;
+        else if (ts < os) {
+          // no-op
+        } else if (pkT != null && pkO != null) {
+          if (pkT > pkO) m.wins += 1;
         }
       }
       // Avoid for..of over Map for ES target compatibility
@@ -210,18 +213,27 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 코치별 총 경기 수 집계 (match_coaches 기준)
+    // 코치별 총 경기 수 집계 (match_coaches 기준, 경기 결과가 있는 경기만)
     // 총 경기수 (needsComputedOrder 분기에서는 이미 채워짐)
     let coachIdToMatchCount = new Map<number, number>();
     if (!needsComputedOrder) {
-      const matchCounts = await prisma.matchCoach.groupBy({
-        by: ['coach_id'],
-        where: { role: 'head' },
-        _count: { _all: true },
+      // 경기 결과가 있는 경기만 카운트하기 위해 match join 필요
+      const matchCoachesWithResults = await prisma.matchCoach.findMany({
+        where: {
+          role: 'head',
+          match: {
+            home_score: { not: null },
+            away_score: { not: null },
+          },
+        },
+        select: { coach_id: true },
       });
-      coachIdToMatchCount = new Map<number, number>(
-        matchCounts.map((row) => [row.coach_id, row._count._all])
-      );
+      // 코치별로 그룹화하여 카운트
+      const countMap = new Map<number, number>();
+      for (const mc of matchCoachesWithResults) {
+        countMap.set(mc.coach_id, (countMap.get(mc.coach_id) ?? 0) + 1);
+      }
+      coachIdToMatchCount = countMap;
     }
 
     const enriched = coaches
