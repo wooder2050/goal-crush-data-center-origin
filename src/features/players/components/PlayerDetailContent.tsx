@@ -135,7 +135,19 @@ function PlayerDetailContentInner({
       }
     });
     return Array.from(map.values())
-      .sort((a, b) => a.index - b.index)
+      .sort((a, b) => {
+        // 현재 활동 중인 팀을 맨 위로
+        if (a.row.is_active && !b.row.is_active) return -1;
+        if (!a.row.is_active && b.row.is_active) return 1;
+        // 그 외에는 end_date 기준 내림차순 (최신 종료일이 위로)
+        const aEnd = a.row.end_date ?? '';
+        const bEnd = b.row.end_date ?? '';
+        if (aEnd !== bEnd) return bEnd.localeCompare(aEnd);
+        // end_date가 같으면 start_date 기준 내림차순
+        const aStart = a.row.start_date ?? '';
+        const bStart = b.row.start_date ?? '';
+        return bStart.localeCompare(aStart);
+      })
       .map((v) => v.row);
   })();
 

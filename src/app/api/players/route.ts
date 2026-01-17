@@ -382,7 +382,10 @@ export async function GET(request: NextRequest) {
               created_at: true,
               season_id: true,
             },
-            orderBy: [{ end_date: 'desc' }, { created_at: 'desc' }],
+            orderBy: [
+              { end_date: { sort: 'desc', nulls: 'first' } },
+              { start_date: 'desc' },
+            ],
             take: 1,
           },
           playerPosition: {
@@ -392,7 +395,10 @@ export async function GET(request: NextRequest) {
               start_date: true,
               end_date: true,
             },
-            orderBy: [{ end_date: 'desc' }, { start_date: 'desc' }],
+            orderBy: [
+              { end_date: { sort: 'desc', nulls: 'first' } },
+              { start_date: 'desc' },
+            ],
             take: 1,
           },
           created_at: true,
@@ -507,7 +513,10 @@ export async function GET(request: NextRequest) {
               created_at: true,
               season_id: true,
             },
-            orderBy: [{ end_date: 'desc' }, { created_at: 'desc' }],
+            orderBy: [
+              { end_date: { sort: 'desc', nulls: 'first' } },
+              { start_date: 'desc' },
+            ],
             take: 1,
           },
           playerPosition: {
@@ -517,7 +526,10 @@ export async function GET(request: NextRequest) {
               start_date: true,
               end_date: true,
             },
-            orderBy: [{ end_date: 'desc' }, { start_date: 'desc' }],
+            orderBy: [
+              { end_date: { sort: 'desc', nulls: 'first' } },
+              { start_date: 'desc' },
+            ],
             take: 1,
           },
           created_at: true,
@@ -626,7 +638,10 @@ export async function GET(request: NextRequest) {
               created_at: true,
               season_id: true,
             },
-            orderBy: [{ end_date: 'desc' }, { created_at: 'desc' }],
+            orderBy: [
+              { end_date: { sort: 'desc', nulls: 'first' } },
+              { start_date: 'desc' },
+            ],
             take: 1,
           },
           playerPosition: {
@@ -636,7 +651,10 @@ export async function GET(request: NextRequest) {
               start_date: true,
               end_date: true,
             },
-            orderBy: [{ end_date: 'desc' }, { start_date: 'desc' }],
+            orderBy: [
+              { end_date: { sort: 'desc', nulls: 'first' } },
+              { start_date: 'desc' },
+            ],
             take: 1,
           },
           created_at: true,
@@ -678,7 +696,10 @@ export async function GET(request: NextRequest) {
             created_at: true,
             season_id: true,
           },
-          orderBy: [{ end_date: 'desc' }, { created_at: 'desc' }],
+          orderBy: [
+            { end_date: { sort: 'desc', nulls: 'first' } },
+            { start_date: 'desc' },
+          ],
           take: 1,
         },
         playerPosition: {
@@ -688,7 +709,10 @@ export async function GET(request: NextRequest) {
             start_date: true,
             end_date: true,
           },
-          orderBy: [{ end_date: 'desc' }, { start_date: 'desc' }],
+          orderBy: [
+            { end_date: { sort: 'desc', nulls: 'first' } },
+            { start_date: 'desc' },
+          ],
           take: 1,
         },
         created_at: true,

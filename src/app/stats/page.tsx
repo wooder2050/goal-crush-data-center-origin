@@ -1,4 +1,11 @@
-import { Shield, Swords, Target, Trophy, Users } from 'lucide-react';
+import {
+  Shield,
+  Swords,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 
@@ -58,6 +65,14 @@ export default function StatsPage() {
       icon: <Users className="h-8 w-8 text-purple-500" />,
       gradient: 'from-purple-50 to-indigo-50',
       buttonColor: 'bg-purple-500 hover:bg-purple-600',
+    },
+    {
+      title: '선발 출전 승률',
+      description: '선발 출전 시 팀 승률 순위',
+      href: '/stats/starter-win-rate',
+      icon: <TrendingUp className="h-8 w-8 text-cyan-500" />,
+      gradient: 'from-cyan-50 to-sky-50',
+      buttonColor: 'bg-cyan-500 hover:bg-cyan-600',
     },
   ];
 
