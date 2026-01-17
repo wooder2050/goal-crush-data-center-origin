@@ -15,3 +15,12 @@ export type {
   PlayerRanking,
   ScoringRankingsResponse,
 } from './scoring-rankings';
+
+// Win Rate Rankings types
+export type {
+  AppearanceType,
+  StarterWinRateRanking,
+  StarterWinRateResponse,
+  WinRateRanking,
+  WinRateResponse,
+} from './starter-win-rate';
