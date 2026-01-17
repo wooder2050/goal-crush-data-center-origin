@@ -1,4 +1,11 @@
-import { Shield, Swords, Target, TrendingUp, Trophy, Users } from 'lucide-react';
+import {
+  Shield,
+  Swords,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 

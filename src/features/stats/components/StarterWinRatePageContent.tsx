@@ -62,7 +62,8 @@ function WinRatePageContentInner() {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState('win_rate_desc');
   const [minMatches, setMinMatches] = useState(5);
-  const [appearanceType, setAppearanceType] = useState<AppearanceType>('starter');
+  const [appearanceType, setAppearanceType] =
+    useState<AppearanceType>('starter');
 
   const { data, isLoading, error, refetch } = useGoalQuery(
     getWinRateRankings,
@@ -211,9 +212,7 @@ function WinRatePageContentInner() {
                     <SelectValue placeholder="정렬 기준 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="win_rate_desc">
-                      승률 높은 순
-                    </SelectItem>
+                    <SelectItem value="win_rate_desc">승률 높은 순</SelectItem>
                     <SelectItem value="win_rate_asc">승률 낮은 순</SelectItem>
                     <SelectItem value="matches_played">
                       경기 수 많은 순
@@ -562,7 +561,9 @@ function WinRatePageContentInner() {
                       <div className="text-lg font-bold text-gray-900">
                         {player.matches_played}
                       </div>
-                      <div className="text-xs text-gray-500">{getMatchLabel()}</div>
+                      <div className="text-xs text-gray-500">
+                        {getMatchLabel()}
+                      </div>
                     </div>
                     <div>
                       <div className="text-lg font-bold text-blue-600">
@@ -612,15 +613,9 @@ function WinRatePageContentInner() {
 
         {/* 범례 */}
         <div className="mt-8 text-xs text-gray-500 space-y-1">
-          <p>
-            * 선발 출전: 경기 기록이 있으나 교체 투입되지 않은 경우
-          </p>
-          <p>
-            * 교체 출전: 경기 중 교체로 투입된 경우
-          </p>
-          <p>
-            * 전체 출전: 선발 + 교체 출전 모두 포함
-          </p>
+          <p>* 선발 출전: 경기 기록이 있으나 교체 투입되지 않은 경우</p>
+          <p>* 교체 출전: 경기 중 교체로 투입된 경우</p>
+          <p>* 전체 출전: 선발 + 교체 출전 모두 포함</p>
           <p>
             * 승률: 해당 유형 출전 경기 중 팀이 승리한 비율 (승부차기 결과 포함)
           </p>
@@ -650,17 +645,17 @@ function StarterWinRatePageContentSkeleton() {
           <CardContent className="px-4 py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-10 bg-gray-200 rounded animate-pulse" />
+                <div
+                  key={i}
+                  className="h-10 bg-gray-200 rounded animate-pulse"
+                />
               ))}
             </div>
           </CardContent>
         </Card>
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="h-16 bg-gray-200 rounded animate-pulse"
-            />
+            <div key={i} className="h-16 bg-gray-200 rounded animate-pulse" />
           ))}
         </div>
       </Section>
