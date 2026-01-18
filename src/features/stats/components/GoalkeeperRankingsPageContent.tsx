@@ -20,6 +20,8 @@ import { shortenSeasonName } from '@/lib/utils';
 
 import InfiniteSeasonSelect from './InfiniteSeasonSelect';
 
+type AppearanceType = 'starter' | 'substitute' | 'all';
+
 // 골키퍼 랭킹 API 호출 함수
 async function getGoalkeeperRankings(params: {
   season_id?: number;
@@ -27,6 +29,7 @@ async function getGoalkeeperRankings(params: {
   min_matches?: number;
   limit?: number;
   page?: number;
+  appearance_type?: AppearanceType;
 }) {
   const searchParams = new URLSearchParams();
   if (params.season_id)
@@ -36,6 +39,8 @@ async function getGoalkeeperRankings(params: {
     searchParams.set('min_matches', params.min_matches.toString());
   if (params.limit) searchParams.set('limit', params.limit.toString());
   if (params.page) searchParams.set('page', params.page.toString());
+  if (params.appearance_type)
+    searchParams.set('appearance_type', params.appearance_type);
 
   const response = await fetch(
     `/api/stats/goalkeeper-rankings?${searchParams}`
@@ -63,8 +68,10 @@ interface GoalkeeperRanking {
   teams?: string;
   team_logos?: string[];
   team_ids?: number[];
-  first_team_id?: number | null;
-  first_team_name?: string | null;
+  // 현재 팀 정보 (가장 최근 경기 기준)
+  current_team_id?: number | null;
+  current_team_name?: string | null;
+  current_team_logo?: string | null;
 }
 
 export default function GoalkeeperRankingsPageContent() {
@@ -74,6 +81,7 @@ export default function GoalkeeperRankingsPageContent() {
     min_matches: 3,
     limit: 10,
     page: 1,
+    appearance_type: 'all' as AppearanceType,
   });
 
   // 시즌 표시를 최대 3개로 제한하고 나머지는 +N으로 표시
@@ -106,6 +114,29 @@ export default function GoalkeeperRankingsPageContent() {
     { value: 'clean_sheets', label: '클린시트 (높은순)' },
     { value: 'matches_played', label: '출전경기 (많은순)' },
   ];
+
+  // 출전 유형에 따른 제목 및 레이블
+  const getAppearanceLabel = () => {
+    switch (filters.appearance_type) {
+      case 'starter':
+        return '선발 출전';
+      case 'substitute':
+        return '교체 출전';
+      default:
+        return '전체 출전';
+    }
+  };
+
+  const getPageTitle = () => {
+    switch (filters.appearance_type) {
+      case 'starter':
+        return '선발 골키퍼 랭킹';
+      case 'substitute':
+        return '교체 골키퍼 랭킹';
+      default:
+        return '골키퍼 랭킹';
+    }
+  };
 
   const handleFilterChange = (
     key: string,
@@ -143,17 +174,39 @@ export default function GoalkeeperRankingsPageContent() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-6">
             <h1 className="mb-2 text-2xl font-bold text-gray-900">
-              🥅 골키퍼 랭킹
+              🥅 {getPageTitle()}
             </h1>
             <p className="text-gray-600">
-              골키퍼 통계 및 성과 랭킹을 확인해보세요.
+              {getAppearanceLabel()} 골키퍼 통계 및 성과 랭킹을 확인해보세요.
             </p>
           </div>
 
           {/* 필터 */}
           <Card className="mb-6">
             <CardContent className="px-4 py-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                {/* 출전 유형 */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    출전 유형
+                  </label>
+                  <Select
+                    value={filters.appearance_type}
+                    onValueChange={(value: string) =>
+                      handleFilterChange('appearance_type', value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체 출전</SelectItem>
+                      <SelectItem value="starter">선발 출전</SelectItem>
+                      <SelectItem value="substitute">교체 출전</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* 시즌 선택 */}
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -211,6 +264,28 @@ export default function GoalkeeperRankingsPageContent() {
                       <SelectItem value="3">3경기</SelectItem>
                       <SelectItem value="5">5경기</SelectItem>
                       <SelectItem value="10">10경기</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 페이지당 표시 개수 */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    표시 개수
+                  </label>
+                  <Select
+                    value={filters.limit.toString()}
+                    onValueChange={(value: string) =>
+                      handleFilterChange('limit', Number(value))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10개</SelectItem>
+                      <SelectItem value="20">20개</SelectItem>
+                      <SelectItem value="50">50개</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -363,25 +438,24 @@ export default function GoalkeeperRankingsPageContent() {
                             </td>
                             <td className="px-3 py-3">
                               <div className="flex items-center gap-2">
-                                {player.team_logos &&
-                                  player.team_logos.length > 0 && (
-                                    <span className="relative h-6 w-6 overflow-hidden rounded-full flex-shrink-0">
-                                      <Image
-                                        src={player.team_logos[0]}
-                                        alt="팀 로고"
-                                        fill
-                                        sizes="24px"
-                                        className="object-cover"
-                                      />
-                                    </span>
-                                  )}
+                                {player.current_team_logo && (
+                                  <span className="relative h-6 w-6 overflow-hidden rounded-full flex-shrink-0">
+                                    <Image
+                                      src={player.current_team_logo}
+                                      alt="팀 로고"
+                                      fill
+                                      sizes="24px"
+                                      className="object-cover"
+                                    />
+                                  </span>
+                                )}
                                 <div className="hidden sm:block text-sm text-gray-900">
-                                  {player.first_team_id ? (
+                                  {player.current_team_id ? (
                                     <Link
-                                      href={`/teams/${player.first_team_id}`}
+                                      href={`/teams/${player.current_team_id}`}
                                       className="hover:text-blue-600 hover:underline"
                                     >
-                                      {player.first_team_name}
+                                      {player.current_team_name}
                                     </Link>
                                   ) : (
                                     player.teams
@@ -529,25 +603,24 @@ export default function GoalkeeperRankingsPageContent() {
                           </Link>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          {player.team_logos &&
-                            player.team_logos.length > 0 && (
-                              <span className="relative h-4 w-4 overflow-hidden rounded-full flex-shrink-0">
-                                <Image
-                                  src={player.team_logos[0]}
-                                  alt="팀 로고"
-                                  fill
-                                  sizes="16px"
-                                  className="object-cover"
-                                />
-                              </span>
-                            )}
+                          {player.current_team_logo && (
+                            <span className="relative h-4 w-4 overflow-hidden rounded-full flex-shrink-0">
+                              <Image
+                                src={player.current_team_logo}
+                                alt="팀 로고"
+                                fill
+                                sizes="16px"
+                                className="object-cover"
+                              />
+                            </span>
+                          )}
                           <span className="text-sm text-gray-600 truncate">
-                            {player.first_team_id ? (
+                            {player.current_team_id ? (
                               <Link
-                                href={`/teams/${player.first_team_id}`}
+                                href={`/teams/${player.current_team_id}`}
                                 className="hover:text-blue-600 hover:underline"
                               >
-                                {player.first_team_name}
+                                {player.current_team_name}
                               </Link>
                             ) : (
                               player.teams
