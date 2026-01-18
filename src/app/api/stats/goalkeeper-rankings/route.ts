@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+type AppearanceType = 'starter' | 'substitute' | 'all';
+
 // 골키퍼로 출전했는지 판단하는 함수
 function isGoalkeeperAppearance(
   position: string | null,
@@ -21,10 +23,49 @@ export async function GET(request: NextRequest) {
     const sortBy =
       url.searchParams.get('sort_by') || 'goals_conceded_per_match'; // goals_conceded_per_match, save_percentage, clean_sheets
     const minMatches = parseInt(url.searchParams.get('min_matches') || '3'); // 최소 출전 경기 수
+    const appearanceType = (url.searchParams.get('appearance_type') ||
+      'all') as AppearanceType; // starter, substitute, all
 
     const filterSeasonId = seasonIdParam ? Number(seasonIdParam) : undefined;
 
-    // 모든 골키퍼 출전 기록 가져오기
+    // player_team_history 테이블에서 현재 소속팀 정보 가져오기 (is_active = true)
+    const activeTeamHistory = await prisma.playerTeamHistory.findMany({
+      where: {
+        is_active: true,
+      },
+      include: {
+        team: {
+          select: {
+            team_id: true,
+            team_name: true,
+            logo: true,
+          },
+        },
+      },
+    });
+
+    // 선수별 현재 팀 매핑 생성
+    const playerCurrentTeamMap = new Map<
+      number,
+      {
+        team_id: number | null;
+        team_name: string | null;
+        team_logo: string | null;
+      }
+    >();
+
+    activeTeamHistory.forEach((history) => {
+      // 이미 등록된 선수는 건너뛰기 (중복 방지)
+      if (history.player_id && !playerCurrentTeamMap.has(history.player_id)) {
+        playerCurrentTeamMap.set(history.player_id, {
+          team_id: history.team?.team_id || null,
+          team_name: history.team?.team_name || null,
+          team_logo: history.team?.logo || null,
+        });
+      }
+    });
+
+    // 골키퍼 출전 기록 가져오기 (시즌 필터 적용)
     const playerMatchStats = await prisma.playerMatchStats.findMany({
       where: {
         ...(filterSeasonId && { match: { season_id: filterSeasonId } }),
@@ -46,6 +87,8 @@ export async function GET(request: NextRequest) {
         },
         match: {
           select: {
+            match_id: true,
+            match_date: true,
             season_id: true,
             season: {
               select: {
@@ -57,12 +100,47 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+      orderBy: {
+        match: {
+          match_date: 'desc',
+        },
+      },
     });
 
+    // 교체 투입 선수 목록 가져오기 (선발/교체 구분용)
+    const substitutions = await prisma.substitution.findMany({
+      where: {
+        ...(filterSeasonId && { match: { season_id: filterSeasonId } }),
+      },
+      select: {
+        match_id: true,
+        player_in_id: true,
+      },
+    });
+
+    // 교체 투입 선수를 Set으로 변환 (빠른 조회용)
+    const subInSet = new Set(
+      substitutions.map((s) => `${s.match_id}-${s.player_in_id}`)
+    );
+
     // 골키퍼로 출전한 기록만 필터링
-    const goalkeeperStats = playerMatchStats.filter((stat) =>
+    let goalkeeperStats = playerMatchStats.filter((stat) =>
       isGoalkeeperAppearance(stat.position, stat.goals_conceded)
     );
+
+    // 출전 유형에 따라 필터링
+    if (appearanceType === 'starter') {
+      // 선발 출전: 교체 투입되지 않은 선수
+      goalkeeperStats = goalkeeperStats.filter(
+        (stat) => !subInSet.has(`${stat.match_id}-${stat.player_id}`)
+      );
+    } else if (appearanceType === 'substitute') {
+      // 교체 출전: 교체 투입된 선수
+      goalkeeperStats = goalkeeperStats.filter((stat) =>
+        subInSet.has(`${stat.match_id}-${stat.player_id}`)
+      );
+    }
+    // 'all'인 경우 모든 출전 기록 사용
 
     // 경기별 팀 실점 계산 (클린시트 판단용)
     const matchTeamGoalsMap = new Map<string, number>();
@@ -91,6 +169,22 @@ export async function GET(request: NextRequest) {
         : `${playerId}`; // 전체 커리어
 
       if (!playerStatsMap.has(key)) {
+        // player_team_history에서 현재 팀 정보 가져오기
+        const currentTeam = playerCurrentTeamMap.get(playerId);
+
+        // 폴백: player_team_history에 없으면 가장 최근 경기 기록에서 팀 정보 사용
+        // (데이터가 match_date desc로 정렬되어 있으므로 첫 번째 기록이 가장 최근)
+        const fallbackTeam =
+          !currentTeam && stat.team
+            ? {
+                team_id: stat.team.team_id,
+                team_name: stat.team.team_name,
+                team_logo: stat.team.logo,
+              }
+            : null;
+
+        const teamInfo = currentTeam || fallbackTeam;
+
         playerStatsMap.set(key, {
           player_id: playerId,
           player_name: stat.player?.name,
@@ -102,8 +196,10 @@ export async function GET(request: NextRequest) {
           team_logos: new Set(),
           team_ids: new Set(),
           seasons: new Set(),
-          first_team_id: null,
-          first_team_name: null,
+          // 현재 팀 정보 (player_team_history 우선, 없으면 최근 경기 기록에서 폴백)
+          current_team_id: teamInfo?.team_id || null,
+          current_team_name: teamInfo?.team_name || null,
+          current_team_logo: teamInfo?.team_logo || null,
         });
       }
 
@@ -123,11 +219,6 @@ export async function GET(request: NextRequest) {
 
       if (stat.team?.team_name) {
         playerStats.teams.add(stat.team.team_name);
-        // 첫 번째 팀 정보 저장
-        if (!playerStats.first_team_id && stat.team.team_id) {
-          playerStats.first_team_id = stat.team.team_id;
-          playerStats.first_team_name = stat.team.team_name;
-        }
       }
 
       if (stat.team?.logo) {
@@ -199,6 +290,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       season_filter: filterSeasonId || 'all',
+      appearance_type: appearanceType,
       sort_by: sortBy,
       min_matches: minMatches,
       total_goalkeepers: totalCount,
