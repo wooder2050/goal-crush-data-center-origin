@@ -1037,6 +1037,7 @@ model PlayerMatchDetailedStats {
   key_passes          Int      @default(0)
   shots               Int      @default(0)
   shots_on_target     Int      @default(0)
+  shot_accuracy       Float?   @default(0)
   saves               Int      @default(0)
   gk_throws           Int      @default(0)
   gk_throws_completed Int      @default(0)

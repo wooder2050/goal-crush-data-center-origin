@@ -589,3 +589,54 @@ export const getLastMatchLineupsPrisma = async (
   }
   return response.json();
 };
+
+// 상세 통계 타입 정의
+export interface MatchDetailedStats {
+  detailed_stat_id: number;
+  match_id: number;
+  player_id: number;
+  team_id: number;
+  passes: number;
+  passes_completed: number;
+  pass_accuracy: number | null;
+  key_passes: number;
+  shots: number;
+  shots_on_target: number;
+  shot_accuracy: number | null;
+  saves: number;
+  gk_throws: number;
+  gk_throws_completed: number;
+  tackles: number;
+  tackles_won: number;
+  interceptions: number;
+  clearances: number;
+  dribbles: number;
+  free_kicks: number;
+  free_kick_goals: number;
+  throw_ins: number;
+  corner_kicks: number;
+  penalty_goals: number;
+  player: {
+    player_id: number;
+    name: string;
+    jersey_number: number | null;
+    profile_image_url: string | null;
+  };
+  team: {
+    team_id: number;
+    team_name: string;
+  };
+}
+
+// Get match detailed stats (public)
+export const getMatchDetailedStatsPrisma = async (
+  matchId: number
+): Promise<MatchDetailedStats[]> => {
+  const response = await fetch(`/api/matches/${matchId}/detailed-stats`);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch match detailed stats: ${response.statusText}`
+    );
+  }
+  return response.json();
+};

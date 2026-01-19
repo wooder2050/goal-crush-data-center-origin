@@ -11,6 +11,7 @@ interface StatData {
   key_passes?: number;
   shots?: number;
   shots_on_target?: number;
+  shot_accuracy?: number;
   saves?: number;
   gk_throws?: number;
   gk_throws_completed?: number;
@@ -59,18 +60,24 @@ export async function POST(
     // 트랜잭션으로 일괄 처리
     const results = await prisma.$transaction(
       stats.map((stat) => {
-        const rawAccuracy =
+        const rawPassAccuracy =
           stat.pass_accuracy ??
           (stat.passes && stat.passes > 0
             ? ((stat.passes_completed ?? 0) / stat.passes) * 100
             : 0);
+        const rawShotAccuracy =
+          stat.shot_accuracy ??
+          (stat.shots && stat.shots > 0
+            ? ((stat.shots_on_target ?? 0) / stat.shots) * 100
+            : 0);
         const statsData = {
           passes: stat.passes ?? 0,
           passes_completed: stat.passes_completed ?? 0,
-          pass_accuracy: Math.round(rawAccuracy * 10) / 10,
+          pass_accuracy: Math.round(rawPassAccuracy * 10) / 10,
           key_passes: stat.key_passes ?? 0,
           shots: stat.shots ?? 0,
           shots_on_target: stat.shots_on_target ?? 0,
+          shot_accuracy: Math.round(rawShotAccuracy * 10) / 10,
           saves: stat.saves ?? 0,
           gk_throws: stat.gk_throws ?? 0,
           gk_throws_completed: stat.gk_throws_completed ?? 0,
