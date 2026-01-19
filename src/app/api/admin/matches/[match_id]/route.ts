@@ -39,6 +39,86 @@ export async function GET(
   }
 }
 
+// 경기 정보 업데이트 공통 로직
+async function updateMatch(matchId: number, data: Record<string, unknown>) {
+  // 경기 존재 여부 확인
+  const existingMatch = await prisma.match.findUnique({
+    where: { match_id: matchId },
+  });
+
+  if (!existingMatch) {
+    return null;
+  }
+
+  // 경기 정보 업데이트
+  const updatedMatch = await prisma.match.update({
+    where: { match_id: matchId },
+    data: {
+      home_score: data.home_score !== undefined ? data.home_score : undefined,
+      away_score: data.away_score !== undefined ? data.away_score : undefined,
+      penalty_home_score:
+        data.penalty_home_score !== undefined
+          ? data.penalty_home_score
+          : undefined,
+      penalty_away_score:
+        data.penalty_away_score !== undefined
+          ? data.penalty_away_score
+          : undefined,
+      status: (data.status as string) || undefined,
+      match_date: data.match_date
+        ? new Date(data.match_date as string)
+        : undefined,
+      location: data.location !== undefined ? data.location : undefined,
+      description:
+        data.description !== undefined ? data.description : undefined,
+      tournament_stage:
+        data.tournament_stage !== undefined ? data.tournament_stage : undefined,
+      group_stage:
+        data.group_stage !== undefined ? data.group_stage : undefined,
+      highlight_url:
+        data.highlight_url !== undefined ? data.highlight_url : undefined,
+      full_video_url:
+        data.full_video_url !== undefined ? data.full_video_url : undefined,
+    },
+    include: {
+      home_team: true,
+      away_team: true,
+      season: true,
+    },
+  });
+
+  return updatedMatch;
+}
+
+// PUT /api/admin/matches/[match_id] - 경기 정보 업데이트 (관리자용)
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { match_id: string } }
+) {
+  try {
+    const matchId = parseInt(params.match_id);
+
+    if (isNaN(matchId)) {
+      return NextResponse.json({ error: 'Invalid match ID' }, { status: 400 });
+    }
+
+    const data = await request.json();
+    const updatedMatch = await updateMatch(matchId, data);
+
+    if (!updatedMatch) {
+      return NextResponse.json({ error: 'Match not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedMatch);
+  } catch (error) {
+    console.error('Failed to update match:', error);
+    return NextResponse.json(
+      { error: 'Failed to update match' },
+      { status: 500 }
+    );
+  }
+}
+
 // PATCH /api/admin/matches/[match_id] - 경기 정보 업데이트 (관리자용)
 export async function PATCH(
   request: NextRequest,
@@ -52,52 +132,11 @@ export async function PATCH(
     }
 
     const data = await request.json();
+    const updatedMatch = await updateMatch(matchId, data);
 
-    // 경기 존재 여부 확인
-    const existingMatch = await prisma.match.findUnique({
-      where: { match_id: matchId },
-    });
-
-    if (!existingMatch) {
+    if (!updatedMatch) {
       return NextResponse.json({ error: 'Match not found' }, { status: 404 });
     }
-
-    // 경기 정보 업데이트
-    const updatedMatch = await prisma.match.update({
-      where: { match_id: matchId },
-      data: {
-        home_score: data.home_score !== undefined ? data.home_score : undefined,
-        away_score: data.away_score !== undefined ? data.away_score : undefined,
-        penalty_home_score:
-          data.penalty_home_score !== undefined
-            ? data.penalty_home_score
-            : undefined,
-        penalty_away_score:
-          data.penalty_away_score !== undefined
-            ? data.penalty_away_score
-            : undefined,
-        status: data.status || undefined,
-        match_date: data.match_date ? new Date(data.match_date) : undefined,
-        location: data.location !== undefined ? data.location : undefined,
-        description:
-          data.description !== undefined ? data.description : undefined,
-        tournament_stage:
-          data.tournament_stage !== undefined
-            ? data.tournament_stage
-            : undefined,
-        group_stage:
-          data.group_stage !== undefined ? data.group_stage : undefined,
-        highlight_url:
-          data.highlight_url !== undefined ? data.highlight_url : undefined,
-        full_video_url:
-          data.full_video_url !== undefined ? data.full_video_url : undefined,
-      },
-      include: {
-        home_team: true,
-        away_team: true,
-        season: true,
-      },
-    });
 
     return NextResponse.json(updatedMatch);
   } catch (error) {

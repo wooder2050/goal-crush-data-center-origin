@@ -579,9 +579,9 @@ export interface Player {
 // 선수 관련 API
 // =============================================================================
 
-// 팀별 선수 목록 조회
+// 팀별 선수 목록 조회 (현재 소속 선수만 - is_active = true)
 export const getTeamPlayers = async (teamId: number): Promise<Player[]> => {
-  const response = await fetch(`/api/teams/${teamId}/players`);
+  const response = await fetch(`/api/teams/${teamId}/players?scope=current`);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch team players: ${response.statusText}`);

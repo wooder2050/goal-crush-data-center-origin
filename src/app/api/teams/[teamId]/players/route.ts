@@ -22,13 +22,15 @@ export async function GET(
       | 'stats';
 
     // players 테이블 기준 where 절
+    // current: 해당 팀에서 is_active = true인 선수들 (현재 소속)
+    // all: 해당 팀과 관련된 모든 선수 (히스토리 기반 또는 is_active = true)
     const whereClause =
       scope === 'current'
         ? {
             player_team_history: {
               some: {
                 team_id: teamId,
-                end_date: null,
+                is_active: true,
               },
             },
           }
