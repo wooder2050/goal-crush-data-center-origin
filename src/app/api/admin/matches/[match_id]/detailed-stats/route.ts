@@ -41,7 +41,7 @@ export async function GET(
     return NextResponse.json(
       {
         error: 'Failed to fetch detailed stats',
-        details: error instanceof Error ? error.message : String(error)
+        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );
@@ -128,11 +128,12 @@ export async function POST(
       },
     });
 
+    const rawAccuracy =
+      pass_accuracy ?? (passes > 0 ? (passes_completed / passes) * 100 : 0);
     const statsData = {
       passes: passes ?? 0,
       passes_completed: passes_completed ?? 0,
-      pass_accuracy:
-        pass_accuracy ?? (passes > 0 ? (passes_completed / passes) * 100 : 0),
+      pass_accuracy: Math.round(rawAccuracy * 10) / 10,
       key_passes: key_passes ?? 0,
       shots: shots ?? 0,
       shots_on_target: shots_on_target ?? 0,

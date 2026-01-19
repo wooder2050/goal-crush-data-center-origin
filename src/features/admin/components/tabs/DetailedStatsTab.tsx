@@ -110,14 +110,6 @@ const STAT_GROUPS = [
   },
 ] as const;
 
-type StatKey = PlayerStats[keyof PlayerStats] extends number
-  ? keyof {
-      [K in keyof PlayerStats as PlayerStats[K] extends number
-        ? K
-        : never]: PlayerStats[K];
-    }
-  : never;
-
 // 초기 통계 생성 함수
 function createInitialStats(lineup: PlayerLineup): PlayerStats {
   return {
@@ -343,7 +335,10 @@ export default function DetailedStatsTab({
         team_id: stats.team_id,
         passes,
         passes_completed: passesCompleted,
-        pass_accuracy: passes > 0 ? (passesCompleted / passes) * 100 : 0,
+        pass_accuracy:
+          passes > 0
+            ? Math.round((passesCompleted / passes) * 100 * 10) / 10
+            : 0,
         key_passes: stats.key_passes,
         shots: stats.shots,
         shots_on_target: stats.shots_on_target,

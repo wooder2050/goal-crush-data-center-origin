@@ -59,14 +59,15 @@ export async function POST(
     // 트랜잭션으로 일괄 처리
     const results = await prisma.$transaction(
       stats.map((stat) => {
+        const rawAccuracy =
+          stat.pass_accuracy ??
+          (stat.passes && stat.passes > 0
+            ? ((stat.passes_completed ?? 0) / stat.passes) * 100
+            : 0);
         const statsData = {
           passes: stat.passes ?? 0,
           passes_completed: stat.passes_completed ?? 0,
-          pass_accuracy:
-            stat.pass_accuracy ??
-            (stat.passes && stat.passes > 0
-              ? ((stat.passes_completed ?? 0) / stat.passes) * 100
-              : 0),
+          pass_accuracy: Math.round(rawAccuracy * 10) / 10,
           key_passes: stat.key_passes ?? 0,
           shots: stat.shots ?? 0,
           shots_on_target: stat.shots_on_target ?? 0,
