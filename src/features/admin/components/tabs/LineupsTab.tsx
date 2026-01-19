@@ -89,7 +89,7 @@ export default function LineupsTab({
                   return (
                     <tr key={lineup.id} className="border-b hover:bg-gray-50">
                       <td className="py-2 px-4">
-                        {lineup.jersey_number || '-'}
+                        {lineup.jersey_number ?? '-'}
                       </td>
                       <td className="py-2 px-4">{lineup.player_name}</td>
                       <td className="py-2 px-4">{lineup.position}</td>

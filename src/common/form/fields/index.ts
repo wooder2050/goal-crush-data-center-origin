@@ -35,3 +35,9 @@ export { playerFormSchema, type PlayerFormValues } from './player';
 
 // 게시글 관련 필드
 export { createPostFormSchema, type CreatePostFormValues } from './post';
+
+// 상세 통계 관련 필드
+export {
+  detailedStatsFormSchema,
+  type DetailedStatsFormValues,
+} from './detailed-stats';
