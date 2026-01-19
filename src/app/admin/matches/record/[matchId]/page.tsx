@@ -519,7 +519,7 @@ export default function RecordMatchDetailPage() {
   return (
     <Container className="py-8">
       <div className="space-y-8">
-        <MatchHeader onBackClick={handleBackClick} />
+        <MatchHeader onBackClick={handleBackClick} matchStatus={match.status} />
 
         <Card className="p-6">
           <MatchInfo match={match} />

@@ -84,6 +84,42 @@ export interface MatchData {
   coaches: MatchCoach[]; // 감독 데이터 추가
 }
 
+// 상세 통계 데이터 타입
+export interface MatchDetailedStats {
+  id: string; // 고유 ID (UUID)
+  player_id: number;
+  team_id: number;
+  // 패스 관련
+  passes: number;
+  passes_completed: number;
+  pass_accuracy: number;
+  key_passes: number;
+  // 슈팅 관련
+  shots: number;
+  shots_on_target: number;
+  // 골키퍼 관련
+  saves: number;
+  gk_throws: number;
+  gk_throws_completed: number;
+  // 수비 관련
+  tackles: number;
+  tackles_won: number;
+  interceptions: number;
+  clearances: number;
+  // 공격 관련
+  dribbles: number;
+  // 세트피스 관련
+  free_kicks: number;
+  free_kick_goals: number;
+  throw_ins: number;
+  corner_kicks: number;
+  penalty_goals: number;
+  // UI 표시용
+  player_name?: string;
+  jersey_number?: number | null;
+  team_name?: string;
+}
+
 // 유효성 검증 결과
 export interface ValidationResult {
   isValid: boolean;
@@ -94,5 +130,6 @@ export interface ValidationResult {
     lineups?: string[];
     substitutions?: string[];
     penalties?: string[];
+    detailedStats?: string[];
   };
 }

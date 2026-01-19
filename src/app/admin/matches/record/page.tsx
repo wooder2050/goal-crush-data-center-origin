@@ -240,14 +240,29 @@ export default function RecordMatchPage() {
                               )}
                             </td>
                             <td className="py-2 px-4">
-                              <Button
-                                size="sm"
-                                onClick={() => handleMatchSelect(match)}
-                              >
-                                {match.status === 'completed'
-                                  ? '결과 수정'
-                                  : '결과 기록'}
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleMatchSelect(match)}
+                                >
+                                  {match.status === 'completed'
+                                    ? '결과 수정'
+                                    : '결과 기록'}
+                                </Button>
+                                {match.status === 'completed' && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      router.push(
+                                        `/admin/matches/record/${match.match_id}/detailed-stats`
+                                      )
+                                    }
+                                  >
+                                    상세 통계
+                                  </Button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))

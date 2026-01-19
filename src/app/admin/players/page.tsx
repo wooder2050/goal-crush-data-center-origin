@@ -451,7 +451,7 @@ export default function PlayersAdminPage() {
                       >
                         <td className="py-2 px-4 font-medium">{player.name}</td>
                         <td className="py-2 px-4">
-                          {player.jersey_number || '-'}
+                          {player.jersey_number ?? '-'}
                         </td>
                         <td className="py-2 px-4">
                           {player.birth_date

@@ -589,3 +589,161 @@ export const getTeamPlayers = async (teamId: number): Promise<Player[]> => {
 
   return response.json();
 };
+
+// =============================================================================
+// 상세 통계 관련 타입 및 API
+// =============================================================================
+
+// 상세 통계 생성/업데이트를 위한 타입
+export interface CreateDetailedStatsData {
+  player_id: number;
+  team_id: number;
+  // 패스 관련
+  passes?: number;
+  passes_completed?: number;
+  pass_accuracy?: number;
+  key_passes?: number;
+  // 슈팅 관련
+  shots?: number;
+  shots_on_target?: number;
+  // 골키퍼 관련
+  saves?: number;
+  gk_throws?: number;
+  gk_throws_completed?: number;
+  // 수비 관련
+  tackles?: number;
+  tackles_won?: number;
+  interceptions?: number;
+  clearances?: number;
+  // 공격 관련
+  dribbles?: number;
+  // 세트피스 관련
+  free_kicks?: number;
+  free_kick_goals?: number;
+  throw_ins?: number;
+  corner_kicks?: number;
+  penalty_goals?: number;
+  // UI 표시용
+  player_name?: string;
+  jersey_number?: number | null;
+  team_name?: string;
+}
+
+// API에서 반환되는 상세 통계 타입
+export interface DetailedStats {
+  detailed_stat_id: number;
+  match_id: number;
+  player_id: number;
+  team_id: number;
+  // 패스 관련
+  passes: number;
+  passes_completed: number;
+  pass_accuracy: number | null;
+  key_passes: number;
+  // 슈팅 관련
+  shots: number;
+  shots_on_target: number;
+  // 골키퍼 관련
+  saves: number;
+  gk_throws: number;
+  gk_throws_completed: number;
+  // 수비 관련
+  tackles: number;
+  tackles_won: number;
+  interceptions: number;
+  clearances: number;
+  // 공격 관련
+  dribbles: number;
+  // 세트피스 관련
+  free_kicks: number;
+  free_kick_goals: number;
+  throw_ins: number;
+  corner_kicks: number;
+  penalty_goals: number;
+  // 관계
+  player: {
+    player_id: number;
+    name: string;
+    jersey_number: number | null;
+  } | null;
+  team: {
+    team_id: number;
+    team_name: string;
+  } | null;
+}
+
+// 상세 통계 목록 조회
+export const getDetailedStats = async (
+  matchId: number
+): Promise<DetailedStats[]> => {
+  const response = await fetch(`/api/admin/matches/${matchId}/detailed-stats`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch detailed stats: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+// 상세 통계 추가/업데이트
+export const saveDetailedStats = async (
+  matchId: number,
+  data: CreateDetailedStatsData
+): Promise<DetailedStats> => {
+  const response = await fetch(`/api/admin/matches/${matchId}/detailed-stats`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to save detailed stats');
+  }
+
+  return response.json();
+};
+
+// 상세 통계 삭제
+export const deleteDetailedStats = async (
+  matchId: number,
+  playerId: number
+): Promise<void> => {
+  const response = await fetch(
+    `/api/admin/matches/${matchId}/detailed-stats?player_id=${playerId}`,
+    {
+      method: 'DELETE',
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to delete detailed stats');
+  }
+};
+
+// 상세 통계 일괄 저장
+export const bulkSaveDetailedStats = async (
+  matchId: number,
+  stats: CreateDetailedStatsData[]
+): Promise<{ success: boolean; count: number }> => {
+  const response = await fetch(
+    `/api/admin/matches/${matchId}/detailed-stats/bulk`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ stats }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to bulk save detailed stats');
+  }
+
+  return response.json();
+};

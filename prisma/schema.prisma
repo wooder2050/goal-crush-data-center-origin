@@ -9,64 +9,65 @@ datasource db {
 }
 
 model Team {
-  team_id                  Int                       @id @default(autoincrement())
-  team_name                String                    @unique @db.VarChar(100)
-  founded_year             Int?
-  description              String?
-  created_at               DateTime?                 @default(now()) @db.Timestamptz(6)
-  updated_at               DateTime?                 @default(now()) @db.Timestamptz(6)
-  primary_color            String?                   @default("#000000") @db.VarChar(7)
-  secondary_color          String?                   @default("#FFFFFF") @db.VarChar(7)
-  logo                     String?                   @db.VarChar(500)
-  community_posts          CommunityPost[]
-  group_league_standings   GroupLeagueStanding[]
-  match_coaches            MatchCoach[]
-  match_supports           MatchSupport[]
-  matches_away             Match[]                   @relation("AwayTeam")
-  matches_home             Match[]                   @relation("HomeTeam")
-  penalty_shootout_details PenaltyShootoutDetail[]
-  player_match_stats       PlayerMatchStats[]
-  player_season_stats      PlayerSeasonStats[]
-  player_team_history      PlayerTeamHistory[]
-  standings                Standing[]
-  substitutions            Substitution[]
-  team_coach_history       TeamCoachHistory[]
-  team_current_head_coach  team_current_head_coach[]
-  team_season_names        TeamSeasonName[]
-  team_season_stats        TeamSeasonStats[]
-  team_seasons             TeamSeason[]
+  team_id                     Int                        @id @default(autoincrement())
+  team_name                   String                     @unique @db.VarChar(100)
+  founded_year                Int?
+  description                 String?
+  created_at                  DateTime?                  @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime?                  @default(now()) @db.Timestamptz(6)
+  primary_color               String?                    @default("#000000") @db.VarChar(7)
+  secondary_color             String?                    @default("#FFFFFF") @db.VarChar(7)
+  logo                        String?                    @db.VarChar(500)
+  community_posts             CommunityPost[]
+  group_league_standings      GroupLeagueStanding[]
+  match_coaches               MatchCoach[]
+  match_supports              MatchSupport[]
+  matches_away                Match[]                    @relation("AwayTeam")
+  matches_home                Match[]                    @relation("HomeTeam")
+  penalty_shootout_details    PenaltyShootoutDetail[]
+  player_match_detailed_stats PlayerMatchDetailedStats[]
+  player_match_stats          PlayerMatchStats[]
+  player_season_stats         PlayerSeasonStats[]
+  player_team_history         PlayerTeamHistory[]
+  standings                   Standing[]
+  substitutions               Substitution[]
+  team_coach_history          TeamCoachHistory[]
+  team_current_head_coach     team_current_head_coach[]
+  team_season_names           TeamSeasonName[]
+  team_season_stats           TeamSeasonStats[]
+  team_seasons                TeamSeason[]
 
   @@index([team_name], map: "idx_teams_name")
   @@map("teams")
 }
 
 model User {
-  user_id              String               @id @db.VarChar(255)
-  korean_nickname      String               @unique @db.VarChar(50)
-  display_name         String?              @db.VarChar(100)
-  profile_image_url    String?
-  bio                  String?
-  is_active            Boolean?             @default(true)
-  created_at           DateTime?            @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime?            @default(now()) @db.Timestamptz(6)
-  is_admin             Boolean?
-  comment_likes        CommentLike[]
-  created_events       CommunityEvent[]     @relation("EventCreator")
-  community_posts      CommunityPost[]
-  event_participations EventParticipation[]
-  match_predictions    MatchPrediction[]
-  match_supports       MatchSupport[]
-  mvp_votes            MvpVote[]
-  post_comments        PostComment[]
-  post_likes           PostLike[]
-  post_view_records    PostViewRecord[]
-  user_badges          UserBadge[]
-  user_notifications   UserNotification[]
-  user_points          UserPoint[]
+  user_id                String                @id @db.VarChar(255)
+  korean_nickname        String                @unique @db.VarChar(50)
+  display_name           String?               @db.VarChar(100)
+  profile_image_url      String?
+  bio                    String?
+  is_active              Boolean?              @default(true)
+  created_at             DateTime?             @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?             @default(now()) @db.Timestamptz(6)
+  is_admin               Boolean?
+  comment_likes          CommentLike[]
+  created_events         CommunityEvent[]      @relation("EventCreator")
+  community_posts        CommunityPost[]
+  event_participations   EventParticipation[]
+  fantasy_rankings       FantasyRanking[]
+  fantasy_teams          FantasyTeam[]
+  match_predictions      MatchPrediction[]
+  match_supports         MatchSupport[]
+  mvp_votes              MvpVote[]
   player_ability_ratings PlayerAbilityRating[]
-  rating_reviews       RatingReview[]
-  fantasy_teams        FantasyTeam[]
-  fantasy_rankings     FantasyRanking[]
+  post_comments          PostComment[]
+  post_likes             PostLike[]
+  post_view_records      PostViewRecord[]
+  rating_reviews         RatingReview[]
+  user_badges            UserBadge[]
+  user_notifications     UserNotification[]
+  user_points            UserPoint[]
 
   @@index([korean_nickname], map: "idx_users_korean_nickname")
   @@index([is_active], map: "idx_users_is_active")
@@ -75,32 +76,33 @@ model User {
 }
 
 model Player {
-  player_id                           Int                     @id @default(autoincrement())
-  name                                String                  @unique @db.VarChar(100)
-  birth_date                          DateTime?               @db.Date
-  nationality                         String?                 @db.VarChar(50)
+  player_id                           Int                        @id @default(autoincrement())
+  name                                String                     @unique @db.VarChar(100)
+  birth_date                          DateTime?                  @db.Date
+  nationality                         String?                    @db.VarChar(50)
   height_cm                           Int?
   profile_image_url                   String?
-  created_at                          DateTime?               @default(now()) @db.Timestamptz(6)
-  updated_at                          DateTime?               @default(now()) @db.Timestamptz(6)
+  created_at                          DateTime?                  @default(now()) @db.Timestamptz(6)
+  updated_at                          DateTime?                  @default(now()) @db.Timestamptz(6)
   jersey_number                       Int?
   assists                             Assist[]
+  fantasy_ai_recommendations          FantasyAIRecommendation[]
+  fantasy_match_performances          FantasyMatchPerformance[]
+  fantasy_player_selections           FantasyPlayerSelection[]
   goals                               Goal[]
   predicted_mvp                       MatchPrediction[]
   mvp_votes                           MvpVote[]
-  penalty_shootout_details_goalkeeper PenaltyShootoutDetail[] @relation("Goalkeeper")
-  penalty_shootout_details_kicker     PenaltyShootoutDetail[] @relation("Kicker")
+  penalty_shootout_details_goalkeeper PenaltyShootoutDetail[]    @relation("Goalkeeper")
+  penalty_shootout_details_kicker     PenaltyShootoutDetail[]    @relation("Kicker")
+  player_ability_aggregates           PlayerAbilityAggregate?
+  player_ability_ratings              PlayerAbilityRating[]
+  player_match_detailed_stats         PlayerMatchDetailedStats[]
   player_match_stats                  PlayerMatchStats[]
   playerPosition                      PlayerPosition[]
   player_season_stats                 PlayerSeasonStats[]
   player_team_history                 PlayerTeamHistory[]
-  substitutions_in                    Substitution[]          @relation("PlayerIn")
-  substitutions_out                   Substitution[]          @relation("PlayerOut")
-  player_ability_ratings              PlayerAbilityRating[]
-  player_ability_aggregates           PlayerAbilityAggregate[]
-  fantasy_player_selections           FantasyPlayerSelection[]
-  fantasy_match_performances          FantasyMatchPerformance[]
-  fantasy_ai_recommendations          FantasyAIRecommendation[]
+  substitutions_in                    Substitution[]             @relation("PlayerIn")
+  substitutions_out                   Substitution[]             @relation("PlayerOut")
 
   @@index([jersey_number], map: "idx_players_jersey_number")
   @@index([name], map: "idx_players_name")
@@ -108,29 +110,29 @@ model Player {
 }
 
 model Season {
-  season_id              Int                   @id @default(autoincrement())
-  season_name            String                @unique @db.VarChar(100)
-  year                   Int
-  start_date             DateTime?             @db.Date
-  end_date               DateTime?             @db.Date
-  created_at             DateTime?             @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime?             @default(now()) @db.Timestamptz(6)
-  category               SeasonCategory        @default(OTHER)
-  community_posts        CommunityPost[]
-  group_league_standings GroupLeagueStanding[]
-  matches                Match[]
-  mvp_votes              MvpVote[]
-  playerPosition         PlayerPosition[]
-  player_season_stats    PlayerSeasonStats[]
-  player_team_history    PlayerTeamHistory[]
-  standings              Standing[]
-  team_coach_history     TeamCoachHistory[]
-  team_season_names      TeamSeasonName[]
-  team_season_stats      TeamSeasonStats[]
-  team_seasons           TeamSeason[]
-  player_ability_ratings PlayerAbilityRating[]
+  season_id                 Int                      @id @default(autoincrement())
+  season_name               String                   @unique @db.VarChar(100)
+  year                      Int
+  start_date                DateTime?                @db.Date
+  end_date                  DateTime?                @db.Date
+  created_at                DateTime?                @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime?                @default(now()) @db.Timestamptz(6)
+  category                  SeasonCategory           @default(OTHER)
+  community_posts           CommunityPost[]
+  fantasy_seasons           FantasySeason[]
+  group_league_standings    GroupLeagueStanding[]
+  matches                   Match[]
+  mvp_votes                 MvpVote[]
   player_ability_aggregates PlayerAbilityAggregate[]
-  fantasy_seasons        FantasySeason[]
+  player_ability_ratings    PlayerAbilityRating[]
+  playerPosition            PlayerPosition[]
+  player_season_stats       PlayerSeasonStats[]
+  player_team_history       PlayerTeamHistory[]
+  standings                 Standing[]
+  team_coach_history        TeamCoachHistory[]
+  team_season_names         TeamSeasonName[]
+  team_season_stats         TeamSeasonStats[]
+  team_seasons              TeamSeason[]
 
   @@index([year], map: "idx_seasons_year")
   @@index([category])
@@ -169,42 +171,43 @@ model PlayerTeamHistory {
 }
 
 model Match {
-  match_id                 Int                     @id @default(autoincrement())
-  season_id                Int?
-  home_team_id             Int?
-  away_team_id             Int?
-  match_date               DateTime                @db.Timestamptz(6)
-  location                 String?                 @db.VarChar(200)
-  home_score               Int?
-  away_score               Int?
-  status                   String?                 @default("scheduled") @db.VarChar(50)
-  description              String?
-  created_at               DateTime?               @default(now()) @db.Timestamptz(6)
-  updated_at               DateTime?               @default(now()) @db.Timestamptz(6)
-  penalty_home_score       Int?
-  penalty_away_score       Int?
-  group_stage              String?                 @db.VarChar(10)
-  tournament_stage         String?                 @db.VarChar(50)
-  highlight_url            String?                 @db.VarChar(1000)
-  full_video_url           String?                 @db.VarChar(1000)
-  home_coach_id            Int?
-  away_coach_id            Int?
-  assists                  Assist[]
-  community_posts          CommunityPost[]
-  goals                    Goal[]
-  match_coaches            MatchCoach[]
-  match_predictions        MatchPrediction[]
-  match_supports           MatchSupport[]
-  away_coach               Coach?                  @relation("AwayCoach", fields: [away_coach_id], references: [coach_id], onUpdate: NoAction)
-  away_team                Team?                   @relation("AwayTeam", fields: [away_team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
-  home_coach               Coach?                  @relation("HomeCoach", fields: [home_coach_id], references: [coach_id], onUpdate: NoAction)
-  home_team                Team?                   @relation("HomeTeam", fields: [home_team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
-  season                   Season?                 @relation(fields: [season_id], references: [season_id], onDelete: Cascade, onUpdate: NoAction)
-  mvp_votes                MvpVote[]
-  penalty_shootout_details PenaltyShootoutDetail[]
-  player_match_stats       PlayerMatchStats[]
-  substitutions            Substitution[]
-  fantasy_match_performances FantasyMatchPerformance[]
+  match_id                    Int                        @id @default(autoincrement())
+  season_id                   Int?
+  home_team_id                Int?
+  away_team_id                Int?
+  match_date                  DateTime                   @db.Timestamptz(6)
+  location                    String?                    @db.VarChar(200)
+  home_score                  Int?
+  away_score                  Int?
+  status                      String?                    @default("scheduled") @db.VarChar(50)
+  description                 String?
+  created_at                  DateTime?                  @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime?                  @default(now()) @db.Timestamptz(6)
+  penalty_home_score          Int?
+  penalty_away_score          Int?
+  group_stage                 String?                    @db.VarChar(10)
+  tournament_stage            String?                    @db.VarChar(50)
+  highlight_url               String?                    @db.VarChar(1000)
+  full_video_url              String?                    @db.VarChar(1000)
+  home_coach_id               Int?
+  away_coach_id               Int?
+  assists                     Assist[]
+  community_posts             CommunityPost[]
+  fantasy_match_performances  FantasyMatchPerformance[]
+  goals                       Goal[]
+  match_coaches               MatchCoach[]
+  match_predictions           MatchPrediction[]
+  match_supports              MatchSupport[]
+  away_coach                  Coach?                     @relation("AwayCoach", fields: [away_coach_id], references: [coach_id], onUpdate: NoAction)
+  away_team                   Team?                      @relation("AwayTeam", fields: [away_team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
+  home_coach                  Coach?                     @relation("HomeCoach", fields: [home_coach_id], references: [coach_id], onUpdate: NoAction)
+  home_team                   Team?                      @relation("HomeTeam", fields: [home_team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
+  season                      Season?                    @relation(fields: [season_id], references: [season_id], onDelete: Cascade, onUpdate: NoAction)
+  mvp_votes                   MvpVote[]
+  penalty_shootout_details    PenaltyShootoutDetail[]
+  player_match_detailed_stats PlayerMatchDetailedStats[]
+  player_match_stats          PlayerMatchStats[]
+  substitutions               Substitution[]
 
   @@index([away_coach_id], map: "idx_matches_away_coach")
   @@index([match_date], map: "idx_matches_date")
@@ -789,6 +792,277 @@ model UserNotification {
   @@map("user_notifications")
 }
 
+model PlayerAbilityRating {
+  rating_id         Int            @id @default(autoincrement())
+  player_id         Int
+  user_id           String         @db.VarChar(255)
+  season_id         Int?
+  finishing         Int?           @default(50)
+  shot_power        Int?           @default(50)
+  shot_accuracy     Int?           @default(50)
+  heading           Int?           @default(50)
+  short_passing     Int?           @default(50)
+  long_passing      Int?           @default(50)
+  vision            Int?           @default(50)
+  crossing          Int?           @default(50)
+  dribbling         Int?           @default(50)
+  ball_control      Int?           @default(50)
+  agility           Int?           @default(50)
+  balance           Int?           @default(50)
+  marking           Int?           @default(50)
+  tackling          Int?           @default(50)
+  interceptions     Int?           @default(50)
+  defensive_heading Int?           @default(50)
+  speed             Int?           @default(50)
+  acceleration      Int?           @default(50)
+  stamina           Int?           @default(50)
+  strength          Int?           @default(50)
+  determination     Int?           @default(50)
+  work_rate         Int?           @default(50)
+  leadership        Int?           @default(50)
+  composure         Int?           @default(50)
+  reflexes          Int?           @default(50)
+  diving            Int?           @default(50)
+  handling          Int?           @default(50)
+  kicking           Int?           @default(50)
+  overall_rating    Int?           @default(50)
+  comment           String?
+  helpful_count     Int            @default(0)
+  total_reviews     Int            @default(0)
+  created_at        DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime       @default(now()) @db.Timestamptz(6)
+  player            Player         @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
+  season            Season?        @relation(fields: [season_id], references: [season_id])
+  user              User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  reviews           RatingReview[]
+
+  @@unique([player_id, user_id, season_id])
+  @@index([player_id])
+  @@index([user_id])
+  @@index([season_id])
+  @@index([overall_rating])
+  @@index([created_at])
+  @@map("player_ability_ratings")
+}
+
+model RatingReview {
+  review_id   Int                 @id @default(autoincrement())
+  rating_id   Int
+  user_id     String              @db.VarChar(255)
+  review_type String              @db.VarChar(20)
+  comment     String?
+  created_at  DateTime            @default(now()) @db.Timestamptz(6)
+  rating      PlayerAbilityRating @relation(fields: [rating_id], references: [rating_id], onDelete: Cascade)
+  user        User                @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([rating_id, user_id, review_type])
+  @@index([rating_id])
+  @@index([user_id])
+  @@index([review_type])
+  @@map("rating_reviews")
+}
+
+model PlayerAbilityAggregate {
+  player_id             Int      @id
+  season_id             Int?
+  avg_finishing         Float?   @default(50)
+  avg_shot_power        Float?   @default(50)
+  avg_shot_accuracy     Float?   @default(50)
+  avg_heading           Float?   @default(50)
+  avg_short_passing     Float?   @default(50)
+  avg_long_passing      Float?   @default(50)
+  avg_vision            Float?   @default(50)
+  avg_crossing          Float?   @default(50)
+  avg_dribbling         Float?   @default(50)
+  avg_ball_control      Float?   @default(50)
+  avg_agility           Float?   @default(50)
+  avg_balance           Float?   @default(50)
+  avg_marking           Float?   @default(50)
+  avg_tackling          Float?   @default(50)
+  avg_interceptions     Float?   @default(50)
+  avg_defensive_heading Float?   @default(50)
+  avg_speed             Float?   @default(50)
+  avg_acceleration      Float?   @default(50)
+  avg_stamina           Float?   @default(50)
+  avg_strength          Float?   @default(50)
+  avg_determination     Float?   @default(50)
+  avg_work_rate         Float?   @default(50)
+  avg_leadership        Float?   @default(50)
+  avg_composure         Float?   @default(50)
+  avg_reflexes          Float?   @default(50)
+  avg_diving            Float?   @default(50)
+  avg_handling          Float?   @default(50)
+  avg_kicking           Float?   @default(50)
+  avg_overall_rating    Float?   @default(50)
+  total_ratings         Int      @default(0)
+  last_updated          DateTime @default(now()) @db.Timestamptz(6)
+  player                Player   @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
+  season                Season?  @relation(fields: [season_id], references: [season_id])
+
+  @@unique([player_id, season_id])
+  @@index([avg_overall_rating])
+  @@map("player_ability_aggregates")
+}
+
+model FantasySeason {
+  fantasy_season_id          Int                       @id @default(autoincrement())
+  season_id                  Int
+  year                       Int
+  month                      Int
+  start_date                 DateTime                  @db.Timestamptz(6)
+  end_date                   DateTime                  @db.Timestamptz(6)
+  lock_date                  DateTime                  @db.Timestamptz(6)
+  is_active                  Boolean                   @default(true)
+  created_at                 DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime                  @default(now()) @db.Timestamptz(6)
+  fantasy_ai_recommendations FantasyAIRecommendation[]
+  fantasy_rankings           FantasyRanking[]
+  season                     Season                    @relation(fields: [season_id], references: [season_id], onDelete: Cascade)
+  fantasy_teams              FantasyTeam[]
+
+  @@unique([season_id, year, month])
+  @@index([year, month])
+  @@index([is_active])
+  @@map("fantasy_seasons")
+}
+
+model FantasyTeam {
+  fantasy_team_id   Int                      @id @default(autoincrement())
+  user_id           String                   @db.VarChar(255)
+  fantasy_season_id Int
+  team_name         String?                  @db.VarChar(100)
+  total_points      Int                      @default(0)
+  is_locked         Boolean                  @default(false)
+  created_at        DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime                 @default(now()) @db.Timestamptz(6)
+  player_selections FantasyPlayerSelection[]
+  fantasy_season    FantasySeason            @relation(fields: [fantasy_season_id], references: [fantasy_season_id], onDelete: Cascade)
+  user              User                     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([user_id, fantasy_season_id])
+  @@index([fantasy_season_id])
+  @@index([total_points])
+  @@map("fantasy_teams")
+}
+
+model FantasyPlayerSelection {
+  selection_id       Int                       @id @default(autoincrement())
+  fantasy_team_id    Int
+  player_id          Int
+  selection_order    Int
+  points_earned      Int                       @default(0)
+  created_at         DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime                  @default(now()) @db.Timestamptz(6)
+  position           String?                   @db.VarChar(2)
+  match_performances FantasyMatchPerformance[]
+  fantasy_team       FantasyTeam               @relation(fields: [fantasy_team_id], references: [fantasy_team_id], onDelete: Cascade)
+  player             Player                    @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
+
+  @@unique([fantasy_team_id, player_id])
+  @@unique([fantasy_team_id, selection_order])
+  @@index([fantasy_team_id])
+  @@index([player_id])
+  @@map("fantasy_player_selections")
+}
+
+model FantasyMatchPerformance {
+  performance_id     Int                    @id @default(autoincrement())
+  selection_id       Int
+  match_id           Int
+  player_id          Int
+  appearance_points  Int                    @default(0)
+  goal_points        Int                    @default(0)
+  assist_points      Int                    @default(0)
+  clean_sheet_points Int                    @default(0)
+  save_points        Int                    @default(0)
+  defensive_points   Int                    @default(0)
+  penalty_points     Int                    @default(0)
+  card_points        Int                    @default(0)
+  bonus_points       Int                    @default(0)
+  total_points       Int                    @default(0)
+  created_at         DateTime               @default(now()) @db.Timestamptz(6)
+  match              Match                  @relation(fields: [match_id], references: [match_id], onDelete: Cascade)
+  player             Player                 @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
+  selection          FantasyPlayerSelection @relation(fields: [selection_id], references: [selection_id], onDelete: Cascade)
+
+  @@unique([selection_id, match_id])
+  @@index([match_id])
+  @@index([player_id])
+  @@map("fantasy_match_performances")
+}
+
+model FantasyRanking {
+  ranking_id        Int           @id @default(autoincrement())
+  fantasy_season_id Int
+  user_id           String        @db.VarChar(255)
+  fantasy_team_id   Int
+  rank_position     Int
+  total_points      Int
+  created_at        DateTime      @default(now()) @db.Timestamptz(6)
+  fantasy_season    FantasySeason @relation(fields: [fantasy_season_id], references: [fantasy_season_id], onDelete: Cascade)
+  user              User          @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([fantasy_season_id, user_id])
+  @@index([fantasy_season_id, rank_position])
+  @@index([fantasy_season_id, total_points])
+  @@map("fantasy_rankings")
+}
+
+model FantasyAIRecommendation {
+  recommendation_id    Int           @id @default(autoincrement())
+  fantasy_season_id    Int
+  player_id            Int
+  recommendation_score Float
+  reason               String?
+  form_score           Float?        @default(0)
+  fixture_difficulty   Float?        @default(0)
+  price_value          Float?        @default(0)
+  created_at           DateTime      @default(now()) @db.Timestamptz(6)
+  fantasy_season       FantasySeason @relation(fields: [fantasy_season_id], references: [fantasy_season_id], onDelete: Cascade)
+  player               Player        @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
+
+  @@unique([fantasy_season_id, player_id])
+  @@index([fantasy_season_id, recommendation_score])
+  @@map("fantasy_ai_recommendations")
+}
+
+model PlayerMatchDetailedStats {
+  detailed_stat_id    Int      @id @default(autoincrement())
+  match_id            Int
+  player_id           Int
+  team_id             Int
+  passes              Int      @default(0)
+  passes_completed    Int      @default(0)
+  pass_accuracy       Float?   @default(0)
+  key_passes          Int      @default(0)
+  shots               Int      @default(0)
+  shots_on_target     Int      @default(0)
+  saves               Int      @default(0)
+  gk_throws           Int      @default(0)
+  gk_throws_completed Int      @default(0)
+  tackles             Int      @default(0)
+  tackles_won         Int      @default(0)
+  interceptions       Int      @default(0)
+  clearances          Int      @default(0)
+  dribbles            Int      @default(0)
+  free_kicks          Int      @default(0)
+  free_kick_goals     Int      @default(0)
+  throw_ins           Int      @default(0)
+  corner_kicks        Int      @default(0)
+  penalty_goals       Int      @default(0)
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime @default(now()) @db.Timestamptz(6)
+  match               Match    @relation(fields: [match_id], references: [match_id], onDelete: Cascade)
+  player              Player   @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
+  team                Team     @relation(fields: [team_id], references: [team_id], onDelete: Cascade)
+
+  @@unique([match_id, player_id])
+  @@index([match_id])
+  @@index([player_id])
+  @@index([team_id])
+  @@map("player_match_detailed_stats")
+}
+
 enum SeasonCategory {
   G_LEAGUE
   SUPER_LEAGUE
@@ -800,271 +1074,4 @@ enum SeasonCategory {
   GIFA_CUP
 
   @@map("season_category")
-}
-
-model PlayerAbilityRating {
-  rating_id      Int      @id @default(autoincrement())
-  player_id      Int
-  user_id        String   @db.VarChar(255)
-  season_id      Int?
-  
-  // 공격 능력치 (1-99)
-  finishing      Int?     @default(50)
-  shot_power     Int?     @default(50)
-  shot_accuracy  Int?     @default(50)
-  heading        Int?     @default(50)
-  
-  // 패스 & 플레이메이킹
-  short_passing  Int?     @default(50)
-  long_passing   Int?     @default(50)
-  vision         Int?     @default(50)
-  crossing       Int?     @default(50)
-  
-  // 드리블 & 기술
-  dribbling      Int?     @default(50)
-  ball_control   Int?     @default(50)
-  agility        Int?     @default(50)
-  balance        Int?     @default(50)
-  
-  // 수비 능력
-  marking        Int?     @default(50)
-  tackling       Int?     @default(50)
-  interceptions  Int?     @default(50)
-  defensive_heading Int?  @default(50)
-  
-  // 피지컬
-  speed          Int?     @default(50)
-  acceleration   Int?     @default(50)
-  stamina        Int?     @default(50)
-  strength       Int?     @default(50)
-  
-  // 멘탈
-  determination  Int?     @default(50)
-  work_rate      Int?     @default(50)
-  leadership     Int?     @default(50)
-  composure      Int?     @default(50)
-  
-  // 골키퍼 전용
-  reflexes       Int?     @default(50)
-  diving         Int?     @default(50)
-  handling       Int?     @default(50)
-  kicking        Int?     @default(50)
-  
-  overall_rating Int?     @default(50)
-  comment        String?
-  
-  helpful_count  Int      @default(0)
-  total_reviews  Int      @default(0)
-  
-  created_at     DateTime @default(now()) @db.Timestamptz(6)
-  updated_at     DateTime @default(now()) @db.Timestamptz(6)
-  
-  player         Player   @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
-  user           User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  season         Season?  @relation(fields: [season_id], references: [season_id])
-  reviews        RatingReview[]
-  
-  @@unique([player_id, user_id, season_id])
-  @@index([player_id])
-  @@index([user_id])
-  @@index([season_id])
-  @@index([overall_rating])
-  @@index([created_at])
-  @@map("player_ability_ratings")
-}
-
-model RatingReview {
-  review_id   Int      @id @default(autoincrement())
-  rating_id   Int
-  user_id     String   @db.VarChar(255)
-  review_type String   @db.VarChar(20) // 'helpful', 'not_helpful', 'comment'
-  comment     String?
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  
-  rating      PlayerAbilityRating @relation(fields: [rating_id], references: [rating_id], onDelete: Cascade)
-  user        User                @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  
-  @@unique([rating_id, user_id, review_type])
-  @@index([rating_id])
-  @@index([user_id])
-  @@index([review_type])
-  @@map("rating_reviews")
-}
-
-model PlayerAbilityAggregate {
-  player_id     Int      @id
-  season_id     Int?
-  
-  // 평균 능력치들
-  avg_finishing      Float? @default(50)
-  avg_shot_power     Float? @default(50)
-  avg_shot_accuracy  Float? @default(50)
-  avg_heading        Float? @default(50)
-  avg_short_passing  Float? @default(50)
-  avg_long_passing   Float? @default(50)
-  avg_vision         Float? @default(50)
-  avg_crossing       Float? @default(50)
-  avg_dribbling      Float? @default(50)
-  avg_ball_control   Float? @default(50)
-  avg_agility        Float? @default(50)
-  avg_balance        Float? @default(50)
-  avg_marking        Float? @default(50)
-  avg_tackling       Float? @default(50)
-  avg_interceptions  Float? @default(50)
-  avg_defensive_heading Float? @default(50)
-  avg_speed          Float? @default(50)
-  avg_acceleration   Float? @default(50)
-  avg_stamina        Float? @default(50)
-  avg_strength       Float? @default(50)
-  avg_determination  Float? @default(50)
-  avg_work_rate      Float? @default(50)
-  avg_leadership     Float? @default(50)
-  avg_composure      Float? @default(50)
-  avg_reflexes       Float? @default(50)
-  avg_diving         Float? @default(50)
-  avg_handling       Float? @default(50)
-  avg_kicking        Float? @default(50)
-  avg_overall_rating Float? @default(50)
-  
-  total_ratings      Int      @default(0)
-  last_updated       DateTime @default(now()) @db.Timestamptz(6)
-  
-  player             Player   @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
-  season             Season?  @relation(fields: [season_id], references: [season_id])
-  
-  @@unique([player_id, season_id])
-  @@index([avg_overall_rating])
-  @@map("player_ability_aggregates")
-}
-
-// Fantasy Football Models
-model FantasySeason {
-  fantasy_season_id Int      @id @default(autoincrement())
-  season_id         Int
-  year              Int
-  month             Int      // 1-12
-  start_date        DateTime @db.Timestamptz(6) // 편성 시작일 (매월 1주차 월요일)
-  end_date          DateTime @db.Timestamptz(6) // 편성 마감일 (매월 1주차 일요일)
-  lock_date         DateTime @db.Timestamptz(6) // 변경 불가 시작일 (매월 2주차 월요일)
-  is_active         Boolean  @default(true)
-  created_at        DateTime @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime @default(now()) @db.Timestamptz(6)
-  
-  season            Season   @relation(fields: [season_id], references: [season_id], onDelete: Cascade)
-  fantasy_teams     FantasyTeam[]
-  fantasy_rankings  FantasyRanking[]
-  fantasy_ai_recommendations FantasyAIRecommendation[]
-  
-  @@unique([season_id, year, month])
-  @@index([year, month])
-  @@index([is_active])
-  @@map("fantasy_seasons")
-}
-
-model FantasyTeam {
-  fantasy_team_id   Int      @id @default(autoincrement())
-  user_id           String   @db.VarChar(255)
-  fantasy_season_id Int
-  team_name         String?  @db.VarChar(100)
-  total_points      Int      @default(0)
-  is_locked         Boolean  @default(false)
-  created_at        DateTime @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime @default(now()) @db.Timestamptz(6)
-  
-  user              User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  fantasy_season    FantasySeason  @relation(fields: [fantasy_season_id], references: [fantasy_season_id], onDelete: Cascade)
-  player_selections FantasyPlayerSelection[]
-  
-  @@unique([user_id, fantasy_season_id])
-  @@index([fantasy_season_id])
-  @@index([total_points])
-  @@map("fantasy_teams")
-}
-
-model FantasyPlayerSelection {
-  selection_id      Int      @id @default(autoincrement())
-  fantasy_team_id   Int
-  player_id         Int
-  selection_order   Int      // 1-5
-  position          String?  @db.VarChar(2)  // GK, DF, MF, FW
-  points_earned     Int      @default(0)
-  created_at        DateTime @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime @default(now()) @db.Timestamptz(6)
-  
-  fantasy_team      FantasyTeam @relation(fields: [fantasy_team_id], references: [fantasy_team_id], onDelete: Cascade)
-  player            Player      @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
-  match_performances FantasyMatchPerformance[]
-  
-  @@unique([fantasy_team_id, player_id])
-  @@unique([fantasy_team_id, selection_order])
-  @@index([fantasy_team_id])
-  @@index([player_id])
-  @@map("fantasy_player_selections")
-}
-
-model FantasyMatchPerformance {
-  performance_id    Int      @id @default(autoincrement())
-  selection_id      Int
-  match_id          Int
-  player_id         Int
-  
-  // 점수 세부사항
-  appearance_points Int      @default(0)
-  goal_points       Int      @default(0)
-  assist_points     Int      @default(0)
-  clean_sheet_points Int     @default(0)
-  save_points       Int      @default(0)
-  defensive_points  Int      @default(0)
-  penalty_points    Int      @default(0)
-  card_points       Int      @default(0)
-  bonus_points      Int      @default(0)
-  
-  total_points      Int      @default(0)
-  created_at        DateTime @default(now()) @db.Timestamptz(6)
-  
-  selection         FantasyPlayerSelection @relation(fields: [selection_id], references: [selection_id], onDelete: Cascade)
-  match             Match                  @relation(fields: [match_id], references: [match_id], onDelete: Cascade)
-  player            Player                 @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
-  
-  @@unique([selection_id, match_id])
-  @@index([match_id])
-  @@index([player_id])
-  @@map("fantasy_match_performances")
-}
-
-model FantasyRanking {
-  ranking_id        Int      @id @default(autoincrement())
-  fantasy_season_id Int
-  user_id           String   @db.VarChar(255)
-  fantasy_team_id   Int
-  rank_position     Int
-  total_points      Int
-  created_at        DateTime @default(now()) @db.Timestamptz(6)
-  
-  fantasy_season    FantasySeason @relation(fields: [fantasy_season_id], references: [fantasy_season_id], onDelete: Cascade)
-  user              User          @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  
-  @@unique([fantasy_season_id, user_id])
-  @@index([fantasy_season_id, rank_position])
-  @@index([fantasy_season_id, total_points])
-  @@map("fantasy_rankings")
-}
-
-model FantasyAIRecommendation {
-  recommendation_id Int      @id @default(autoincrement())
-  fantasy_season_id Int
-  player_id         Int
-  recommendation_score Float
-  reason            String?
-  form_score        Float?   @default(0)
-  fixture_difficulty Float?  @default(0)
-  price_value       Float?   @default(0)
-  created_at        DateTime @default(now()) @db.Timestamptz(6)
-  
-  fantasy_season    FantasySeason @relation(fields: [fantasy_season_id], references: [fantasy_season_id], onDelete: Cascade)
-  player            Player        @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
-  
-  @@unique([fantasy_season_id, player_id])
-  @@index([fantasy_season_id, recommendation_score])
-  @@map("fantasy_ai_recommendations")
 }
