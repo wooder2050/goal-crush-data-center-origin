@@ -251,7 +251,7 @@ async function updateTeamSeasons(seasonId: number) {
   }
 
   // 팀-시즌 관계 저장
-  for (const teamId of teamIds) {
+  for (const teamId of Array.from(teamIds)) {
     await prisma.teamSeason.create({
       data: {
         season_id: seasonId,
@@ -352,7 +352,7 @@ async function updateH2HStats() {
   }
 
   // 상대전적 저장
-  for (const [, stats] of h2hStats) {
+  for (const [, stats] of Array.from(h2hStats)) {
     await prisma.h2hPairStats.create({
       data: {
         team_small_id: stats.team1_id,
