@@ -606,6 +606,7 @@ export interface CreateDetailedStatsData {
   // 슈팅 관련
   shots?: number;
   shots_on_target?: number;
+  shot_accuracy?: number;
   // 골키퍼 관련
   saves?: number;
   gk_throws?: number;
@@ -643,6 +644,7 @@ export interface DetailedStats {
   // 슈팅 관련
   shots: number;
   shots_on_target: number;
+  shot_accuracy: number | null;
   // 골키퍼 관련
   saves: number;
   gk_throws: number;

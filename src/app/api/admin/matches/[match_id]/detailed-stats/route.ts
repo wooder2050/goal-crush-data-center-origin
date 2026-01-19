@@ -70,6 +70,7 @@ export async function POST(
       key_passes,
       shots,
       shots_on_target,
+      shot_accuracy,
       saves,
       gk_throws,
       gk_throws_completed,
@@ -128,15 +129,18 @@ export async function POST(
       },
     });
 
-    const rawAccuracy =
+    const rawPassAccuracy =
       pass_accuracy ?? (passes > 0 ? (passes_completed / passes) * 100 : 0);
+    const rawShotAccuracy =
+      shot_accuracy ?? (shots > 0 ? (shots_on_target / shots) * 100 : 0);
     const statsData = {
       passes: passes ?? 0,
       passes_completed: passes_completed ?? 0,
-      pass_accuracy: Math.round(rawAccuracy * 10) / 10,
+      pass_accuracy: Math.round(rawPassAccuracy * 10) / 10,
       key_passes: key_passes ?? 0,
       shots: shots ?? 0,
       shots_on_target: shots_on_target ?? 0,
+      shot_accuracy: Math.round(rawShotAccuracy * 10) / 10,
       saves: saves ?? 0,
       gk_throws: gk_throws ?? 0,
       gk_throws_completed: gk_throws_completed ?? 0,
