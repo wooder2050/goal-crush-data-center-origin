@@ -1,4 +1,5 @@
 import {
+  CircleDot,
   Shield,
   Swords,
   Target,
@@ -73,6 +74,14 @@ export default function StatsPage() {
       icon: <TrendingUp className="h-8 w-8 text-cyan-500" />,
       gradient: 'from-cyan-50 to-sky-50',
       buttonColor: 'bg-cyan-500 hover:bg-cyan-600',
+    },
+    {
+      title: '승부차기 통계',
+      description: '키커 성공률, 골키퍼 선방율 순위',
+      href: '/stats/penalty-shootout',
+      icon: <CircleDot className="h-8 w-8 text-orange-500" />,
+      gradient: 'from-orange-50 to-amber-50',
+      buttonColor: 'bg-orange-500 hover:bg-orange-600',
     },
   ];
 

@@ -324,7 +324,7 @@ export async function POST(request: NextRequest) {
         const stats = playerSeasonStats.get(key);
         if (!stats) return;
 
-        // 경기 출장 카운트 (출장 시간이 0보다 큰 경우)
+        // 경기 출장 카운트 (출장 시간이 0보다 큰 경우만)
         if ((matchStat.minutes_played || 0) > 0) {
           stats.matches_played++;
         }
@@ -449,31 +449,22 @@ export async function POST(request: NextRequest) {
     if (statsType === 'all' || statsType === 'h2h') {
       console.log('상대전적 통계 재생성 중...');
 
-      // 특정 시즌 선택 시 경고 메시지와 함께 전체 시즌 기반으로 계산
+      // H2H는 항상 전체 시즌 데이터를 기반으로 계산 (시즌별 누적 통계)
       if (seasonId && seasonId !== 'all') {
         console.log(
-          `⚠️  H2H 통계는 전체 경기 데이터를 기반으로 계산됩니다. (시즌 ${seasonId} 선택되었지만 전체 데이터 사용)`
+          `ℹ️  H2H 통계는 전체 시즌 데이터를 기반으로 계산됩니다. (시즌 파라미터 무시)`
         );
       }
 
       // 기존 h2hPairStats 삭제 (전체)
       await prisma.h2hPairStats.deleteMany();
 
-      // 완료된 경기들로부터 상대전적 계산
-      // 특정 시즌이 선택된 경우 해당 시즌만, 아니면 전체 시즌
-      const matchFilter =
-        seasonId && seasonId !== 'all'
-          ? {
-              ...seasonFilter,
-              status: 'completed' as const,
-              home_score: { not: null },
-              away_score: { not: null },
-            }
-          : {
-              status: 'completed' as const,
-              home_score: { not: null },
-              away_score: { not: null },
-            };
+      // 완료된 경기들로부터 상대전적 계산 (항상 전체 시즌)
+      const matchFilter = {
+        status: 'completed' as const,
+        home_score: { not: null },
+        away_score: { not: null },
+      };
 
       const matches = await prisma.match.findMany({
         where: matchFilter,
@@ -489,7 +480,7 @@ export async function POST(request: NextRequest) {
       });
 
       console.log(
-        `${matches.length}개 경기로부터 H2H 통계 계산 중... ${seasonId && seasonId !== 'all' ? `(시즌 ID: ${seasonId})` : '(전체 시즌)'}`
+        `${matches.length}개 경기로부터 H2H 통계 계산 중... (전체 시즌)`
       );
 
       const h2hStats = new Map<

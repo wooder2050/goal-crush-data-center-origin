@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 
+// 골때리는 그녀들 경기 시간 (전반 13분 + 후반 13분 = 26분)
+const MATCH_DURATION_MINUTES = 26;
+
 // GET /api/admin/matches/[match_id]/substitutions - 특정 경기의 교체 목록 조회
 export async function GET(
   _request: NextRequest,
@@ -175,7 +178,10 @@ export async function POST(
 
     if (!playerInStats) {
       // 투입 선수의 경기 통계가 없는 경우 생성
-      const remainingMinutes = Math.max(0, 90 - substitution_time);
+      const remainingMinutes = Math.max(
+        0,
+        MATCH_DURATION_MINUTES - substitution_time
+      );
       await prisma.playerMatchStats.create({
         data: {
           match_id: matchId,
@@ -188,7 +194,10 @@ export async function POST(
       });
     } else {
       // 이미 있는 경우 출전 시간 업데이트
-      const remainingMinutes = Math.max(0, 90 - substitution_time);
+      const remainingMinutes = Math.max(
+        0,
+        MATCH_DURATION_MINUTES - substitution_time
+      );
       await prisma.playerMatchStats.update({
         where: { stat_id: playerInStats.stat_id },
         data: {

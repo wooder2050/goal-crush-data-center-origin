@@ -100,6 +100,24 @@ export async function POST(
       );
     }
 
+    // 해당 선수가 경기 라인업에 등록되어 있는지 확인
+    const playerMatchStats = await prisma.playerMatchStats.findFirst({
+      where: {
+        match_id: matchId,
+        player_id,
+      },
+    });
+
+    if (!playerMatchStats) {
+      return NextResponse.json(
+        {
+          error:
+            'Player must be registered in lineup before recording assists. Please add the player to lineup first.',
+        },
+        { status: 400 }
+      );
+    }
+
     // 어시스트 생성
     const assist = await prisma.assist.create({
       data: {
@@ -133,33 +151,14 @@ export async function POST(
       },
     });
 
-    // 선수의 경기 통계 업데이트 (어시스트 추가)
-    const playerStats = await prisma.playerMatchStats.findFirst({
-      where: {
-        match_id: matchId,
-        player_id,
+    // 선수의 경기 통계 업데이트 (어시스트 추가) - playerMatchStats는 위에서 확인했으므로 바로 업데이트
+    await prisma.playerMatchStats.update({
+      where: { stat_id: playerMatchStats.stat_id },
+      data: {
+        assists: (playerMatchStats.assists || 0) + 1,
+        updated_at: new Date(),
       },
     });
-
-    if (playerStats) {
-      await prisma.playerMatchStats.update({
-        where: { stat_id: playerStats.stat_id },
-        data: {
-          assists: (playerStats.assists || 0) + 1,
-        },
-      });
-    } else {
-      // 선수의 경기 통계가 없는 경우 생성
-      await prisma.playerMatchStats.create({
-        data: {
-          match_id: matchId,
-          player_id,
-          goals: 0,
-          assists: 1,
-          minutes_played: 0, // 기본값
-        },
-      });
-    }
 
     // 시즌 통계 업데이트
     const match = await prisma.match.findUnique({

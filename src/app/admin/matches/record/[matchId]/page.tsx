@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { type MatchResultFormValues } from '@/common/form/fields';
 import { Card } from '@/components/ui/card';
@@ -110,15 +110,21 @@ export default function RecordMatchDetailPage() {
     | undefined
   >(undefined);
 
-  // 경기 데이터 로드 상태 추적
-  const [dataLoaded, setDataLoaded] = useState(false);
-
-  // 경기 정보가 로드되면 스코어 설정 및 기존 데이터 로드
+  // 경기 데이터 로드 상태 추적 (각 데이터 타입별)
+  const loadedRef = useRef({
+    score: false,
+    goals: false,
+    lineups: false,
+    substitutions: false,
+    penalties: false,
+    assists: false,
+    coaches: false,
+  });
 
   // 스코어 설정
-  if (match && !dataLoaded) {
-    // 스코어 설정
-    if (match.home_score !== null) {
+  useEffect(() => {
+    if (match && !loadedRef.current.score && match.home_score !== null) {
+      loadedRef.current.score = true;
       updateScore({
         home_score: match.home_score,
         away_score: match.away_score !== null ? match.away_score : 0,
@@ -127,127 +133,136 @@ export default function RecordMatchDetailPage() {
         status: match.status || 'completed',
       });
     }
+  }, [match, updateScore]);
 
-    // 기존 중복 로직 제거됨 - 아래 독립 블록들이 처리
-
-    // 데이터 로드 완료 표시
-    setDataLoaded(true);
-  }
-
-  // 골 데이터 독립 로드
-  if (match && goals.length > 0 && matchData.goals.length === 0) {
-    goals.forEach((goal) => {
-      addGoal({
-        player_id: goal.player_id,
-        goal_time: goal.goal_time,
-        goal_type: goal.goal_type,
-        description: goal.description,
-        player_name: goal.player?.name || '알 수 없음',
-        jersey_number: goal.player?.jersey_number || null,
-      });
-    });
-  }
-
-  // 라인업 데이터 독립 로드
-  if (match && lineups.length > 0 && matchData.lineups.length === 0) {
-    lineups.forEach((lineup) => {
-      addLineup({
-        player_id: lineup.player_id,
-        team_id: lineup.team_id,
-        position: lineup.position || '',
-        jersey_number: lineup.player?.jersey_number,
-        minutes_played: lineup.minutes_played || 0,
-        player_name: lineup.player?.name || '알 수 없음',
-        team_name: lineup.team?.team_name || '알 수 없음',
-      });
-    });
-  }
-
-  // 교체 데이터 독립 로드
-  if (
-    match &&
-    substitutions.length > 0 &&
-    matchData.substitutions.length === 0
-  ) {
-    substitutions.forEach((sub) => {
-      addSubstitution({
-        team_id: sub.team_id,
-        player_in_id: sub.player_in_id,
-        player_out_id: sub.player_out_id,
-        substitution_time: sub.substitution_time,
-        description: sub.substitution_reason,
-        player_in_name: sub.player_in?.name || '알 수 없음',
-        player_out_name: sub.player_out?.name || '알 수 없음',
-        team_name: sub.team?.team_name || '알 수 없음',
-      });
-    });
-  }
-
-  // 승부차기 데이터 독립 로드
-  if (match && penalties.length > 0 && matchData.penalties.length === 0) {
-    penalties.forEach((penalty) => {
-      addPenalty({
-        team_id: penalty.team_id,
-        player_id: penalty.kicker_id,
-        goalkeeper_id: penalty.goalkeeper_id,
-        is_scored: penalty.is_successful,
-        order: penalty.kicker_order,
-        player_name: penalty.kicker?.name || '알 수 없음',
-        goalkeeper_name: penalty.goalkeeper?.name || '알 수 없음',
-        team_name: penalty.team?.team_name || '알 수 없음',
-      });
-    });
-  }
-
-  // 어시스트 데이터 독립 로드 (골 데이터가 있을 때)
-  if (
-    match &&
-    assists.length > 0 &&
-    matchData.assists.length === 0 &&
-    matchData.goals.length > 0
-  ) {
-    // 골 ID 매핑 생성
-    const goalIdMap = new Map<number, string>();
-    matchData.goals.forEach((goal) => {
-      const apiGoal = goals.find(
-        (g) =>
-          g.player_id === goal.player_id &&
-          g.goal_time === goal.goal_time &&
-          g.goal_type === goal.goal_type
-      );
-      if (apiGoal) {
-        goalIdMap.set(apiGoal.goal_id, goal.id);
-      }
-    });
-
-    assists.forEach((assist) => {
-      const goalId = goalIdMap.get(assist.goal_id);
-      if (goalId) {
-        addAssist({
-          player_id: assist.player_id,
-          goal_id: goalId,
-          description: assist.description,
-          player_name: assist.player?.name || '알 수 없음',
-          goal_time: assist.goal?.goal_time || 0,
-          goal_player_name: assist.goal?.player?.name || '알 수 없음',
+  // 골 데이터 로드
+  useEffect(() => {
+    if (match && goals.length > 0 && !loadedRef.current.goals) {
+      loadedRef.current.goals = true;
+      goals.forEach((goal) => {
+        addGoal({
+          player_id: goal.player_id,
+          goal_time: goal.goal_time,
+          goal_type: goal.goal_type,
+          description: goal.description,
+          player_name: goal.player?.name || '알 수 없음',
+          jersey_number: goal.player?.jersey_number || null,
         });
-      }
-    });
-  }
-
-  // 감독 데이터 독립 로드
-  if (match && coaches.length > 0 && matchData.coaches.length === 0) {
-    coaches.forEach((coach: MatchCoachResponse) => {
-      addCoach({
-        team_id: coach.team_id,
-        coach_id: coach.coach_id,
-        role: coach.role,
-        description: coach.description,
-        coach_name: coach.coach_name || '알 수 없음',
-        team_name: coach.team_name || '알 수 없음',
       });
-    });
-  }
+    }
+  }, [match, goals, addGoal]);
+
+  // 라인업 데이터 로드
+  useEffect(() => {
+    if (match && lineups.length > 0 && !loadedRef.current.lineups) {
+      loadedRef.current.lineups = true;
+      lineups.forEach((lineup) => {
+        addLineup({
+          player_id: lineup.player_id,
+          team_id: lineup.team_id,
+          position: lineup.position || '',
+          jersey_number: lineup.player?.jersey_number,
+          minutes_played: lineup.minutes_played || 0,
+          player_name: lineup.player?.name || '알 수 없음',
+          team_name: lineup.team?.team_name || '알 수 없음',
+        });
+      });
+    }
+  }, [match, lineups, addLineup]);
+
+  // 교체 데이터 로드
+  useEffect(() => {
+    if (match && substitutions.length > 0 && !loadedRef.current.substitutions) {
+      loadedRef.current.substitutions = true;
+      substitutions.forEach((sub) => {
+        addSubstitution({
+          team_id: sub.team_id,
+          player_in_id: sub.player_in_id,
+          player_out_id: sub.player_out_id,
+          substitution_time: sub.substitution_time,
+          description: sub.substitution_reason,
+          player_in_name: sub.player_in?.name || '알 수 없음',
+          player_out_name: sub.player_out?.name || '알 수 없음',
+          team_name: sub.team?.team_name || '알 수 없음',
+        });
+      });
+    }
+  }, [match, substitutions, addSubstitution]);
+
+  // 승부차기 데이터 로드
+  useEffect(() => {
+    if (match && penalties.length > 0 && !loadedRef.current.penalties) {
+      loadedRef.current.penalties = true;
+      penalties.forEach((penalty) => {
+        addPenalty({
+          team_id: penalty.team_id,
+          player_id: penalty.kicker_id,
+          goalkeeper_id: penalty.goalkeeper_id,
+          is_scored: penalty.is_successful,
+          order: penalty.kicker_order,
+          player_name: penalty.kicker?.name || '알 수 없음',
+          goalkeeper_name: penalty.goalkeeper?.name || '알 수 없음',
+          team_name: penalty.team?.team_name || '알 수 없음',
+        });
+      });
+    }
+  }, [match, penalties, addPenalty]);
+
+  // 어시스트 데이터 로드 (골 데이터가 있을 때)
+  useEffect(() => {
+    if (
+      match &&
+      assists.length > 0 &&
+      matchData.goals.length > 0 &&
+      !loadedRef.current.assists
+    ) {
+      loadedRef.current.assists = true;
+      // 골 ID 매핑 생성
+      const goalIdMap = new Map<number, string>();
+      matchData.goals.forEach((goal) => {
+        const apiGoal = goals.find(
+          (g) =>
+            g.player_id === goal.player_id &&
+            g.goal_time === goal.goal_time &&
+            g.goal_type === goal.goal_type
+        );
+        if (apiGoal) {
+          goalIdMap.set(apiGoal.goal_id, goal.id);
+        }
+      });
+
+      assists.forEach((assist) => {
+        const goalId = goalIdMap.get(assist.goal_id);
+        if (goalId) {
+          addAssist({
+            player_id: assist.player_id,
+            goal_id: goalId,
+            description: assist.description,
+            player_name: assist.player?.name || '알 수 없음',
+            goal_time: assist.goal?.goal_time || 0,
+            goal_player_name: assist.goal?.player?.name || '알 수 없음',
+          });
+        }
+      });
+    }
+  }, [match, assists, goals, matchData.goals, addAssist]);
+
+  // 감독 데이터 로드
+  useEffect(() => {
+    if (match && coaches.length > 0 && !loadedRef.current.coaches) {
+      loadedRef.current.coaches = true;
+      coaches.forEach((coach: MatchCoachResponse) => {
+        addCoach({
+          team_id: coach.team_id,
+          coach_id: coach.coach_id,
+          role: coach.role,
+          description: coach.description,
+          coach_name: coach.coach_name || '알 수 없음',
+          team_name: coach.team_name || '알 수 없음',
+        });
+      });
+    }
+  }, [match, coaches, addCoach]);
 
   // 핸들러 함수들
   const handleBackClick = () => router.push('/admin/matches/record');

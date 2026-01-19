@@ -123,17 +123,18 @@ export async function POST(
       return NextResponse.json({ error: 'Match not found' }, { status: 404 });
     }
 
-    // 같은 순서의 페널티킥이 이미 있는지 확인
+    // 같은 팀의 같은 순서의 페널티킥이 이미 있는지 확인
     const existingPenalty = await prisma.penaltyShootoutDetail.findFirst({
       where: {
         match_id: matchId,
+        team_id,
         kicker_order: parseInt(order),
       },
     });
 
     if (existingPenalty) {
       return NextResponse.json(
-        { error: 'Penalty with this order already exists' },
+        { error: 'Penalty with this order already exists for this team' },
         { status: 409 }
       );
     }

@@ -173,37 +173,7 @@ export async function POST(
       }
     }
 
-    // 경기 스코어 업데이트
-    // 선수가 어느 팀인지 확인
-    const playerTeam = await prisma.playerMatchStats.findFirst({
-      where: {
-        match_id: matchId,
-        player_id,
-      },
-      select: {
-        team_id: true,
-      },
-    });
-
-    if (playerTeam && playerTeam.team_id) {
-      const isHomeTeam = playerTeam.team_id === match.home_team_id;
-
-      if (isHomeTeam) {
-        await prisma.match.update({
-          where: { match_id: matchId },
-          data: {
-            home_score: (match.home_score || 0) + 1,
-          },
-        });
-      } else {
-        await prisma.match.update({
-          where: { match_id: matchId },
-          data: {
-            away_score: (match.away_score || 0) + 1,
-          },
-        });
-      }
-    }
+    // 스코어는 스코어 탭에서 수동으로 관리하므로 자동 업데이트하지 않음
 
     return NextResponse.json(goal, { status: 201 });
   } catch (error) {
