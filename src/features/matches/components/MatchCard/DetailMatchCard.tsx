@@ -133,38 +133,44 @@ function DetailMatchCardInner({
             )}
 
             {/* Team comparison stats for completed matches */}
-            {match.home_score != null && match.away_score != null && (
-              <div className="mt-4">
-                <GoalWrapper fallback={<MatchDetailedStatsSectionSkeleton />}>
-                  <MatchDetailedStatsSection
-                    matchId={match.match_id}
-                    homeTeamId={match.home_team_id}
-                    awayTeamId={match.away_team_id}
-                    homeTeamName={match.home_team?.team_name || '홈팀'}
-                    awayTeamName={match.away_team?.team_name || '원정팀'}
-                    variant="team-comparison"
-                  />
-                </GoalWrapper>
-              </div>
-            )}
+            {match.home_score != null &&
+              match.away_score != null &&
+              match.home_team_id != null &&
+              match.away_team_id != null && (
+                <div className="mt-4">
+                  <GoalWrapper fallback={<MatchDetailedStatsSectionSkeleton />}>
+                    <MatchDetailedStatsSection
+                      matchId={match.match_id}
+                      homeTeamId={match.home_team_id}
+                      awayTeamId={match.away_team_id}
+                      homeTeamName={match.home_team?.team_name || '홈팀'}
+                      awayTeamName={match.away_team?.team_name || '원정팀'}
+                      variant="team-comparison"
+                    />
+                  </GoalWrapper>
+                </div>
+              )}
           </div>
         </div>
 
         {/* Player stats for completed matches - Full width */}
-        {match.home_score != null && match.away_score != null && (
-          <div className="mt-4">
-            <GoalWrapper fallback={<MatchDetailedStatsSectionSkeleton />}>
-              <MatchDetailedStatsSection
-                matchId={match.match_id}
-                homeTeamId={match.home_team_id}
-                awayTeamId={match.away_team_id}
-                homeTeamName={match.home_team?.team_name || '홈팀'}
-                awayTeamName={match.away_team?.team_name || '원정팀'}
-                variant="player-stats"
-              />
-            </GoalWrapper>
-          </div>
-        )}
+        {match.home_score != null &&
+          match.away_score != null &&
+          match.home_team_id != null &&
+          match.away_team_id != null && (
+            <div className="mt-4">
+              <GoalWrapper fallback={<MatchDetailedStatsSectionSkeleton />}>
+                <MatchDetailedStatsSection
+                  matchId={match.match_id}
+                  homeTeamId={match.home_team_id}
+                  awayTeamId={match.away_team_id}
+                  homeTeamName={match.home_team?.team_name || '홈팀'}
+                  awayTeamName={match.away_team?.team_name || '원정팀'}
+                  variant="player-stats"
+                />
+              </GoalWrapper>
+            </div>
+          )}
 
         {/* 디테일 카드에서는 상세 보기 버튼 숨김 */}
         <div className="mt-4">
