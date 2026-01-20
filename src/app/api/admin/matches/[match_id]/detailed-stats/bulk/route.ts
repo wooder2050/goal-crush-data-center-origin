@@ -13,6 +13,7 @@ interface StatData {
   shots_on_target?: number;
   shot_accuracy?: number;
   saves?: number;
+  goals_conceded?: number;
   gk_throws?: number;
   gk_throws_completed?: number;
   tackles?: number;
@@ -25,6 +26,11 @@ interface StatData {
   throw_ins?: number;
   corner_kicks?: number;
   penalty_goals?: number;
+  goals?: number;
+  assists?: number;
+  yellow_cards?: number;
+  red_cards?: number;
+  fouls?: number;
 }
 
 // POST /api/admin/matches/[match_id]/detailed-stats/bulk - 상세 통계 일괄 저장
@@ -79,6 +85,7 @@ export async function POST(
           shots_on_target: stat.shots_on_target ?? 0,
           shot_accuracy: Math.round(rawShotAccuracy * 10) / 10,
           saves: stat.saves ?? 0,
+          goals_conceded: stat.goals_conceded ?? 0,
           gk_throws: stat.gk_throws ?? 0,
           gk_throws_completed: stat.gk_throws_completed ?? 0,
           tackles: stat.tackles ?? 0,
@@ -91,6 +98,11 @@ export async function POST(
           throw_ins: stat.throw_ins ?? 0,
           corner_kicks: stat.corner_kicks ?? 0,
           penalty_goals: stat.penalty_goals ?? 0,
+          goals: stat.goals ?? 0,
+          assists: stat.assists ?? 0,
+          yellow_cards: stat.yellow_cards ?? 0,
+          red_cards: stat.red_cards ?? 0,
+          fouls: stat.fouls ?? 0,
           updated_at: new Date(),
         };
 

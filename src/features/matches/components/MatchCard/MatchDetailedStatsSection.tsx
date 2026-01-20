@@ -11,17 +11,216 @@ import {
   MatchDetailedStats,
 } from '../../api-prisma';
 
+// 통계 항목별 아이콘 컴포넌트
+function StatIcon({ statKey }: { statKey: string }) {
+  const iconClass = 'w-4 h-4 text-gray-500';
+
+  switch (statKey) {
+    case 'goals':
+      // 축구공
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 2l2.5 4.5h5L17 12l2.5 5.5h-5L12 22l-2.5-4.5h-5L7 12l-2.5-5.5h5L12 2z" />
+          <path d="M12 7v10M7 9.5l10 5M7 14.5l10-5" />
+        </svg>
+      );
+    case 'assists':
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M7 17L17 7M17 7H7M17 7v10" />
+        </svg>
+      );
+    case 'yellow_cards':
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <rect x="6" y="3" width="12" height="18" rx="1" />
+        </svg>
+      );
+    case 'red_cards':
+      return (
+        <svg className={iconClass} viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="3" width="12" height="18" rx="1" />
+        </svg>
+      );
+    case 'fouls':
+      // 호루라기
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <ellipse cx="16" cy="14" rx="6" ry="5" />
+          <path d="M10 14h-6a2 2 0 01-2-2v-2a2 2 0 012-2h3" />
+          <circle cx="16" cy="14" r="2" />
+          <path d="M7 8l3 3" />
+        </svg>
+      );
+    case 'passes':
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      );
+    case 'passes_completed':
+    case 'key_passes':
+      return null;
+    case 'pass_accuracy':
+    case 'shot_accuracy':
+      // 🎯
+      return <span className="text-sm">🎯</span>;
+    case 'shots':
+      // 🥅
+      return <span className="text-sm">🥅</span>;
+    case 'shots_on_target':
+    case 'dribbles':
+    case 'tackles':
+    case 'tackles_won':
+      return null;
+    case 'interceptions':
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+      );
+    case 'clearances':
+      // 🧹
+      return <span className="text-sm">🧹</span>;
+    case 'free_kick_goals':
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 8v8M8 12h8" />
+        </svg>
+      );
+    case 'free_kicks':
+    case 'throw_ins':
+      return null;
+    case 'corner_kicks':
+      // 🚩
+      return <span className="text-sm">🚩</span>;
+    case 'penalty_goals':
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="12" cy="16" r="2" />
+          <rect x="4" y="4" width="16" height="16" rx="1" />
+        </svg>
+      );
+    case 'saves':
+      // 🧤
+      return <span className="text-sm">🧤</span>;
+    case 'goals_conceded':
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M16 16s-1.5-2-4-2-4 2-4 2M9 9h.01M15 9h.01" />
+        </svg>
+      );
+    case 'gk_throws':
+    case 'gk_throws_completed':
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M12 5v14M5 12l7 7 7-7" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 interface MatchDetailedStatsSectionProps {
   matchId: number;
   homeTeamId: number;
   awayTeamId: number;
   homeTeamName: string;
   awayTeamName: string;
+  homeTeamLogo?: string | null;
+  awayTeamLogo?: string | null;
   variant?: 'team-comparison' | 'player-stats' | 'all';
 }
 
+// 통계 항목 타입 정의
+interface StatItem {
+  key: string;
+  label: string;
+  suffix?: string;
+  lowerIsBetter?: boolean;
+}
+
+interface StatCategory {
+  name: string;
+  stats: StatItem[];
+}
+
 // 통계 카테고리 정의 (골키퍼 포함 - variant="all" 용)
-const STAT_CATEGORIES = [
+const STAT_CATEGORIES: StatCategory[] = [
+  {
+    name: '득점/카드',
+    stats: [
+      { key: 'goals', label: '골' },
+      { key: 'assists', label: '어시스트' },
+      { key: 'yellow_cards', label: '옐로카드' },
+      { key: 'red_cards', label: '레드카드' },
+      { key: 'fouls', label: '반칙' },
+    ],
+  },
   {
     name: '패스',
     stats: [
@@ -53,6 +252,7 @@ const STAT_CATEGORIES = [
     name: '골키퍼',
     stats: [
       { key: 'saves', label: '세이브' },
+      { key: 'goals_conceded', label: '실점', lowerIsBetter: true },
       { key: 'gk_throws', label: 'GK 쓰로잉' },
       { key: 'gk_throws_completed', label: 'GK 쓰로잉 성공' },
     ],
@@ -91,6 +291,11 @@ function calculateTeamTotals(
   players: MatchDetailedStats[]
 ): Record<string, number> {
   const totals: Record<string, number> = {
+    goals: 0,
+    assists: 0,
+    yellow_cards: 0,
+    red_cards: 0,
+    fouls: 0,
     passes: 0,
     passes_completed: 0,
     key_passes: 0,
@@ -102,6 +307,7 @@ function calculateTeamTotals(
     interceptions: 0,
     clearances: 0,
     saves: 0,
+    goals_conceded: 0,
     gk_throws: 0,
     gk_throws_completed: 0,
     free_kicks: 0,
@@ -112,6 +318,11 @@ function calculateTeamTotals(
   };
 
   for (const player of players) {
+    totals.goals += player.goals ?? 0;
+    totals.assists += player.assists ?? 0;
+    totals.yellow_cards += player.yellow_cards ?? 0;
+    totals.red_cards += player.red_cards ?? 0;
+    totals.fouls += player.fouls ?? 0;
     totals.passes += player.passes;
     totals.passes_completed += player.passes_completed;
     totals.key_passes += player.key_passes;
@@ -123,6 +334,7 @@ function calculateTeamTotals(
     totals.interceptions += player.interceptions;
     totals.clearances += player.clearances;
     totals.saves += player.saves;
+    totals.goals_conceded += player.goals_conceded ?? 0;
     totals.gk_throws += player.gk_throws;
     totals.gk_throws_completed += player.gk_throws_completed;
     totals.free_kicks += player.free_kicks;
@@ -151,17 +363,26 @@ function TeamComparisonStats({
   awayStats,
   homeTeamName,
   awayTeamName,
+  homeTeamLogo,
+  awayTeamLogo,
 }: {
   homeStats: MatchDetailedStats[];
   awayStats: MatchDetailedStats[];
   homeTeamName: string;
   awayTeamName: string;
+  homeTeamLogo?: string | null;
+  awayTeamLogo?: string | null;
 }) {
   const homeTotals = calculateTeamTotals(homeStats);
   const awayTotals = calculateTeamTotals(awayStats);
 
   // 표시할 통계 항목 (골키퍼 제외)
   const comparisonStats = [
+    { key: 'goals', label: '골' },
+    { key: 'assists', label: '어시스트' },
+    { key: 'yellow_cards', label: '옐로카드' },
+    { key: 'red_cards', label: '레드카드' },
+    { key: 'fouls', label: '반칙' },
     { key: 'passes', label: '패스' },
     { key: 'passes_completed', label: '패스 성공' },
     { key: 'pass_accuracy', label: '패스 성공률', suffix: '%' },
@@ -190,13 +411,39 @@ function TeamComparisonStats({
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-2 py-2 text-center font-medium text-gray-700 text-xs whitespace-nowrap">
-                  {homeTeamName}
+                  <div className="flex items-center justify-center gap-1.5">
+                    {homeTeamLogo && (
+                      <div className="w-5 h-5 relative flex-shrink-0 rounded-full overflow-hidden">
+                        <Image
+                          src={homeTeamLogo}
+                          alt={homeTeamName}
+                          fill
+                          className="object-cover"
+                          sizes="20px"
+                        />
+                      </div>
+                    )}
+                    <span>{homeTeamName}</span>
+                  </div>
                 </th>
                 <th className="px-2 py-2 text-center font-medium text-gray-700 whitespace-nowrap">
                   항목
                 </th>
                 <th className="px-2 py-2 text-center font-medium text-gray-700 text-xs whitespace-nowrap">
-                  {awayTeamName}
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span>{awayTeamName}</span>
+                    {awayTeamLogo && (
+                      <div className="w-5 h-5 relative flex-shrink-0 rounded-full overflow-hidden">
+                        <Image
+                          src={awayTeamLogo}
+                          alt={awayTeamName}
+                          fill
+                          className="object-cover"
+                          sizes="20px"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </th>
               </tr>
             </thead>
@@ -220,7 +467,10 @@ function TeamComparisonStats({
                       {stat.suffix || ''}
                     </td>
                     <td className="px-3 py-2 text-center text-gray-600">
-                      {stat.label}
+                      <span className="inline-flex items-center justify-center gap-1">
+                        <StatIcon statKey={stat.key} />
+                        <span>{stat.label}</span>
+                      </span>
                     </td>
                     <td
                       className={`px-3 py-2 text-center tabular-nums ${awayHigher ? 'font-semibold text-blue-600' : ''}`}
@@ -243,13 +493,17 @@ function TeamComparisonStats({
 function SingleTeamStatsTable({
   players,
   teamName,
+  teamLogo,
   category,
   globalMaxValues,
+  globalMinValues,
 }: {
   players: MatchDetailedStats[];
   teamName: string;
-  category: (typeof STAT_CATEGORIES)[0];
+  teamLogo?: string | null;
+  category: StatCategory;
   globalMaxValues?: Record<string, number>;
+  globalMinValues?: Record<string, number>;
 }) {
   // 골키퍼 카테고리인 경우 골키퍼 통계가 있는 선수만 필터링
   const filteredPlayers =
@@ -275,8 +529,9 @@ function SingleTeamStatsTable({
     );
   }
 
-  // 각 통계 항목별 팀 내 최대값 계산
+  // 각 통계 항목별 팀 내 최대값/최소값 계산
   const teamMaxValues: Record<string, number> = {};
+  const teamMinValues: Record<string, number> = {};
   for (const stat of category.stats) {
     // 성공률 항목은 최소 시도 횟수 조건 적용
     let eligiblePlayers = filteredPlayers;
@@ -291,12 +546,25 @@ function SingleTeamStatsTable({
       return typeof rawValue === 'number' ? rawValue : 0;
     });
     teamMaxValues[stat.key] = values.length > 0 ? Math.max(...values) : 0;
+    teamMinValues[stat.key] =
+      values.length > 0 ? Math.min(...values) : Infinity;
   }
 
   return (
     <Card className="h-full">
       <CardContent className="px-0 py-4">
-        <h4 className="mb-3 px-4 text-sm font-medium text-gray-700">
+        <h4 className="mb-3 px-4 text-sm font-medium text-gray-700 flex items-center gap-1.5">
+          {teamLogo && (
+            <div className="w-5 h-5 relative flex-shrink-0 rounded-full overflow-hidden">
+              <Image
+                src={teamLogo}
+                alt={teamName}
+                fill
+                className="object-cover"
+                sizes="20px"
+              />
+            </div>
+          )}
           {teamName}
         </h4>
 
@@ -324,10 +592,10 @@ function SingleTeamStatsTable({
                   key={player.player_id}
                   className="border-t border-gray-200 hover:bg-gray-50"
                 >
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-2">
+                  <td className="px-2 sm:px-3 py-2">
+                    <div className="flex items-center gap-1 sm:gap-2">
                       {player.player.profile_image_url ? (
-                        <span className="relative h-6 w-6 overflow-hidden rounded-full flex-shrink-0">
+                        <span className="relative h-6 w-6 overflow-hidden rounded-full flex-shrink-0 hidden sm:block">
                           <Image
                             src={player.player.profile_image_url}
                             alt="선수 이미지"
@@ -337,14 +605,14 @@ function SingleTeamStatsTable({
                           />
                         </span>
                       ) : (
-                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-[10px] text-gray-700 flex-shrink-0">
+                        <span className="hidden sm:inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-[10px] text-gray-700 flex-shrink-0">
                           {(player.player.name ?? '-').charAt(0)}
                         </span>
                       )}
-                      <span className="text-gray-400 text-xs">
+                      <span className="text-gray-400 text-xs hidden sm:inline">
                         {player.player.jersey_number ?? '-'}
                       </span>
-                      <span className="text-sm font-medium truncate max-w-[80px]">
+                      <span className="text-xs sm:text-sm font-medium truncate max-w-[60px] sm:max-w-[80px]">
                         {player.player.name}
                       </span>
                     </div>
@@ -371,18 +639,37 @@ function SingleTeamStatsTable({
                       meetsMinRequirement = player.shots >= 3;
                     }
 
-                    // 양팀 통틀어 최대값인 경우 (금색 강조)
-                    const isGlobalBest =
-                      globalMaxValues &&
-                      numericValue > 0 &&
-                      meetsMinRequirement &&
-                      numericValue === globalMaxValues[stat.key];
-                    // 팀 내 최대값인 경우 (파란색 강조)
-                    const isTeamBest =
-                      !isGlobalBest &&
-                      numericValue > 0 &&
-                      meetsMinRequirement &&
-                      numericValue === teamMaxValues[stat.key];
+                    // lowerIsBetter인 경우 최소값이 best, 아닌 경우 최대값이 best
+                    const isLowerBetter = stat.lowerIsBetter === true;
+
+                    // 양팀 통틀어 best인 경우 (금색 강조)
+                    let isGlobalBest = false;
+                    if (meetsMinRequirement) {
+                      if (isLowerBetter) {
+                        // 실점 등: 최소값이 best (값이 존재해야 함)
+                        isGlobalBest =
+                          globalMinValues !== undefined &&
+                          numericValue === globalMinValues[stat.key];
+                      } else {
+                        // 일반: 최대값이 best
+                        isGlobalBest =
+                          globalMaxValues !== undefined &&
+                          numericValue > 0 &&
+                          numericValue === globalMaxValues[stat.key];
+                      }
+                    }
+
+                    // 팀 내 best인 경우 (파란색 강조)
+                    let isTeamBest = false;
+                    if (!isGlobalBest && meetsMinRequirement) {
+                      if (isLowerBetter) {
+                        isTeamBest = numericValue === teamMinValues[stat.key];
+                      } else {
+                        isTeamBest =
+                          numericValue > 0 &&
+                          numericValue === teamMaxValues[stat.key];
+                      }
+                    }
                     return (
                       <td
                         key={stat.key}
@@ -415,11 +702,15 @@ function SideBySidePlayerStats({
   awayStats,
   homeTeamName,
   awayTeamName,
+  homeTeamLogo,
+  awayTeamLogo,
 }: {
   homeStats: MatchDetailedStats[];
   awayStats: MatchDetailedStats[];
   homeTeamName: string;
   awayTeamName: string;
+  homeTeamLogo?: string | null;
+  awayTeamLogo?: string | null;
 }) {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const category = FIELD_PLAYER_CATEGORIES[selectedCategory];
@@ -451,14 +742,17 @@ function SideBySidePlayerStats({
   const awayGoalkeepers = awayStats.filter(hasGoalkeeperStats);
   const allGoalkeepers = [...homeGoalkeepers, ...awayGoalkeepers];
 
-  // 골키퍼 통계 최대값 계산
+  // 골키퍼 통계 최대값/최소값 계산
   const gkGlobalMaxValues: Record<string, number> = {};
+  const gkGlobalMinValues: Record<string, number> = {};
   for (const stat of GOALKEEPER_CATEGORY.stats) {
     const values = allGoalkeepers.map((p) => {
       const rawValue = p[stat.key as keyof MatchDetailedStats];
       return typeof rawValue === 'number' ? rawValue : 0;
     });
     gkGlobalMaxValues[stat.key] = values.length > 0 ? Math.max(...values) : 0;
+    gkGlobalMinValues[stat.key] =
+      values.length > 0 ? Math.min(...values) : Infinity;
   }
 
   return (
@@ -490,6 +784,7 @@ function SideBySidePlayerStats({
             <SingleTeamStatsTable
               players={homeStats}
               teamName={`홈팀: ${homeTeamName}`}
+              teamLogo={homeTeamLogo}
               category={category}
               globalMaxValues={globalMaxValues}
             />
@@ -498,6 +793,7 @@ function SideBySidePlayerStats({
             <SingleTeamStatsTable
               players={awayStats}
               teamName={`원정팀: ${awayTeamName}`}
+              teamLogo={awayTeamLogo}
               category={category}
               globalMaxValues={globalMaxValues}
             />
@@ -515,16 +811,20 @@ function SideBySidePlayerStats({
               <SingleTeamStatsTable
                 players={homeStats}
                 teamName={`홈팀: ${homeTeamName}`}
+                teamLogo={homeTeamLogo}
                 category={GOALKEEPER_CATEGORY}
                 globalMaxValues={gkGlobalMaxValues}
+                globalMinValues={gkGlobalMinValues}
               />
             )}
             {awayGoalkeepers.length > 0 && (
               <SingleTeamStatsTable
                 players={awayStats}
                 teamName={`원정팀: ${awayTeamName}`}
+                teamLogo={awayTeamLogo}
                 category={GOALKEEPER_CATEGORY}
                 globalMaxValues={gkGlobalMaxValues}
+                globalMinValues={gkGlobalMinValues}
               />
             )}
           </div>
@@ -591,8 +891,9 @@ function PlayerStatsTable({
     );
   }
 
-  // 각 통계 항목별 최대값 계산
+  // 각 통계 항목별 최대값/최소값 계산
   const maxValues: Record<string, number> = {};
+  const minValues: Record<string, number> = {};
   for (const stat of category.stats) {
     // 성공률 항목은 최소 시도 횟수 조건 적용
     let eligiblePlayers = filteredPlayers;
@@ -607,6 +908,7 @@ function PlayerStatsTable({
       return typeof rawValue === 'number' ? rawValue : 0;
     });
     maxValues[stat.key] = values.length > 0 ? Math.max(...values) : 0;
+    minValues[stat.key] = values.length > 0 ? Math.min(...values) : Infinity;
   }
 
   return (
@@ -704,11 +1006,18 @@ function PlayerStatsTable({
                       meetsMinRequirement = player.shots >= 3;
                     }
 
-                    // 최대값이면서 0이 아닌 경우 강조 표시
-                    const isBest =
-                      numericValue > 0 &&
-                      meetsMinRequirement &&
-                      numericValue === maxValues[stat.key];
+                    // lowerIsBetter인 경우 최소값이 best
+                    const isLowerBetter = stat.lowerIsBetter === true;
+                    let isBest = false;
+                    if (meetsMinRequirement) {
+                      if (isLowerBetter) {
+                        isBest = numericValue === minValues[stat.key];
+                      } else {
+                        isBest =
+                          numericValue > 0 &&
+                          numericValue === maxValues[stat.key];
+                      }
+                    }
                     return (
                       <td
                         key={stat.key}
@@ -737,6 +1046,8 @@ export default function MatchDetailedStatsSection({
   awayTeamId,
   homeTeamName,
   awayTeamName,
+  homeTeamLogo,
+  awayTeamLogo,
   variant = 'all',
 }: MatchDetailedStatsSectionProps) {
   const { data: stats } = useGoalSuspenseQuery(getMatchDetailedStatsPrisma, [
@@ -765,6 +1076,8 @@ export default function MatchDetailedStatsSection({
           awayStats={awayStats}
           homeTeamName={homeTeamName}
           awayTeamName={awayTeamName}
+          homeTeamLogo={homeTeamLogo}
+          awayTeamLogo={awayTeamLogo}
         />
       </div>
     );
@@ -783,6 +1096,8 @@ export default function MatchDetailedStatsSection({
           awayStats={awayStats}
           homeTeamName={homeTeamName}
           awayTeamName={awayTeamName}
+          homeTeamLogo={homeTeamLogo}
+          awayTeamLogo={awayTeamLogo}
         />
       </div>
     );
@@ -800,6 +1115,8 @@ export default function MatchDetailedStatsSection({
           awayStats={awayStats}
           homeTeamName={homeTeamName}
           awayTeamName={awayTeamName}
+          homeTeamLogo={homeTeamLogo}
+          awayTeamLogo={awayTeamLogo}
         />
       )}
 

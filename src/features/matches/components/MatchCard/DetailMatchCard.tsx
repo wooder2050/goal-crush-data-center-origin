@@ -52,12 +52,16 @@ function HeadToHeadOrTeamStatsSection({
   awayTeamId,
   homeTeamName,
   awayTeamName,
+  homeTeamLogo,
+  awayTeamLogo,
 }: {
   matchId: number;
   homeTeamId: number;
   awayTeamId: number;
   homeTeamName: string;
   awayTeamName: string;
+  homeTeamLogo?: string | null;
+  awayTeamLogo?: string | null;
 }) {
   const { data: stats } = useGoalSuspenseQuery(getMatchDetailedStatsPrisma, [
     matchId,
@@ -72,6 +76,8 @@ function HeadToHeadOrTeamStatsSection({
         awayTeamId={awayTeamId}
         homeTeamName={homeTeamName}
         awayTeamName={awayTeamName}
+        homeTeamLogo={homeTeamLogo}
+        awayTeamLogo={awayTeamLogo}
         variant="team-comparison"
       />
     );
@@ -182,6 +188,8 @@ function DetailMatchCardInner({
                   awayTeamId={match.away_team_id}
                   homeTeamName={match.home_team?.team_name || '홈팀'}
                   awayTeamName={match.away_team?.team_name || '원정팀'}
+                  homeTeamLogo={match.home_team?.logo}
+                  awayTeamLogo={match.away_team?.logo}
                 />
               </GoalWrapper>
             ) : (
@@ -241,6 +249,8 @@ function DetailMatchCardInner({
                   awayTeamId={match.away_team_id}
                   homeTeamName={match.home_team?.team_name || '홈팀'}
                   awayTeamName={match.away_team?.team_name || '원정팀'}
+                  homeTeamLogo={match.home_team?.logo}
+                  awayTeamLogo={match.away_team?.logo}
                   variant="player-stats"
                 />
               </GoalWrapper>

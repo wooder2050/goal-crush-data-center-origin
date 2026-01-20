@@ -609,6 +609,7 @@ export interface CreateDetailedStatsData {
   shot_accuracy?: number;
   // 골키퍼 관련
   saves?: number;
+  goals_conceded?: number;
   gk_throws?: number;
   gk_throws_completed?: number;
   // 수비 관련
@@ -624,6 +625,12 @@ export interface CreateDetailedStatsData {
   throw_ins?: number;
   corner_kicks?: number;
   penalty_goals?: number;
+  // 득점/카드 관련
+  goals?: number;
+  assists?: number;
+  yellow_cards?: number;
+  red_cards?: number;
+  fouls?: number;
   // UI 표시용
   player_name?: string;
   jersey_number?: number | null;
@@ -647,6 +654,7 @@ export interface DetailedStats {
   shot_accuracy: number | null;
   // 골키퍼 관련
   saves: number;
+  goals_conceded: number;
   gk_throws: number;
   gk_throws_completed: number;
   // 수비 관련
@@ -662,6 +670,12 @@ export interface DetailedStats {
   throw_ins: number;
   corner_kicks: number;
   penalty_goals: number;
+  // 득점/카드 관련
+  goals: number;
+  assists: number;
+  yellow_cards: number;
+  red_cards: number;
+  fouls: number;
   // 관계
   player: {
     player_id: number;
