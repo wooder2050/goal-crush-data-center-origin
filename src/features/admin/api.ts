@@ -631,6 +631,8 @@ export interface CreateDetailedStatsData {
   yellow_cards?: number;
   red_cards?: number;
   fouls?: number;
+  // 점유율
+  possession_time?: number; // 초 단위
   // UI 표시용
   player_name?: string;
   jersey_number?: number | null;
@@ -676,6 +678,8 @@ export interface DetailedStats {
   yellow_cards: number;
   red_cards: number;
   fouls: number;
+  // 점유율
+  possession_time: number; // 초 단위
   // 관계
   player: {
     player_id: number;
