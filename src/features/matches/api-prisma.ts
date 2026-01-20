@@ -604,6 +604,7 @@ export interface MatchDetailedStats {
   shots_on_target: number;
   shot_accuracy: number | null;
   saves: number;
+  goals_conceded: number;
   gk_throws: number;
   gk_throws_completed: number;
   tackles: number;
@@ -616,6 +617,11 @@ export interface MatchDetailedStats {
   throw_ins: number;
   corner_kicks: number;
   penalty_goals: number;
+  goals: number;
+  assists: number;
+  yellow_cards: number;
+  red_cards: number;
+  fouls: number;
   player: {
     player_id: number;
     name: string;

@@ -23,6 +23,12 @@ interface PlayerStats {
   team_id: number;
   player_name: string;
   jersey_number: number | null;
+  // 득점/카드 관련
+  goals: number;
+  assists: number;
+  yellow_cards: number;
+  red_cards: number;
+  fouls: number;
   // 패스 관련
   passes: number;
   passes_completed: number;
@@ -32,6 +38,7 @@ interface PlayerStats {
   shots_on_target: number;
   // 골키퍼 관련
   saves: number;
+  goals_conceded: number;
   gk_throws: number;
   gk_throws_completed: number;
   // 수비 관련
@@ -62,6 +69,16 @@ interface DetailedStatsTabProps {
 
 // 통계 필드 그룹 정의
 const STAT_GROUPS = [
+  {
+    name: '득점/카드',
+    fields: [
+      { key: 'goals', label: '골' },
+      { key: 'assists', label: '어시스트' },
+      { key: 'yellow_cards', label: '옐로우카드' },
+      { key: 'red_cards', label: '레드카드' },
+      { key: 'fouls', label: '반칙' },
+    ],
+  },
   {
     name: '패스',
     fields: [
@@ -94,6 +111,7 @@ const STAT_GROUPS = [
     name: '골키퍼',
     fields: [
       { key: 'saves', label: '세이브' },
+      { key: 'goals_conceded', label: '실점' },
       { key: 'gk_throws', label: 'GK던지기' },
       { key: 'gk_throws_completed', label: 'GK던지기성공' },
     ],
@@ -117,12 +135,18 @@ function createInitialStats(lineup: PlayerLineup): PlayerStats {
     team_id: lineup.team_id,
     player_name: lineup.player_name,
     jersey_number: lineup.jersey_number,
+    goals: 0,
+    assists: 0,
+    yellow_cards: 0,
+    red_cards: 0,
+    fouls: 0,
     passes: 0,
     passes_completed: 0,
     key_passes: 0,
     shots: 0,
     shots_on_target: 0,
     saves: 0,
+    goals_conceded: 0,
     gk_throws: 0,
     gk_throws_completed: 0,
     tackles: 0,
@@ -148,12 +172,18 @@ function existingToPlayerStats(
     team_id: existing.team_id,
     player_name: lineup.player_name,
     jersey_number: lineup.jersey_number,
+    goals: existing.goals ?? 0,
+    assists: existing.assists ?? 0,
+    yellow_cards: existing.yellow_cards ?? 0,
+    red_cards: existing.red_cards ?? 0,
+    fouls: existing.fouls ?? 0,
     passes: existing.passes,
     passes_completed: existing.passes_completed,
     key_passes: existing.key_passes,
     shots: existing.shots,
     shots_on_target: existing.shots_on_target,
     saves: existing.saves,
+    goals_conceded: existing.goals_conceded ?? 0,
     gk_throws: existing.gk_throws,
     gk_throws_completed: existing.gk_throws_completed,
     tackles: existing.tackles,
@@ -333,6 +363,11 @@ export default function DetailedStatsTab({
       statsToSave.push({
         player_id: stats.player_id,
         team_id: stats.team_id,
+        goals: stats.goals,
+        assists: stats.assists,
+        yellow_cards: stats.yellow_cards,
+        red_cards: stats.red_cards,
+        fouls: stats.fouls,
         passes,
         passes_completed: passesCompleted,
         pass_accuracy:
@@ -343,6 +378,7 @@ export default function DetailedStatsTab({
         shots: stats.shots,
         shots_on_target: stats.shots_on_target,
         saves: stats.saves,
+        goals_conceded: stats.goals_conceded,
         gk_throws: stats.gk_throws,
         gk_throws_completed: stats.gk_throws_completed,
         tackles: stats.tackles,
