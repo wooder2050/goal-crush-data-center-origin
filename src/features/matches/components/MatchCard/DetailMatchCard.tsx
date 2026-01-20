@@ -6,7 +6,10 @@ import { GoalWrapper } from '@/common/GoalWrapper';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 
-import { getMatchByIdPrisma } from '../../api-prisma';
+import {
+  getMatchByIdPrisma,
+  getMatchDetailedStatsPrisma,
+} from '../../api-prisma';
 import { hasPenaltyShootout } from '../../lib/matchUtils';
 import CoachHeadToHeadList from './CoachHeadToHeadList';
 import CoachHeadToHeadListSkeleton from './CoachHeadToHeadListSkeleton';
@@ -40,6 +43,82 @@ import TeamLineupsSection from './TeamLineupsSection';
 interface DetailMatchCardProps {
   matchId: number;
   className?: string;
+}
+
+// 상세 통계가 있으면 팀 통계 비교, 없으면 맞대결 섹션을 보여주는 컴포넌트
+function HeadToHeadOrTeamStatsSection({
+  matchId,
+  homeTeamId,
+  awayTeamId,
+  homeTeamName,
+  awayTeamName,
+}: {
+  matchId: number;
+  homeTeamId: number;
+  awayTeamId: number;
+  homeTeamName: string;
+  awayTeamName: string;
+}) {
+  const { data: stats } = useGoalSuspenseQuery(getMatchDetailedStatsPrisma, [
+    matchId,
+  ]);
+
+  // 상세 통계가 있으면 팀 통계 비교 표시
+  if (stats && stats.length > 0) {
+    return (
+      <MatchDetailedStatsSection
+        matchId={matchId}
+        homeTeamId={homeTeamId}
+        awayTeamId={awayTeamId}
+        homeTeamName={homeTeamName}
+        awayTeamName={awayTeamName}
+        variant="team-comparison"
+      />
+    );
+  }
+
+  // 상세 통계가 없으면 맞대결 섹션들 표시
+  return (
+    <>
+      <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
+        <HeadToHeadSection matchId={matchId} />
+      </GoalWrapper>
+      <GoalWrapper fallback={<HeadToHeadListSkeleton />}>
+        <HeadToHeadList matchId={matchId} />
+      </GoalWrapper>
+      <GoalWrapper fallback={<CoachHeadToHeadSectionSkeleton />}>
+        <CoachHeadToHeadSection matchId={matchId} />
+      </GoalWrapper>
+      <GoalWrapper fallback={<CoachHeadToHeadListSkeleton />}>
+        <CoachHeadToHeadList matchId={matchId} />
+      </GoalWrapper>
+    </>
+  );
+}
+
+// 상세 통계가 없을 때만 골키퍼 통계를 보여주는 컴포넌트
+function GoalkeeperStatsSectionIfNoDetailedStats({
+  matchId,
+}: {
+  matchId: number;
+}) {
+  const { data: stats } = useGoalSuspenseQuery(getMatchDetailedStatsPrisma, [
+    matchId,
+  ]);
+
+  // 상세 통계가 있으면 골키퍼 통계 숨김 (상세 통계에 이미 포함됨)
+  if (stats && stats.length > 0) {
+    return null;
+  }
+
+  // 상세 통계가 없으면 골키퍼 통계 표시
+  return (
+    <div className="mt-4">
+      <GoalWrapper fallback={<MatchGoalkeeperStatsSectionSkeleton />}>
+        <MatchGoalkeeperStatsSection matchId={matchId} />
+      </GoalWrapper>
+    </div>
+  );
 }
 
 function DetailMatchCardInner({
@@ -94,26 +173,41 @@ function DetailMatchCardInner({
                 </div>
               </>
             ) : null}
-            <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
-              <HeadToHeadSection matchId={match.match_id} />
-            </GoalWrapper>
-            <GoalWrapper fallback={<HeadToHeadListSkeleton />}>
-              <HeadToHeadList matchId={match.match_id} />
-            </GoalWrapper>
-            <GoalWrapper fallback={<CoachHeadToHeadSectionSkeleton />}>
-              <CoachHeadToHeadSection matchId={match.match_id} />
-            </GoalWrapper>
-            <GoalWrapper fallback={<CoachHeadToHeadListSkeleton />}>
-              <CoachHeadToHeadList matchId={match.match_id} />
-            </GoalWrapper>
-
-            {/* Goalkeeper stats for completed matches */}
-            {match.home_score != null && match.away_score != null && (
-              <div className="mt-4">
-                <GoalWrapper fallback={<MatchGoalkeeperStatsSectionSkeleton />}>
-                  <MatchGoalkeeperStatsSection matchId={match.match_id} />
+            {/* 상세 통계가 있으면 팀 통계 비교, 없으면 맞대결 섹션 */}
+            {match.home_team_id != null && match.away_team_id != null ? (
+              <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
+                <HeadToHeadOrTeamStatsSection
+                  matchId={match.match_id}
+                  homeTeamId={match.home_team_id}
+                  awayTeamId={match.away_team_id}
+                  homeTeamName={match.home_team?.team_name || '홈팀'}
+                  awayTeamName={match.away_team?.team_name || '원정팀'}
+                />
+              </GoalWrapper>
+            ) : (
+              <>
+                <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
+                  <HeadToHeadSection matchId={match.match_id} />
                 </GoalWrapper>
-              </div>
+                <GoalWrapper fallback={<HeadToHeadListSkeleton />}>
+                  <HeadToHeadList matchId={match.match_id} />
+                </GoalWrapper>
+                <GoalWrapper fallback={<CoachHeadToHeadSectionSkeleton />}>
+                  <CoachHeadToHeadSection matchId={match.match_id} />
+                </GoalWrapper>
+                <GoalWrapper fallback={<CoachHeadToHeadListSkeleton />}>
+                  <CoachHeadToHeadList matchId={match.match_id} />
+                </GoalWrapper>
+              </>
+            )}
+
+            {/* Goalkeeper stats for completed matches (only if no detailed stats) */}
+            {match.home_score != null && match.away_score != null && (
+              <GoalWrapper fallback={<MatchGoalkeeperStatsSectionSkeleton />}>
+                <GoalkeeperStatsSectionIfNoDetailedStats
+                  matchId={match.match_id}
+                />
+              </GoalWrapper>
             )}
           </div>
           <div className="lg:col-span-1">
@@ -131,25 +225,6 @@ function DetailMatchCardInner({
                 </div>
               </>
             )}
-
-            {/* Team comparison stats for completed matches */}
-            {match.home_score != null &&
-              match.away_score != null &&
-              match.home_team_id != null &&
-              match.away_team_id != null && (
-                <div className="mt-4">
-                  <GoalWrapper fallback={<MatchDetailedStatsSectionSkeleton />}>
-                    <MatchDetailedStatsSection
-                      matchId={match.match_id}
-                      homeTeamId={match.home_team_id}
-                      awayTeamId={match.away_team_id}
-                      homeTeamName={match.home_team?.team_name || '홈팀'}
-                      awayTeamName={match.away_team?.team_name || '원정팀'}
-                      variant="team-comparison"
-                    />
-                  </GoalWrapper>
-                </div>
-              )}
           </div>
         </div>
 

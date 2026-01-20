@@ -20,7 +20,7 @@ interface MatchDetailedStatsSectionProps {
   variant?: 'team-comparison' | 'player-stats' | 'all';
 }
 
-// 통계 카테고리 정의
+// 통계 카테고리 정의 (골키퍼 포함 - variant="all" 용)
 const STAT_CATEGORIES = [
   {
     name: '패스',
@@ -68,6 +68,16 @@ const STAT_CATEGORIES = [
     ],
   },
 ];
+
+// 필드 플레이어용 카테고리 (골키퍼 제외)
+const FIELD_PLAYER_CATEGORIES = STAT_CATEGORIES.filter(
+  (cat) => cat.name !== '골키퍼'
+);
+
+// 골키퍼용 카테고리
+const GOALKEEPER_CATEGORY = STAT_CATEGORIES.find(
+  (cat) => cat.name === '골키퍼'
+)!;
 
 // 골키퍼 통계가 있는지 확인하는 함수
 function hasGoalkeeperStats(player: MatchDetailedStats): boolean {
@@ -399,7 +409,7 @@ function SingleTeamStatsTable({
   );
 }
 
-// 양팀 나란히 표시하는 선수 통계 컴포넌트
+// 양팀 나란히 표시하는 선수 통계 컴포넌트 (필드 플레이어 + 골키퍼 분리)
 function SideBySidePlayerStats({
   homeStats,
   awayStats,
@@ -412,24 +422,21 @@ function SideBySidePlayerStats({
   awayTeamName: string;
 }) {
   const [selectedCategory, setSelectedCategory] = useState(0);
-  const category = STAT_CATEGORIES[selectedCategory];
+  const category = FIELD_PLAYER_CATEGORIES[selectedCategory];
 
-  // 양팀 전체 선수 합치기 (카테고리에 따라 필터링)
-  const allPlayers = [...homeStats, ...awayStats];
-  const filteredAllPlayers =
-    category.name === '골키퍼'
-      ? allPlayers.filter(hasGoalkeeperStats)
-      : allPlayers.filter((p) => !hasGoalkeeperStats(p));
+  // 필드 플레이어만 필터링
+  const allFieldPlayers = [...homeStats, ...awayStats].filter(
+    (p) => !hasGoalkeeperStats(p)
+  );
 
-  // 양팀 통틀어 각 통계 항목별 최대값 계산
+  // 양팀 통틀어 각 통계 항목별 최대값 계산 (필드 플레이어용)
   const globalMaxValues: Record<string, number> = {};
   for (const stat of category.stats) {
-    // 성공률 항목은 최소 시도 횟수 조건 적용
-    let eligiblePlayers = filteredAllPlayers;
+    let eligiblePlayers = allFieldPlayers;
     if (stat.key === 'pass_accuracy') {
-      eligiblePlayers = filteredAllPlayers.filter((p) => p.passes >= 7);
+      eligiblePlayers = allFieldPlayers.filter((p) => p.passes >= 7);
     } else if (stat.key === 'shot_accuracy') {
-      eligiblePlayers = filteredAllPlayers.filter((p) => p.shots >= 3);
+      eligiblePlayers = allFieldPlayers.filter((p) => p.shots >= 3);
     }
 
     const values = eligiblePlayers.map((p) => {
@@ -439,47 +446,90 @@ function SideBySidePlayerStats({
     globalMaxValues[stat.key] = values.length > 0 ? Math.max(...values) : 0;
   }
 
+  // 골키퍼만 필터링
+  const homeGoalkeepers = homeStats.filter(hasGoalkeeperStats);
+  const awayGoalkeepers = awayStats.filter(hasGoalkeeperStats);
+  const allGoalkeepers = [...homeGoalkeepers, ...awayGoalkeepers];
+
+  // 골키퍼 통계 최대값 계산
+  const gkGlobalMaxValues: Record<string, number> = {};
+  for (const stat of GOALKEEPER_CATEGORY.stats) {
+    const values = allGoalkeepers.map((p) => {
+      const rawValue = p[stat.key as keyof MatchDetailedStats];
+      return typeof rawValue === 'number' ? rawValue : 0;
+    });
+    gkGlobalMaxValues[stat.key] = values.length > 0 ? Math.max(...values) : 0;
+  }
+
   return (
-    <div className="space-y-4">
-      {/* 공유 카테고리 필터 */}
-      <div className="flex gap-1 overflow-x-auto pb-1">
-        {STAT_CATEGORIES.map((cat, index) => (
-          <button
-            key={cat.name}
-            onClick={() => setSelectedCategory(index)}
-            className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              selectedCategory === index
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
+    <div className="space-y-6">
+      {/* 필드 플레이어 통계 */}
+      <div className="space-y-4">
+        <h4 className="text-base font-medium text-gray-800">필드 플레이어</h4>
+
+        {/* 공유 카테고리 필터 */}
+        <div className="flex gap-1 overflow-x-auto pb-1">
+          {FIELD_PLAYER_CATEGORIES.map((cat, index) => (
+            <button
+              key={cat.name}
+              onClick={() => setSelectedCategory(index)}
+              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                selectedCategory === index
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+
+        {/* 양팀 테이블 나란히 배치 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {homeStats.length > 0 && (
+            <SingleTeamStatsTable
+              players={homeStats}
+              teamName={`홈팀: ${homeTeamName}`}
+              category={category}
+              globalMaxValues={globalMaxValues}
+            />
+          )}
+          {awayStats.length > 0 && (
+            <SingleTeamStatsTable
+              players={awayStats}
+              teamName={`원정팀: ${awayTeamName}`}
+              category={category}
+              globalMaxValues={globalMaxValues}
+            />
+          )}
+        </div>
       </div>
 
-      {/* 양팀 테이블 나란히 배치 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* 홈팀 */}
-        {homeStats.length > 0 && (
-          <SingleTeamStatsTable
-            players={homeStats}
-            teamName={`홈팀: ${homeTeamName}`}
-            category={category}
-            globalMaxValues={globalMaxValues}
-          />
-        )}
+      {/* 골키퍼 통계 (골키퍼가 있는 경우에만 표시) */}
+      {allGoalkeepers.length > 0 && (
+        <div className="space-y-4">
+          <h4 className="text-base font-medium text-gray-800">골키퍼</h4>
 
-        {/* 원정팀 */}
-        {awayStats.length > 0 && (
-          <SingleTeamStatsTable
-            players={awayStats}
-            teamName={`원정팀: ${awayTeamName}`}
-            category={category}
-            globalMaxValues={globalMaxValues}
-          />
-        )}
-      </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {homeGoalkeepers.length > 0 && (
+              <SingleTeamStatsTable
+                players={homeStats}
+                teamName={`홈팀: ${homeTeamName}`}
+                category={GOALKEEPER_CATEGORY}
+                globalMaxValues={gkGlobalMaxValues}
+              />
+            )}
+            {awayGoalkeepers.length > 0 && (
+              <SingleTeamStatsTable
+                players={awayStats}
+                teamName={`원정팀: ${awayTeamName}`}
+                category={GOALKEEPER_CATEGORY}
+                globalMaxValues={gkGlobalMaxValues}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
