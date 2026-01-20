@@ -622,6 +622,7 @@ export interface MatchDetailedStats {
   yellow_cards: number;
   red_cards: number;
   fouls: number;
+  possession_time: number;
   player: {
     player_id: number;
     name: string;

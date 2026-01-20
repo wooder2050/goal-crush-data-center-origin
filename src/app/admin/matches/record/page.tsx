@@ -250,17 +250,30 @@ export default function RecordMatchPage() {
                                     : '결과 기록'}
                                 </Button>
                                 {match.status === 'completed' && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() =>
-                                      router.push(
-                                        `/admin/matches/record/${match.match_id}/detailed-stats`
-                                      )
-                                    }
-                                  >
-                                    상세 통계
-                                  </Button>
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() =>
+                                        router.push(
+                                          `/admin/matches/record/${match.match_id}/detailed-stats`
+                                        )
+                                      }
+                                    >
+                                      상세 통계
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() =>
+                                        router.push(
+                                          `/admin/matches/record/${match.match_id}/possession`
+                                        )
+                                      }
+                                    >
+                                      점유율
+                                    </Button>
+                                  </>
                                 )}
                               </div>
                             </td>

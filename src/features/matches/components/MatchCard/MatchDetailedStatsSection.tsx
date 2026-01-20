@@ -31,6 +31,21 @@ function StatIcon({ statKey }: { statKey: string }) {
           <path d="M12 7v10M7 9.5l10 5M7 14.5l10-5" />
         </svg>
       );
+    case 'possession':
+    case 'possession_time':
+      // 파이 차트 (점유율/점유 시간)
+      return (
+        <svg
+          className={iconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 2v10l7 7" />
+        </svg>
+      );
     case 'assists':
       return (
         <svg
@@ -209,13 +224,26 @@ interface StatCategory {
   stats: StatItem[];
 }
 
+// 초를 MM:SS 형식으로 변환하는 함수
+function formatPossessionTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
 // 통계 카테고리 정의 (골키퍼 포함 - variant="all" 용)
 const STAT_CATEGORIES: StatCategory[] = [
   {
-    name: '득점/카드',
+    name: '득점/점유',
     stats: [
       { key: 'goals', label: '골' },
       { key: 'assists', label: '어시스트' },
+      { key: 'possession_time', label: '점유 시간' },
+    ],
+  },
+  {
+    name: '파울',
+    stats: [
       { key: 'yellow_cards', label: '옐로카드' },
       { key: 'red_cards', label: '레드카드' },
       { key: 'fouls', label: '반칙' },
@@ -315,6 +343,7 @@ function calculateTeamTotals(
     corner_kicks: 0,
     throw_ins: 0,
     penalty_goals: 0,
+    possession_time: 0,
   };
 
   for (const player of players) {
@@ -342,6 +371,7 @@ function calculateTeamTotals(
     totals.corner_kicks += player.corner_kicks;
     totals.throw_ins += player.throw_ins;
     totals.penalty_goals += player.penalty_goals;
+    totals.possession_time += player.possession_time ?? 0;
   }
 
   // 성공률 계산
@@ -376,9 +406,27 @@ function TeamComparisonStats({
   const homeTotals = calculateTeamTotals(homeStats);
   const awayTotals = calculateTeamTotals(awayStats);
 
+  // 팀별 점유율 계산 (점유 시간이 있는 경우)
+  const totalPossessionTime =
+    homeTotals.possession_time + awayTotals.possession_time;
+  const homePossessionPercent =
+    totalPossessionTime > 0
+      ? Math.round((homeTotals.possession_time / totalPossessionTime) * 1000) /
+        10
+      : 0;
+  const awayPossessionPercent =
+    totalPossessionTime > 0
+      ? Math.round((awayTotals.possession_time / totalPossessionTime) * 1000) /
+        10
+      : 0;
+
   // 표시할 통계 항목 (골키퍼 제외)
   const comparisonStats = [
     { key: 'goals', label: '골' },
+    // 점유율은 possession_time이 있을 때만 표시
+    ...(totalPossessionTime > 0
+      ? [{ key: 'possession', label: '점유율', suffix: '%' }]
+      : []),
     { key: 'assists', label: '어시스트' },
     { key: 'yellow_cards', label: '옐로카드' },
     { key: 'red_cards', label: '레드카드' },
@@ -449,8 +497,15 @@ function TeamComparisonStats({
             </thead>
             <tbody>
               {comparisonStats.map((stat) => {
-                const homeValue = homeTotals[stat.key] ?? 0;
-                const awayValue = awayTotals[stat.key] ?? 0;
+                // 점유율은 별도로 계산된 퍼센트 사용
+                const homeValue =
+                  stat.key === 'possession'
+                    ? homePossessionPercent
+                    : (homeTotals[stat.key] ?? 0);
+                const awayValue =
+                  stat.key === 'possession'
+                    ? awayPossessionPercent
+                    : (awayTotals[stat.key] ?? 0);
                 const homeDisplay =
                   stat.suffix === '%' ? homeValue.toFixed(1) : homeValue;
                 const awayDisplay =
@@ -626,10 +681,19 @@ function SingleTeamStatsTable({
                         ? rawValue
                         : 0;
                     const numericValue = typeof value === 'number' ? value : 0;
-                    const displayValue =
-                      stat.suffix === '%' && typeof value === 'number'
-                        ? value.toFixed(1)
-                        : value;
+
+                    // 점유 시간은 MM:SS 형식으로 표시
+                    let displayValue: string | number;
+                    if (stat.key === 'possession_time') {
+                      displayValue = formatPossessionTime(numericValue);
+                    } else if (
+                      stat.suffix === '%' &&
+                      typeof value === 'number'
+                    ) {
+                      displayValue = value.toFixed(1);
+                    } else {
+                      displayValue = value;
+                    }
 
                     // 성공률 항목의 최소 시도 횟수 조건 확인
                     let meetsMinRequirement = true;
@@ -993,10 +1057,19 @@ function PlayerStatsTable({
                         ? rawValue
                         : 0;
                     const numericValue = typeof value === 'number' ? value : 0;
-                    const displayValue =
-                      stat.suffix === '%' && typeof value === 'number'
-                        ? value.toFixed(1)
-                        : value;
+
+                    // 점유 시간은 MM:SS 형식으로 표시
+                    let displayValue: string | number;
+                    if (stat.key === 'possession_time') {
+                      displayValue = formatPossessionTime(numericValue);
+                    } else if (
+                      stat.suffix === '%' &&
+                      typeof value === 'number'
+                    ) {
+                      displayValue = value.toFixed(1);
+                    } else {
+                      displayValue = value;
+                    }
 
                     // 성공률 항목의 최소 시도 횟수 조건 확인
                     let meetsMinRequirement = true;

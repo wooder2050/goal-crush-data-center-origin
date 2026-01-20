@@ -31,6 +31,7 @@ interface StatData {
   yellow_cards?: number;
   red_cards?: number;
   fouls?: number;
+  possession_time?: number;
 }
 
 // POST /api/admin/matches/[match_id]/detailed-stats/bulk - 상세 통계 일괄 저장
@@ -76,7 +77,9 @@ export async function POST(
           (stat.shots && stat.shots > 0
             ? ((stat.shots_on_target ?? 0) / stat.shots) * 100
             : 0);
-        const statsData = {
+
+        // 기본 통계 데이터 (possession_time 제외)
+        const baseStatsData = {
           passes: stat.passes ?? 0,
           passes_completed: stat.passes_completed ?? 0,
           pass_accuracy: Math.round(rawPassAccuracy * 10) / 10,
@@ -106,6 +109,18 @@ export async function POST(
           updated_at: new Date(),
         };
 
+        // update용 데이터: possession_time이 명시적으로 전달된 경우에만 포함
+        const updateData =
+          stat.possession_time !== undefined
+            ? { ...baseStatsData, possession_time: stat.possession_time }
+            : baseStatsData;
+
+        // create용 데이터: possession_time 기본값 0 포함
+        const createData = {
+          ...baseStatsData,
+          possession_time: stat.possession_time ?? 0,
+        };
+
         return prisma.playerMatchDetailedStats.upsert({
           where: {
             match_id_player_id: {
@@ -113,12 +128,12 @@ export async function POST(
               player_id: stat.player_id,
             },
           },
-          update: statsData,
+          update: updateData,
           create: {
             match_id: matchId,
             player_id: stat.player_id,
             team_id: stat.team_id,
-            ...statsData,
+            ...createData,
           },
         });
       })

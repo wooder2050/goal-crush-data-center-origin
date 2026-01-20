@@ -1057,6 +1057,7 @@ model PlayerMatchDetailedStats {
   yellow_cards        Int      @default(0)
   red_cards           Int      @default(0)
   fouls               Int      @default(0)
+  possession_time     Int      @default(0) // Ball possession time in seconds
   created_at          DateTime @default(now()) @db.Timestamptz(6)
   updated_at          DateTime @default(now()) @db.Timestamptz(6)
   match               Match    @relation(fields: [match_id], references: [match_id], onDelete: Cascade)
