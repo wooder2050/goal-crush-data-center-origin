@@ -29,6 +29,14 @@ export default function MatchHeader({
             <Button
               variant="default"
               onClick={() =>
+                router.push(`/admin/matches/record/${matchId}/events`)
+              }
+            >
+              이벤트 기록
+            </Button>
+            <Button
+              variant="default"
+              onClick={() =>
                 router.push(`/admin/matches/record/${matchId}/detailed-stats`)
               }
             >

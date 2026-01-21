@@ -361,6 +361,15 @@ export default function PossessionRecordPage() {
               variant="outline"
               size="sm"
               onClick={() =>
+                router.push(`/admin/matches/record/${matchId}/events`)
+              }
+            >
+              이벤트
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
                 router.push(`/admin/matches/record/${matchId}/detailed-stats`)
               }
             >
