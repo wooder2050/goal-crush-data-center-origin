@@ -137,12 +137,30 @@ export default function DetailedStatsRecordPage() {
               풀경기를 보면서 선수별 세부 기록을 +/- 버튼으로 입력합니다.
             </Body>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/admin/matches/record/${matchId}`)}
-          >
-            기본 경기 기록으로 이동
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/admin/matches/record/${matchId}`)}
+            >
+              기본 기록
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() =>
+                router.push(`/admin/matches/record/${matchId}/events`)
+              }
+            >
+              이벤트
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() =>
+                router.push(`/admin/matches/record/${matchId}/possession`)
+              }
+            >
+              점유율
+            </Button>
+          </div>
         </div>
 
         {/* 경기 정보 카드 */}

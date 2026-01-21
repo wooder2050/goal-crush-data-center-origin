@@ -36,6 +36,7 @@ model Team {
   team_season_names           TeamSeasonName[]
   team_season_stats           TeamSeasonStats[]
   team_seasons                TeamSeason[]
+  match_actions               MatchAction[]
 
   @@index([team_name], map: "idx_teams_name")
   @@map("teams")
@@ -103,6 +104,7 @@ model Player {
   player_team_history                 PlayerTeamHistory[]
   substitutions_in                    Substitution[]             @relation("PlayerIn")
   substitutions_out                   Substitution[]             @relation("PlayerOut")
+  match_actions                       MatchAction[]
 
   @@index([jersey_number], map: "idx_players_jersey_number")
   @@index([name], map: "idx_players_name")
@@ -208,6 +210,8 @@ model Match {
   player_match_detailed_stats PlayerMatchDetailedStats[]
   player_match_stats          PlayerMatchStats[]
   substitutions               Substitution[]
+  match_actions               MatchAction[]
+  match_periods               MatchPeriod[]
 
   @@index([away_coach_id], map: "idx_matches_away_coach")
   @@index([match_date], map: "idx_matches_date")
@@ -1082,4 +1086,98 @@ enum SeasonCategory {
   GIFA_CUP
 
   @@map("season_category")
+}
+
+// SPADL 액션 타입 (골때녀 풋살 규칙 적용)
+enum ActionType {
+  PASS           // 패스
+  CROSS          // 크로스
+  KICK_IN        // 킥인 (풋살 규칙: 스로인 대신)
+  CORNER_KICK    // 코너킥
+  FREE_KICK      // 프리킥
+  GOAL_KICK      // 골킥
+  SHOT           // 슛
+  DRIBBLE        // 드리블
+  RECEIVE        // 공 받기
+  TACKLE         // 태클
+  INTERCEPTION   // 가로채기
+  CLEARANCE      // 걷어내기
+  FOUL           // 파울
+  KEEPER_SAVE    // 골키퍼 세이브
+  KEEPER_CLAIM   // 골키퍼 캐치
+  KEEPER_PUNCH   // 골키퍼 펀칭
+  KEEPER_THROW   // 골키퍼 던지기
+  BAD_TOUCH      // 볼 터치 실패
+  CARD           // 경고/퇴장
+
+  @@map("action_type")
+}
+
+// 액션 결과 타입
+enum ActionResult {
+  SUCCESS        // 성공
+  FAIL           // 실패
+  OFFSIDE        // 오프사이드
+  OWN_GOAL       // 자책골
+  YELLOW_CARD    // 경고
+  RED_CARD       // 퇴장
+  GOAL           // 골
+
+  @@map("action_result")
+}
+
+// 신체 부위
+enum BodyPart {
+  FOOT           // 발
+  HEAD           // 머리
+  OTHER          // 기타
+
+  @@map("body_part")
+}
+
+// 경기 이벤트 액션 모델
+model MatchAction {
+  action_id    Int          @id @default(autoincrement())
+  match_id     Int
+  period_id    Int          // 전반(1), 후반(2), 연장(3,4)
+  action_index Int          // 해당 경기 내 액션 순서
+  time_seconds Float        // 경기 시간 (초 단위)
+  player_id    Int
+  team_id      Int
+  action_type  ActionType
+  result       ActionResult
+  body_part    BodyPart?
+  start_x      Float        // 시작 X 좌표 (0-40)
+  start_y      Float        // 시작 Y 좌표 (0-20)
+  end_x        Float?       // 종료 X 좌표
+  end_y        Float?       // 종료 Y 좌표
+  description  String?
+  is_set_piece Boolean      @default(false)
+  created_at   DateTime     @default(now()) @db.Timestamptz(6)
+
+  match  Match  @relation(fields: [match_id], references: [match_id], onDelete: Cascade)
+  player Player @relation(fields: [player_id], references: [player_id], onDelete: Cascade)
+  team   Team   @relation(fields: [team_id], references: [team_id], onDelete: Cascade)
+
+  @@unique([match_id, period_id, action_index])
+  @@index([match_id, time_seconds])
+  @@index([player_id])
+  @@index([team_id])
+  @@index([action_type])
+  @@map("match_actions")
+}
+
+// 경기 피리어드 정보
+model MatchPeriod {
+  period_id        Int      @id @default(autoincrement())
+  match_id         Int
+  period_number    Int      // 1: 전반, 2: 후반, 3: 연장 전반, 4: 연장 후반
+  duration_minutes Int      @default(10)
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+
+  match Match @relation(fields: [match_id], references: [match_id], onDelete: Cascade)
+
+  @@unique([match_id, period_number])
+  @@index([match_id])
+  @@map("match_periods")
 }

@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Card, CardContent } from '@/components/ui/card';
+import { PassMap } from '@/features/event-actions/components/PassMap';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 
 import {
@@ -43,6 +44,112 @@ import TeamLineupsSection from './TeamLineupsSection';
 interface DetailMatchCardProps {
   matchId: number;
   className?: string;
+}
+
+interface PlayerPosition {
+  player_id: number;
+  player_name: string;
+  jersey_number: number;
+  profile_image_url?: string | null;
+  avg_x: number;
+  avg_y: number;
+  total_passes: number;
+  success_passes: number;
+}
+
+interface PassConnection {
+  from_jersey: number;
+  to_jersey: number;
+  count: number;
+}
+
+interface TeamPassNetworkData {
+  team_id: number;
+  team_name: string;
+  primary_color: string;
+  secondary_color: string;
+  players: PlayerPosition[];
+  connections: PassConnection[];
+  total_passes: number;
+  success_passes: number;
+}
+
+// 패스맵 섹션 컴포넌트 (match_actions 데이터가 있을 때만 표시)
+function PassMapSection({
+  matchId,
+  homeTeamName,
+}: {
+  matchId: number;
+  homeTeamName: string;
+}) {
+  const [passMapData, setPassMapData] = useState<TeamPassNetworkData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPassMapData() {
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `/api/admin/matches/${matchId}/actions/pass-map`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setPassMapData(data);
+        }
+      } catch (error) {
+        console.error('패스맵 데이터 로딩 오류:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (matchId) {
+      fetchPassMapData();
+    }
+  }, [matchId]);
+
+  // 로딩 중이거나 데이터가 없으면 표시하지 않음
+  if (
+    isLoading ||
+    passMapData.length === 0 ||
+    !passMapData.some((team) => team.total_passes > 0)
+  ) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-900">
+          🔗 패스 네트워크
+        </h3>
+        <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+          SPADL 이벤트 데이터 기반
+        </span>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {passMapData.map((teamData) => {
+          const isHomeTeam = teamData.team_name === homeTeamName;
+          return (
+            <Card key={teamData.team_id} className="h-full">
+              <CardContent className="px-4 py-4">
+                <PassMap
+                  players={teamData.players}
+                  connections={teamData.connections}
+                  teamName={teamData.team_name}
+                  totalPasses={teamData.total_passes}
+                  successPasses={teamData.success_passes}
+                  primaryColor={teamData.primary_color}
+                  secondaryColor={teamData.secondary_color}
+                  isHomeTeam={isHomeTeam}
+                />
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // 상세 통계가 있으면 팀 통계 비교, 없으면 맞대결 섹션을 보여주는 컴포넌트
@@ -256,6 +363,14 @@ function DetailMatchCardInner({
               </GoalWrapper>
             </div>
           )}
+
+        {/* 패스 네트워크 맵 (match_actions 데이터가 있을 때만 표시) */}
+        {match.home_score != null && match.away_score != null && (
+          <PassMapSection
+            matchId={match.match_id}
+            homeTeamName={match.home_team?.team_name || '홈팀'}
+          />
+        )}
 
         {/* 디테일 카드에서는 상세 보기 버튼 숨김 */}
         <div className="mt-4">
