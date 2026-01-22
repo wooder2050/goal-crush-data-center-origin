@@ -168,32 +168,33 @@ export async function POST(
     }
 
     // 시즌 통계 생성/업데이트 (골/어시스트 추가 시 시즌 통계 업데이트가 가능하도록)
+    // upsert를 사용하여 race condition 방지
     if (match.season_id) {
-      const existingSeasonStats = await prisma.playerSeasonStats.findFirst({
+      await prisma.playerSeasonStats.upsert({
         where: {
-          player_id,
-          season_id: match.season_id,
-          team_id,
-        },
-      });
-
-      if (!existingSeasonStats) {
-        // 시즌 통계가 없으면 생성
-        await prisma.playerSeasonStats.create({
-          data: {
+          player_id_season_id_team_id: {
             player_id,
             season_id: match.season_id,
             team_id,
-            matches_played: 0, // 실제 출전 경기수는 regenerate에서 계산
-            goals: 0,
-            assists: 0,
-            yellow_cards: 0,
-            red_cards: 0,
-            minutes_played: 0,
-            saves: 0,
           },
-        });
-      }
+        },
+        update: {
+          // 기존 데이터가 있으면 아무것도 업데이트하지 않음
+          updated_at: new Date(),
+        },
+        create: {
+          player_id,
+          season_id: match.season_id,
+          team_id,
+          matches_played: 0, // 실제 출전 경기수는 regenerate에서 계산
+          goals: 0,
+          assists: 0,
+          yellow_cards: 0,
+          red_cards: 0,
+          minutes_played: 0,
+          saves: 0,
+        },
+      });
     }
 
     return NextResponse.json(lineup, { status: 201 });

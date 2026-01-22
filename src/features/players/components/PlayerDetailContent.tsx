@@ -186,25 +186,41 @@ function PlayerDetailContentInner({
 
   const getMatchOutcome = (
     gm: NonNullable<(typeof summary)['goal_matches']>[number]
-  ): 'WIN' | 'DRAW' | 'LOSS' | null => {
+  ): 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS' | null => {
     const hs = gm.home_score;
     const as = gm.away_score;
     if (hs == null || as == null) return null;
     const diff = gm.is_home ? hs - as : as - hs;
     if (diff > 0) return 'WIN';
     if (diff < 0) return 'LOSS';
+    // 무승부인 경우 승부차기 확인
+    if (gm.penalty_home_score != null && gm.penalty_away_score != null) {
+      const pkDiff = gm.is_home
+        ? gm.penalty_home_score - gm.penalty_away_score
+        : gm.penalty_away_score - gm.penalty_home_score;
+      if (pkDiff > 0) return 'PK_WIN';
+      if (pkDiff < 0) return 'PK_LOSS';
+    }
     return 'DRAW';
   };
 
-  const outcomeStyle = (o: 'WIN' | 'DRAW' | 'LOSS') =>
-    o === 'WIN'
+  const outcomeStyle = (o: 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS') =>
+    o === 'WIN' || o === 'PK_WIN'
       ? 'bg-green-100 text-green-700 border-green-200'
-      : o === 'LOSS'
+      : o === 'LOSS' || o === 'PK_LOSS'
         ? 'bg-red-100 text-red-700 border-red-200'
         : 'bg-gray-100 text-gray-700 border-gray-200';
 
-  const outcomeLabel = (o: 'WIN' | 'DRAW' | 'LOSS') =>
-    o === 'WIN' ? '승' : o === 'LOSS' ? '패' : '무';
+  const outcomeLabel = (o: 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS') =>
+    o === 'WIN'
+      ? '승'
+      : o === 'PK_WIN'
+        ? 'PK승'
+        : o === 'LOSS'
+          ? '패'
+          : o === 'PK_LOSS'
+            ? 'PK패'
+            : '무';
 
   return (
     <Grid cols={12} gap="lg">
@@ -671,6 +687,13 @@ function PlayerDetailContentInner({
                         <div className="mt-2 flex items-center justify-between">
                           <div className="text-sm font-semibold">
                             {gm.home_score ?? '-'} : {gm.away_score ?? '-'}
+                            {gm.penalty_home_score != null &&
+                              gm.penalty_away_score != null && (
+                                <span className="ml-1 text-xs text-gray-500">
+                                  (PK {gm.penalty_home_score}:
+                                  {gm.penalty_away_score})
+                                </span>
+                              )}
                           </div>
                           {(() => {
                             const o = getMatchOutcome(gm);
@@ -699,22 +722,22 @@ function PlayerDetailContentInner({
                     <table className="min-w-full text-xs">
                       <thead className="bg-gray-50 text-gray-600">
                         <tr>
-                          <th className="px-3 py-2 text-left font-medium">
+                          <th className="px-2 py-2 text-left font-medium">
                             날짜
                           </th>
-                          <th className="px-3 py-2 text-left font-medium">
+                          <th className="px-2 py-2 text-left font-medium">
                             시즌
                           </th>
-                          <th className="px-3 py-2 text-left font-medium">
+                          <th className="px-2 py-2 text-left font-medium">
                             상대
                           </th>
-                          <th className="px-3 py-2 text-left font-medium">
+                          <th className="px-2 py-2 text-left font-medium">
                             소속팀
                           </th>
-                          <th className="px-3 py-2 text-center font-medium">
+                          <th className="px-2 py-2 text-center font-medium">
                             ⚽ 득점
                           </th>
-                          <th className="px-3 py-2 text-center font-medium">
+                          <th className="px-2 py-2 text-center font-medium">
                             스코어
                           </th>
                         </tr>
@@ -722,18 +745,18 @@ function PlayerDetailContentInner({
                       <tbody className="divide-y">
                         {goalMatches.map((gm) => (
                           <tr key={gm.match_id} className="hover:bg-gray-50">
-                            <td className="px-3 py-2">
+                            <td className="px-2 py-2">
                               {gm.match_date
                                 ? format(new Date(gm.match_date), 'yy.MM.dd')
                                 : '-'}
                             </td>
-                            <td className="px-3 py-2">
+                            <td className="px-2 py-2">
                               {gm.season_name
                                 ? shortenSeasonName(gm.season_name)
                                 : '-'}
                             </td>
-                            <td className="px-3 py-2">
-                              <div className="flex items-center gap-2">
+                            <td className="px-2 py-2">
+                              <div className="flex items-center gap-1.5">
                                 {gm.opponent_logo ? (
                                   <span className="relative h-5 w-5 overflow-hidden rounded-full flex-shrink-0">
                                     <Image
@@ -752,8 +775,8 @@ function PlayerDetailContentInner({
                                 <span>{gm.opponent_name ?? '-'}</span>
                               </div>
                             </td>
-                            <td className="px-3 py-2">
-                              <div className="flex items-center gap-2">
+                            <td className="px-2 py-2">
+                              <div className="flex items-center gap-1.5">
                                 {gm.team_logo ? (
                                   <span className="relative h-5 w-5 overflow-hidden rounded-full flex-shrink-0">
                                     <Image
@@ -772,7 +795,7 @@ function PlayerDetailContentInner({
                                 <span>{gm.team_name ?? '-'}</span>
                               </div>
                             </td>
-                            <td className="px-3 py-2 text-center">
+                            <td className="px-2 py-2 text-center">
                               {gm.player_goals}
                               {gm.penalty_goals && gm.penalty_goals > 0 ? (
                                 <span className="ml-1 text-[10px] text-gray-500">
@@ -780,15 +803,22 @@ function PlayerDetailContentInner({
                                 </span>
                               ) : null}
                             </td>
-                            <td className="px-3 py-2 text-center">
+                            <td className="px-2 py-2 text-center whitespace-nowrap">
                               <span>
-                                {gm.home_score ?? '-'} : {gm.away_score ?? '-'}
+                                {gm.home_score ?? '-'}:{gm.away_score ?? '-'}
+                                {gm.penalty_home_score != null &&
+                                  gm.penalty_away_score != null && (
+                                    <span className="text-[10px] text-gray-500">
+                                      (PK {gm.penalty_home_score}:
+                                      {gm.penalty_away_score})
+                                    </span>
+                                  )}
                               </span>
                               {(() => {
                                 const o = getMatchOutcome(gm);
                                 return o ? (
                                   <span
-                                    className={`ml-2 inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] ${outcomeStyle(o)}`}
+                                    className={`ml-1 inline-flex items-center rounded border px-1 py-0.5 text-[10px] ${outcomeStyle(o)}`}
                                   >
                                     {outcomeLabel(o)}
                                   </span>

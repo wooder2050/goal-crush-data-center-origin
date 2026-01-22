@@ -2,24 +2,26 @@
 
 import { Button } from '@/components/ui/button';
 import { H2 } from '@/components/ui/typography';
+import { Substitution } from '@/features/admin/api';
 import { SubstitutionsTableSkeleton } from '@/features/admin/components/skeletons';
-import { MatchSubstitution } from '@/features/admin/types';
 
 interface SubstitutionsTabProps {
   isLoadingPlayers: boolean;
   onAddSubstitution: () => void;
-  // 실제 경기 교체 데이터
-  actualSubstitutions?: MatchSubstitution[];
-  onRemoveSubstitution?: (substitutionId: string) => void;
+  // 실제 경기 교체 데이터 (DB에서 가져온 데이터)
+  substitutions?: Substitution[];
+  onRemoveSubstitution?: (substitutionId: number) => void;
+  isDeleting?: boolean;
 }
 
 export default function SubstitutionsTab({
   isLoadingPlayers,
   onAddSubstitution,
-  actualSubstitutions = [],
+  substitutions = [],
   onRemoveSubstitution,
+  isDeleting = false,
 }: SubstitutionsTabProps) {
-  const hasActualSubstitutions = actualSubstitutions.length > 0;
+  const hasSubstitutions = substitutions.length > 0;
 
   return (
     <div className="space-y-6">
@@ -40,28 +42,32 @@ export default function SubstitutionsTab({
                 <th className="text-left py-2 px-4">IN</th>
                 <th className="text-left py-2 px-4">OUT</th>
                 <th className="text-left py-2 px-4">설명</th>
-                {hasActualSubstitutions && onRemoveSubstitution && (
+                {onRemoveSubstitution && (
                   <th className="text-left py-2 px-4">액션</th>
                 )}
               </tr>
             </thead>
             <tbody>
-              {hasActualSubstitutions ? (
-                actualSubstitutions.map((substitution) => (
+              {hasSubstitutions ? (
+                substitutions.map((substitution) => (
                   <tr
-                    key={substitution.id}
+                    key={substitution.substitution_id}
                     className="border-b hover:bg-gray-50"
                   >
                     <td className="py-2 px-4">
                       {substitution.substitution_time}&apos;
                     </td>
-                    <td className="py-2 px-4">{substitution.team_name}</td>
-                    <td className="py-2 px-4">{substitution.player_in_name}</td>
                     <td className="py-2 px-4">
-                      {substitution.player_out_name}
+                      {substitution.team?.team_name || '-'}
                     </td>
                     <td className="py-2 px-4">
-                      {substitution.description || '-'}
+                      {substitution.player_in?.name || '-'}
+                    </td>
+                    <td className="py-2 px-4">
+                      {substitution.player_out?.name || '-'}
+                    </td>
+                    <td className="py-2 px-4">
+                      {substitution.substitution_reason || '-'}
                     </td>
                     {onRemoveSubstitution && (
                       <td className="py-2 px-4">
@@ -69,9 +75,12 @@ export default function SubstitutionsTab({
                           size="sm"
                           variant="outline"
                           className="text-red-500"
-                          onClick={() => onRemoveSubstitution(substitution.id)}
+                          onClick={() =>
+                            onRemoveSubstitution(substitution.substitution_id)
+                          }
+                          disabled={isDeleting}
                         >
-                          삭제
+                          {isDeleting ? '삭제 중...' : '삭제'}
                         </Button>
                       </td>
                     )}
@@ -80,9 +89,7 @@ export default function SubstitutionsTab({
               ) : (
                 <tr className="border-b">
                   <td
-                    colSpan={
-                      hasActualSubstitutions && onRemoveSubstitution ? 6 : 5
-                    }
+                    colSpan={onRemoveSubstitution ? 6 : 5}
                     className="py-4 text-center"
                   >
                     기록된 교체가 없습니다. 교체를 추가해주세요.
