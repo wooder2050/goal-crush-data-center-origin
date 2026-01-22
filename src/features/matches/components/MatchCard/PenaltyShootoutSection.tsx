@@ -86,23 +86,37 @@ const PenaltyShootoutSection: React.FC<PenaltyShootoutSectionProps> = ({
                 <div className="text-base sm:text-lg font-bold text-gray-800 mb-2">
                   🏆 승부차기 최종 결과
                 </div>
-                <div className="flex items-center justify-center space-x-4">
+                <div className="flex items-center justify-center">
                   <div
-                    className={`text-md sm:text-xl font-bold ${
+                    className={`flex-1 min-w-0 text-right pr-3 sm:pr-4 text-sm sm:text-base font-bold truncate ${
                       winner === 'home' ? 'text-black' : 'text-gray-600'
                     }`}
                   >
-                    {match.home_team?.team_name} {homeScore}
+                    {match.home_team?.team_name}
                   </div>
-                  <div className="text-md sm:text-xl font-bold text-gray-400">
-                    :
+                  <div className="flex-shrink-0 text-lg sm:text-xl font-bold text-center">
+                    <span
+                      className={
+                        winner === 'home' ? 'text-black' : 'text-gray-600'
+                      }
+                    >
+                      {homeScore}
+                    </span>
+                    <span className="text-gray-400 mx-2">:</span>
+                    <span
+                      className={
+                        winner === 'away' ? 'text-black' : 'text-gray-600'
+                      }
+                    >
+                      {awayScore}
+                    </span>
                   </div>
                   <div
-                    className={`text-md sm:text-xl font-bold ${
+                    className={`flex-1 min-w-0 text-left pl-3 sm:pl-4 text-sm sm:text-base font-bold truncate ${
                       winner === 'away' ? 'text-black' : 'text-gray-600'
                     }`}
                   >
-                    {awayScore} {match.away_team?.team_name}
+                    {match.away_team?.team_name}
                   </div>
                 </div>
                 {winner && (

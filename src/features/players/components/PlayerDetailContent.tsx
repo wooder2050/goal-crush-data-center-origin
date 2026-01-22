@@ -722,22 +722,22 @@ function PlayerDetailContentInner({
                     <table className="min-w-full text-xs">
                       <thead className="bg-gray-50 text-gray-600">
                         <tr>
-                          <th className="px-3 py-2 text-left font-medium">
+                          <th className="px-2 py-2 text-left font-medium">
                             날짜
                           </th>
-                          <th className="px-3 py-2 text-left font-medium">
+                          <th className="px-2 py-2 text-left font-medium">
                             시즌
                           </th>
-                          <th className="px-3 py-2 text-left font-medium">
+                          <th className="px-2 py-2 text-left font-medium">
                             상대
                           </th>
-                          <th className="px-3 py-2 text-left font-medium">
+                          <th className="px-2 py-2 text-left font-medium">
                             소속팀
                           </th>
-                          <th className="px-3 py-2 text-center font-medium">
+                          <th className="px-2 py-2 text-center font-medium">
                             ⚽ 득점
                           </th>
-                          <th className="px-3 py-2 text-center font-medium">
+                          <th className="px-2 py-2 text-center font-medium">
                             스코어
                           </th>
                         </tr>
@@ -745,18 +745,18 @@ function PlayerDetailContentInner({
                       <tbody className="divide-y">
                         {goalMatches.map((gm) => (
                           <tr key={gm.match_id} className="hover:bg-gray-50">
-                            <td className="px-3 py-2">
+                            <td className="px-2 py-2">
                               {gm.match_date
                                 ? format(new Date(gm.match_date), 'yy.MM.dd')
                                 : '-'}
                             </td>
-                            <td className="px-3 py-2">
+                            <td className="px-2 py-2">
                               {gm.season_name
                                 ? shortenSeasonName(gm.season_name)
                                 : '-'}
                             </td>
-                            <td className="px-3 py-2">
-                              <div className="flex items-center gap-2">
+                            <td className="px-2 py-2">
+                              <div className="flex items-center gap-1.5">
                                 {gm.opponent_logo ? (
                                   <span className="relative h-5 w-5 overflow-hidden rounded-full flex-shrink-0">
                                     <Image
@@ -775,8 +775,8 @@ function PlayerDetailContentInner({
                                 <span>{gm.opponent_name ?? '-'}</span>
                               </div>
                             </td>
-                            <td className="px-3 py-2">
-                              <div className="flex items-center gap-2">
+                            <td className="px-2 py-2">
+                              <div className="flex items-center gap-1.5">
                                 {gm.team_logo ? (
                                   <span className="relative h-5 w-5 overflow-hidden rounded-full flex-shrink-0">
                                     <Image
@@ -795,7 +795,7 @@ function PlayerDetailContentInner({
                                 <span>{gm.team_name ?? '-'}</span>
                               </div>
                             </td>
-                            <td className="px-3 py-2 text-center">
+                            <td className="px-2 py-2 text-center">
                               {gm.player_goals}
                               {gm.penalty_goals && gm.penalty_goals > 0 ? (
                                 <span className="ml-1 text-[10px] text-gray-500">
@@ -803,12 +803,12 @@ function PlayerDetailContentInner({
                                 </span>
                               ) : null}
                             </td>
-                            <td className="px-3 py-2 text-center">
+                            <td className="px-2 py-2 text-center whitespace-nowrap">
                               <span>
-                                {gm.home_score ?? '-'} : {gm.away_score ?? '-'}
+                                {gm.home_score ?? '-'}:{gm.away_score ?? '-'}
                                 {gm.penalty_home_score != null &&
                                   gm.penalty_away_score != null && (
-                                    <span className="ml-1 text-[10px] text-gray-500">
+                                    <span className="text-[10px] text-gray-500">
                                       (PK {gm.penalty_home_score}:
                                       {gm.penalty_away_score})
                                     </span>
@@ -818,7 +818,7 @@ function PlayerDetailContentInner({
                                 const o = getMatchOutcome(gm);
                                 return o ? (
                                   <span
-                                    className={`ml-2 inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] ${outcomeStyle(o)}`}
+                                    className={`ml-1 inline-flex items-center rounded border px-1 py-0.5 text-[10px] ${outcomeStyle(o)}`}
                                   >
                                     {outcomeLabel(o)}
                                   </span>

@@ -98,7 +98,7 @@ export default function GoalSection({ match }: GoalSectionProps) {
 
   return (
     <div className="p-4">
-      <div className="grid grid-cols-2 sm:grid-cols-[1fr_50px_1fr] lg:grid-cols-[1fr_112px_1fr] gap-4 items-start">
+      <div className="grid grid-cols-2 sm:grid-cols-[1fr_40px_1fr] lg:grid-cols-[1fr_60px_1fr] gap-2 sm:gap-3 items-start">
         {/* Home Team Goals */}
         <div className="min-w-0 space-y-1 text-center">
           <div className="text-xs font-semibold text-gray-600 mb-1 text-center">
@@ -169,7 +169,7 @@ export default function GoalSection({ match }: GoalSectionProps) {
         </div>
 
         {/* Center spacer with the same width as the score box */}
-        <div aria-hidden className="hidden sm:block sm:w-[50px] lg:w-[112px]" />
+        <div aria-hidden className="hidden sm:block sm:w-[40px] lg:w-[60px]" />
 
         {/* Away Team Goals */}
         <div className="min-w-0 space-y-1 text-center">
