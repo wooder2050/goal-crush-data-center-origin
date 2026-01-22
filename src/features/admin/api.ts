@@ -507,6 +507,24 @@ export const createSubstitution = async (
   return response.json();
 };
 
+// 교체 삭제
+export const deleteSubstitution = async (
+  matchId: number,
+  substitutionId: number
+): Promise<void> => {
+  const response = await fetch(
+    `/api/admin/matches/${matchId}/substitutions/${substitutionId}`,
+    {
+      method: 'DELETE',
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to delete substitution');
+  }
+};
+
 // 페널티킥 목록 조회 (PenaltyShootoutDetail 기반)
 export interface Penalty {
   penalty_detail_id: number;

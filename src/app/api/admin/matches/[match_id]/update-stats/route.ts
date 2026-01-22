@@ -44,6 +44,9 @@ export async function POST(
     // 4. 상대전적 업데이트 (전체)
     await updateH2HStats();
 
+    // 5. 조별리그 순위 업데이트 (해당 시즌만)
+    await updateGroupLeagueStandings(seasonId);
+
     return NextResponse.json({
       message: '통계가 성공적으로 업데이트되었습니다.',
       match_id: matchId,
@@ -66,15 +69,20 @@ async function updateStandings(seasonId: number) {
   // 기존 순위표 삭제
   await prisma.standing.deleteMany({ where: { season_id: seasonId } });
 
-  // 완료된 경기들 조회
-  const matches = await prisma.match.findMany({
+  // 해당 시즌의 모든 경기 조회 (예정된 경기 포함)
+  const allMatches = await prisma.match.findMany({
     where: {
       season_id: seasonId,
-      status: 'completed',
-      home_score: { not: null },
-      away_score: { not: null },
+      home_team_id: { not: null },
+      away_team_id: { not: null },
     },
   });
+
+  // 완료된 경기들만 필터링
+  const completedMatches = allMatches.filter(
+    (m) =>
+      m.status === 'completed' && m.home_score !== null && m.away_score !== null
+  );
 
   // 팀별 통계 계산
   const teamStats = new Map<
@@ -90,10 +98,10 @@ async function updateStandings(seasonId: number) {
     }
   >();
 
-  for (const match of matches) {
+  // 먼저 해당 시즌의 모든 팀을 초기화 (예정된 경기 포함)
+  for (const match of allMatches) {
     if (!match.home_team_id || !match.away_team_id) continue;
 
-    // 홈팀 초기화
     if (!teamStats.has(match.home_team_id)) {
       teamStats.set(match.home_team_id, {
         matches_played: 0,
@@ -106,7 +114,6 @@ async function updateStandings(seasonId: number) {
       });
     }
 
-    // 원정팀 초기화
     if (!teamStats.has(match.away_team_id)) {
       teamStats.set(match.away_team_id, {
         matches_played: 0,
@@ -118,9 +125,36 @@ async function updateStandings(seasonId: number) {
         points: 0,
       });
     }
+  }
 
-    const homeStats = teamStats.get(match.home_team_id)!;
-    const awayStats = teamStats.get(match.away_team_id)!;
+  // group_league_standings에서도 팀 추가 (경기가 등록되지 않은 팀 포함)
+  const groupStandings = await prisma.groupLeagueStanding.findMany({
+    where: { season_id: seasonId },
+    select: { team_id: true },
+  });
+
+  for (const gs of groupStandings) {
+    if (gs.team_id && !teamStats.has(gs.team_id)) {
+      teamStats.set(gs.team_id, {
+        matches_played: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        goals_for: 0,
+        goals_against: 0,
+        points: 0,
+      });
+    }
+  }
+
+  // 완료된 경기로 통계 업데이트
+  for (const match of completedMatches) {
+    if (!match.home_team_id || !match.away_team_id) continue;
+
+    const homeStats = teamStats.get(match.home_team_id);
+    const awayStats = teamStats.get(match.away_team_id);
+
+    if (!homeStats || !awayStats) continue;
 
     homeStats.matches_played++;
     awayStats.matches_played++;
@@ -258,6 +292,174 @@ async function updateTeamSeasons(seasonId: number) {
         team_id: teamId,
       },
     });
+  }
+}
+
+// 조별리그 순위 업데이트
+async function updateGroupLeagueStandings(seasonId: number) {
+  // 해당 시즌의 조별리그 경기들 조회
+  const matches = await prisma.match.findMany({
+    where: {
+      season_id: seasonId,
+      status: 'completed',
+      home_score: { not: null },
+      away_score: { not: null },
+      tournament_stage: 'group_stage',
+      group_stage: { not: null },
+    },
+  });
+
+  // 조별 데이터가 없으면 종료
+  if (matches.length === 0) {
+    return;
+  }
+
+  // 조별로 팀 통계 계산
+  const groupStats = new Map<
+    string, // group_stage-team_id
+    {
+      group_stage: string;
+      team_id: number;
+      matches_played: number;
+      wins: number;
+      draws: number;
+      losses: number;
+      goals_for: number;
+      goals_against: number;
+      points: number;
+    }
+  >();
+
+  for (const match of matches) {
+    if (!match.home_team_id || !match.away_team_id || !match.group_stage)
+      continue;
+
+    const homeKey = `${match.group_stage}-${match.home_team_id}`;
+    const awayKey = `${match.group_stage}-${match.away_team_id}`;
+
+    // 홈팀 초기화
+    if (!groupStats.has(homeKey)) {
+      groupStats.set(homeKey, {
+        group_stage: match.group_stage,
+        team_id: match.home_team_id,
+        matches_played: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        goals_for: 0,
+        goals_against: 0,
+        points: 0,
+      });
+    }
+
+    // 원정팀 초기화
+    if (!groupStats.has(awayKey)) {
+      groupStats.set(awayKey, {
+        group_stage: match.group_stage,
+        team_id: match.away_team_id,
+        matches_played: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        goals_for: 0,
+        goals_against: 0,
+        points: 0,
+      });
+    }
+
+    const homeStats = groupStats.get(homeKey)!;
+    const awayStats = groupStats.get(awayKey)!;
+
+    homeStats.matches_played++;
+    awayStats.matches_played++;
+
+    homeStats.goals_for += match.home_score || 0;
+    homeStats.goals_against += match.away_score || 0;
+    awayStats.goals_for += match.away_score || 0;
+    awayStats.goals_against += match.home_score || 0;
+
+    // 승부 판정
+    const homeScore = match.home_score || 0;
+    const awayScore = match.away_score || 0;
+
+    if (homeScore > awayScore) {
+      homeStats.wins++;
+      homeStats.points += 3;
+      awayStats.losses++;
+    } else if (homeScore < awayScore) {
+      awayStats.wins++;
+      awayStats.points += 3;
+      homeStats.losses++;
+    } else {
+      // 무승부 - 승부차기 확인
+      if (
+        match.penalty_home_score !== null &&
+        match.penalty_away_score !== null
+      ) {
+        if ((match.penalty_home_score || 0) > (match.penalty_away_score || 0)) {
+          homeStats.wins++;
+          homeStats.points += 3;
+          awayStats.losses++;
+        } else {
+          awayStats.wins++;
+          awayStats.points += 3;
+          homeStats.losses++;
+        }
+      } else {
+        homeStats.draws++;
+        awayStats.draws++;
+        homeStats.points += 1;
+        awayStats.points += 1;
+      }
+    }
+  }
+
+  // 기존 group_league_standings 업데이트 (존재하는 레코드만)
+  for (const [, stats] of Array.from(groupStats)) {
+    await prisma.groupLeagueStanding.updateMany({
+      where: {
+        season_id: seasonId,
+        team_id: stats.team_id,
+        group_stage: stats.group_stage,
+      },
+      data: {
+        matches_played: stats.matches_played,
+        wins: stats.wins,
+        draws: stats.draws,
+        losses: stats.losses,
+        goals_for: stats.goals_for,
+        goals_against: stats.goals_against,
+        goal_difference: stats.goals_for - stats.goals_against,
+        points: stats.points,
+      },
+    });
+  }
+
+  // 조별 순위 업데이트
+  const groupSet = new Set(Array.from(groupStats.values()).map((s) => s.group_stage));
+  const groups = Array.from(groupSet);
+
+  for (const group of groups) {
+    const standings = await prisma.groupLeagueStanding.findMany({
+      where: {
+        season_id: seasonId,
+        group_stage: group,
+      },
+      orderBy: [
+        { points: 'desc' },
+        { goal_difference: 'desc' },
+        { goals_for: 'desc' },
+      ],
+    });
+
+    for (let i = 0; i < standings.length; i++) {
+      await prisma.groupLeagueStanding.update({
+        where: {
+          group_standing_id: standings[i].group_standing_id,
+        },
+        data: { position: i + 1 },
+      });
+    }
   }
 }
 

@@ -174,25 +174,23 @@ export async function POST(
     });
 
     // 페널티킥 스코어 업데이트
-    if (is_scored) {
-      const isHomeTeam = team_id === match.home_team_id;
+    // DB 제약조건(penalty_only_when_tied): 양쪽 penalty 스코어가 모두 존재하거나 모두 null이어야 함
+    const currentHomeScore = match.penalty_home_score ?? 0;
+    const currentAwayScore = match.penalty_away_score ?? 0;
+    const isHomeTeam = team_id === match.home_team_id;
 
-      if (isHomeTeam) {
-        await prisma.match.update({
-          where: { match_id: matchId },
-          data: {
-            penalty_home_score: (match.penalty_home_score || 0) + 1,
-          },
-        });
-      } else {
-        await prisma.match.update({
-          where: { match_id: matchId },
-          data: {
-            penalty_away_score: (match.penalty_away_score || 0) + 1,
-          },
-        });
-      }
-    }
+    const newHomeScore =
+      isHomeTeam && is_scored ? currentHomeScore + 1 : currentHomeScore;
+    const newAwayScore =
+      !isHomeTeam && is_scored ? currentAwayScore + 1 : currentAwayScore;
+
+    await prisma.match.update({
+      where: { match_id: matchId },
+      data: {
+        penalty_home_score: newHomeScore,
+        penalty_away_score: newAwayScore,
+      },
+    });
 
     return NextResponse.json(penalty, { status: 201 });
   } catch (error) {

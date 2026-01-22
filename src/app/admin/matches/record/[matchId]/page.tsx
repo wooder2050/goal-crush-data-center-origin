@@ -13,6 +13,7 @@ import {
   CreateLineupData,
   CreatePenaltyData,
   CreateSubstitutionData,
+  deleteSubstitution,
   MatchCoachResponse,
 } from '@/features/admin/api';
 import MatchDataDisplay from '@/features/admin/components/MatchDataDisplay';
@@ -60,7 +61,8 @@ export default function RecordMatchDetailPage() {
   // 어시스트, 라인업, 교체, 페널티킥, 감독 목록 조회
   const { data: assists = [] } = useMatchAssists(matchId);
   const { data: lineups = [] } = useMatchLineups(matchId);
-  const { data: substitutions = [] } = useMatchSubstitutions(matchId);
+  const { data: substitutions = [], refetch: refetchSubstitutions } =
+    useMatchSubstitutions(matchId);
   const { data: penalties = [] } = useMatchPenalties(matchId);
   const { data: coaches = [] } = useMatchCoaches(matchId);
 
@@ -80,6 +82,9 @@ export default function RecordMatchDetailPage() {
   const [lineupDialogOpen, setLineupDialogOpen] = useState(false);
   const [substitutionDialogOpen, setSubstitutionDialogOpen] = useState(false);
   const [penaltyDialogOpen, setPenaltyDialogOpen] = useState(false);
+
+  // 삭제 진행 상태
+  const [isDeletingSubstitution, setIsDeletingSubstitution] = useState(false);
 
   // 경기 데이터 관리
   const {
@@ -266,6 +271,25 @@ export default function RecordMatchDetailPage() {
 
   // 핸들러 함수들
   const handleBackClick = () => router.push('/admin/matches/record');
+
+  // 교체 삭제 핸들러
+  const handleDeleteSubstitution = async (substitutionId: number) => {
+    if (!confirm('정말 이 교체 기록을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    setIsDeletingSubstitution(true);
+    try {
+      await deleteSubstitution(matchId, substitutionId);
+      await refetchSubstitutions();
+      alert('교체 기록이 삭제되었습니다.');
+    } catch (error) {
+      console.error('교체 삭제 실패:', error);
+      alert('교체 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setIsDeletingSubstitution(false);
+    }
+  };
 
   const handleScoreSubmit = async (values: MatchResultFormValues) => {
     const scoreData = {
@@ -478,10 +502,10 @@ export default function RecordMatchDetailPage() {
             },
             body: JSON.stringify({
               team_id: data.team_id,
-              kicker_id: data.player_id,
+              player_id: data.player_id,
               goalkeeper_id: data.goalkeeper_id,
-              is_successful: data.is_scored,
-              kicker_order: data.order,
+              is_scored: data.is_scored,
+              order: data.order,
             }),
           }
         );
@@ -577,8 +601,9 @@ export default function RecordMatchDetailPage() {
               <SubstitutionsTab
                 isLoadingPlayers={isLoadingHomePlayers || isLoadingAwayPlayers}
                 onAddSubstitution={() => setSubstitutionDialogOpen(true)}
-                actualSubstitutions={matchData.substitutions}
-                onRemoveSubstitution={removeSubstitution}
+                substitutions={substitutions}
+                onRemoveSubstitution={handleDeleteSubstitution}
+                isDeleting={isDeletingSubstitution}
               />
             </TabsContent>
 
