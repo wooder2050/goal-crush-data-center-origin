@@ -59,6 +59,28 @@ export async function GET(
       },
     })) as unknown as PlayerMatchStatWithRelations[];
 
+    // Get detailed stats for card information (yellow_cards, red_cards)
+    const detailedStats = await prisma.playerMatchDetailedStats.findMany({
+      where: { match_id: matchId },
+      select: {
+        player_id: true,
+        yellow_cards: true,
+        red_cards: true,
+      },
+    });
+
+    // Create lookup map for detailed stats
+    const detailedStatsMap = new Map<
+      number,
+      { yellow_cards: number; red_cards: number }
+    >();
+    detailedStats.forEach((ds) => {
+      detailedStatsMap.set(ds.player_id, {
+        yellow_cards: ds.yellow_cards ?? 0,
+        red_cards: ds.red_cards ?? 0,
+      });
+    });
+
     // Get substitutions for this match
     const substitutions = (await prisma.substitution.findMany({
       where: { match_id: matchId },
@@ -150,6 +172,22 @@ export async function GET(
         participationStatus = 'bench';
       }
 
+      // Merge card data from detailed stats if available
+      const detailedCardData = detailedStatsMap.get(stat.player_id || 0);
+      const yellowCards =
+        detailedCardData?.yellow_cards || stat.yellow_cards || 0;
+      const redCards = detailedCardData?.red_cards || stat.red_cards || 0;
+
+      // Determine card_type based on cards
+      let cardType = stat.card_type || 'none';
+      if (redCards > 0 && yellowCards >= 2) {
+        cardType = 'red_accumulated';
+      } else if (redCards > 0) {
+        cardType = 'red_direct';
+      } else if (yellowCards > 0) {
+        cardType = 'yellow';
+      }
+
       const playerData = {
         stat_id: stat.stat_id,
         match_id: match.match_id,
@@ -157,8 +195,8 @@ export async function GET(
         team_id: stat.team_id || 0,
         goals: stat.goals || 0,
         assists: stat.assists || 0,
-        yellow_cards: stat.yellow_cards || 0,
-        red_cards: stat.red_cards || 0,
+        yellow_cards: yellowCards,
+        red_cards: redCards,
         minutes_played: stat.minutes_played || 0,
         saves: stat.saves || 0,
         position: stat.position || 'Unknown',
@@ -167,7 +205,7 @@ export async function GET(
         profile_image_url: stat.player?.profile_image_url ?? null,
         team_name: stat.team?.team_name || 'Unknown',
         participation_status: participationStatus,
-        card_type: stat.card_type || 'none',
+        card_type: cardType,
       };
 
       if (lineupsByMatch[teamKey]) {
