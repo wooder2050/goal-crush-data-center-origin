@@ -186,25 +186,41 @@ function PlayerDetailContentInner({
 
   const getMatchOutcome = (
     gm: NonNullable<(typeof summary)['goal_matches']>[number]
-  ): 'WIN' | 'DRAW' | 'LOSS' | null => {
+  ): 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS' | null => {
     const hs = gm.home_score;
     const as = gm.away_score;
     if (hs == null || as == null) return null;
     const diff = gm.is_home ? hs - as : as - hs;
     if (diff > 0) return 'WIN';
     if (diff < 0) return 'LOSS';
+    // 무승부인 경우 승부차기 확인
+    if (gm.penalty_home_score != null && gm.penalty_away_score != null) {
+      const pkDiff = gm.is_home
+        ? gm.penalty_home_score - gm.penalty_away_score
+        : gm.penalty_away_score - gm.penalty_home_score;
+      if (pkDiff > 0) return 'PK_WIN';
+      if (pkDiff < 0) return 'PK_LOSS';
+    }
     return 'DRAW';
   };
 
-  const outcomeStyle = (o: 'WIN' | 'DRAW' | 'LOSS') =>
-    o === 'WIN'
+  const outcomeStyle = (o: 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS') =>
+    o === 'WIN' || o === 'PK_WIN'
       ? 'bg-green-100 text-green-700 border-green-200'
-      : o === 'LOSS'
+      : o === 'LOSS' || o === 'PK_LOSS'
         ? 'bg-red-100 text-red-700 border-red-200'
         : 'bg-gray-100 text-gray-700 border-gray-200';
 
-  const outcomeLabel = (o: 'WIN' | 'DRAW' | 'LOSS') =>
-    o === 'WIN' ? '승' : o === 'LOSS' ? '패' : '무';
+  const outcomeLabel = (o: 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS') =>
+    o === 'WIN'
+      ? '승'
+      : o === 'PK_WIN'
+        ? 'PK승'
+        : o === 'LOSS'
+          ? '패'
+          : o === 'PK_LOSS'
+            ? 'PK패'
+            : '무';
 
   return (
     <Grid cols={12} gap="lg">
@@ -671,6 +687,13 @@ function PlayerDetailContentInner({
                         <div className="mt-2 flex items-center justify-between">
                           <div className="text-sm font-semibold">
                             {gm.home_score ?? '-'} : {gm.away_score ?? '-'}
+                            {gm.penalty_home_score != null &&
+                              gm.penalty_away_score != null && (
+                                <span className="ml-1 text-xs text-gray-500">
+                                  (PK {gm.penalty_home_score}:
+                                  {gm.penalty_away_score})
+                                </span>
+                              )}
                           </div>
                           {(() => {
                             const o = getMatchOutcome(gm);
@@ -783,6 +806,13 @@ function PlayerDetailContentInner({
                             <td className="px-3 py-2 text-center">
                               <span>
                                 {gm.home_score ?? '-'} : {gm.away_score ?? '-'}
+                                {gm.penalty_home_score != null &&
+                                  gm.penalty_away_score != null && (
+                                    <span className="ml-1 text-[10px] text-gray-500">
+                                      (PK {gm.penalty_home_score}:
+                                      {gm.penalty_away_score})
+                                    </span>
+                                  )}
                               </span>
                               {(() => {
                                 const o = getMatchOutcome(gm);

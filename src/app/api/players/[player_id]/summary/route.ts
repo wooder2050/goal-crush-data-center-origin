@@ -437,6 +437,8 @@ export async function GET(
       penalty_goals: number;
       home_score: number | null;
       away_score: number | null;
+      penalty_home_score: number | null;
+      penalty_away_score: number | null;
       is_home: boolean;
       tournament_stage: string | null;
     }> = [];
@@ -500,6 +502,8 @@ export async function GET(
             penalty_goals: penaltyCountByMatch.get(m.match_id) ?? 0,
             home_score: m.home_score ?? null,
             away_score: m.away_score ?? null,
+            penalty_home_score: m.penalty_home_score ?? null,
+            penalty_away_score: m.penalty_away_score ?? null,
             is_home: isHome,
             tournament_stage: m.tournament_stage ?? null,
           };

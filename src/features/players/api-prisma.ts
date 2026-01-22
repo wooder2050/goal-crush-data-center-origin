@@ -231,6 +231,8 @@ export const getPlayerSummaryPrisma = async (
     penalty_goals: number;
     home_score: number | null;
     away_score: number | null;
+    penalty_home_score: number | null;
+    penalty_away_score: number | null;
     is_home: boolean;
     tournament_stage: string | null;
   }>;
