@@ -436,7 +436,9 @@ async function updateGroupLeagueStandings(seasonId: number) {
   }
 
   // 조별 순위 업데이트
-  const groupSet = new Set(Array.from(groupStats.values()).map((s) => s.group_stage));
+  const groupSet = new Set(
+    Array.from(groupStats.values()).map((s) => s.group_stage)
+  );
   const groups = Array.from(groupSet);
 
   for (const group of groups) {

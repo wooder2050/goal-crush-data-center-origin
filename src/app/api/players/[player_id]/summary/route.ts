@@ -456,6 +456,8 @@ export async function GET(
           away_team: { select: { team_id: true, team_name: true, logo: true } },
           home_score: true,
           away_score: true,
+          penalty_home_score: true,
+          penalty_away_score: true,
           tournament_stage: true,
         },
       });
