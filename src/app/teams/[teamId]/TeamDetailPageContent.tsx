@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
-import { useResolvedPathParams } from '@/common/path-params/client';
 import { Section } from '@/components/ui';
 import UpcomingMatches from '@/features/matches/components/UpcomingMatches';
 import UpcomingMatchesSkeleton from '@/features/matches/components/UpcomingMatchesSkeleton';
@@ -18,6 +17,10 @@ import TeamSeasonStandings from '@/features/teams/components/TeamSeasonStandings
 import TeamSquadTable from '@/features/teams/components/TeamSquadTable';
 import TeamStatsCard from '@/features/teams/components/TeamStatsCard';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+
+interface TeamDetailPageContentProps {
+  teamId: string;
+}
 
 function TeamDetailSuspenseBody({ teamId }: { teamId: number }) {
   const { data: team } = useGoalSuspenseQuery(getTeamByIdPrisma, [teamId]);
@@ -42,12 +45,13 @@ function TeamDetailSuspenseBody({ teamId }: { teamId: number }) {
   );
 }
 
-export default function TeamDetailPageContent() {
-  const [teamIdParam] = useResolvedPathParams('teamId');
+export default function TeamDetailPageContent({
+  teamId,
+}: TeamDetailPageContentProps) {
   const teamIdNumber = useMemo(() => {
-    const n = Number(teamIdParam);
+    const n = Number(teamId);
     return Number.isFinite(n) && n > 0 ? n : null;
-  }, [teamIdParam]);
+  }, [teamId]);
 
   if (teamIdNumber === null) {
     return <TeamDetailSkeleton />;
