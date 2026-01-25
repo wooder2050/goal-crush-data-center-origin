@@ -142,11 +142,16 @@ function RawDataPitch({
   actions,
   homeTeamName,
   awayTeamName,
+  isSecondHalf = false,
 }: {
   actions: RawAction[];
   homeTeamName: string;
   awayTeamName: string;
+  isSecondHalf?: boolean;
 }) {
+  // 후반전에는 진영이 바뀌므로 팀 레이블 위치도 반전
+  const leftTeamName = isSecondHalf ? awayTeamName : homeTeamName;
+  const rightTeamName = isSecondHalf ? homeTeamName : awayTeamName;
   const [selectedActionType, setSelectedActionType] = useState<string | null>(
     null
   );
@@ -232,12 +237,14 @@ function RawDataPitch({
           ))}
       </div>
 
-      {/* 팀 레이블 */}
-      <div className="absolute top-8 left-2 text-xs text-blue-600 font-medium z-10">
-        {homeTeamName}
-      </div>
-      <div className="absolute top-8 right-2 text-xs text-red-600 font-medium z-10">
-        {awayTeamName}
+      {/* 팀 레이블 (피치 밖) */}
+      <div className="flex justify-between mb-1 text-xs font-medium">
+        <span className={isSecondHalf ? 'text-red-600' : 'text-blue-600'}>
+          {leftTeamName}
+        </span>
+        <span className={isSecondHalf ? 'text-blue-600' : 'text-red-600'}>
+          {rightTeamName}
+        </span>
       </div>
 
       <svg
@@ -496,6 +503,7 @@ function PassMapSection({
                     )}
                     homeTeamName={homeTeamName}
                     awayTeamName={awayTeamName}
+                    isSecondHalf
                   />
                 </div>
               </div>
@@ -535,6 +543,7 @@ function PassMapSection({
                     )}
                     homeTeamName={homeTeamName}
                     awayTeamName={awayTeamName}
+                    isSecondHalf
                   />
                 </div>
               </div>
