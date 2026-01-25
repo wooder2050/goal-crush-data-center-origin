@@ -170,6 +170,8 @@ function HeadToHeadOrTeamStatsSection({
   awayTeamName,
   homeTeamLogo,
   awayTeamLogo,
+  homeScore,
+  awayScore,
 }: {
   matchId: number;
   homeTeamId: number;
@@ -178,6 +180,8 @@ function HeadToHeadOrTeamStatsSection({
   awayTeamName: string;
   homeTeamLogo?: string | null;
   awayTeamLogo?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
 }) {
   const { data: stats } = useGoalSuspenseQuery(getMatchDetailedStatsPrisma, [
     matchId,
@@ -194,6 +198,8 @@ function HeadToHeadOrTeamStatsSection({
         awayTeamName={awayTeamName}
         homeTeamLogo={homeTeamLogo}
         awayTeamLogo={awayTeamLogo}
+        homeScore={homeScore}
+        awayScore={awayScore}
         variant="team-comparison"
       />
     );
@@ -306,6 +312,8 @@ function DetailMatchCardInner({
                   awayTeamName={match.away_team?.team_name || '원정팀'}
                   homeTeamLogo={match.home_team?.logo}
                   awayTeamLogo={match.away_team?.logo}
+                  homeScore={match.home_score}
+                  awayScore={match.away_score}
                 />
               </GoalWrapper>
             ) : (
