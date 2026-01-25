@@ -44,102 +44,131 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // 대표 선수 계산: 팀별 출전 수 상위 3명
-    const teamsWithReps = await Promise.all(
-      baseTeams.map(async (team) => {
-        const grouped = await prisma.playerMatchStats.groupBy({
-          by: ['player_id'],
-          where: { team_id: team.team_id, player_id: { not: null } },
-          _count: { player_id: true },
-          orderBy: { _count: { player_id: 'desc' } },
-          take: 3,
-        });
+    const allTeamIds = baseTeams.map((t) => t.team_id);
 
-        const playerIds = grouped
-          .map((g) => g.player_id)
-          .filter((id): id is number => id !== null);
+    // 배치 쿼리 1: 모든 팀의 선수별 출전 통계를 한 번에 조회
+    const allPlayerStats = await prisma.playerMatchStats.groupBy({
+      by: ['team_id', 'player_id'],
+      where: { team_id: { in: allTeamIds }, player_id: { not: null } },
+      _count: { player_id: true },
+    });
 
-        const players = playerIds.length
-          ? await prisma.player.findMany({
-              where: { player_id: { in: playerIds } },
-              select: { player_id: true, name: true, jersey_number: true },
-            })
-          : [];
+    // 팀별로 출전 수 상위 3명 추출
+    const teamPlayerStatsMap = new Map<
+      number,
+      { player_id: number; appearances: number }[]
+    >();
+    for (const stat of allPlayerStats) {
+      if (stat.player_id === null || stat.team_id === null) continue;
+      const teamId = stat.team_id;
+      if (!teamPlayerStatsMap.has(teamId)) {
+        teamPlayerStatsMap.set(teamId, []);
+      }
+      teamPlayerStatsMap.get(teamId)!.push({
+        player_id: stat.player_id,
+        appearances: stat._count.player_id,
+      });
+    }
+    // 팀별 정렬 및 상위 3명 추출
+    Array.from(teamPlayerStatsMap.entries()).forEach(([teamId, stats]) => {
+      stats.sort((a, b) => b.appearances - a.appearances);
+      teamPlayerStatsMap.set(teamId, stats.slice(0, 3));
+    });
 
-        const representative_players = grouped.map((g) => {
-          const pid = g.player_id;
-          const appearances = g._count.player_id;
-          if (pid === null) {
-            return {
-              player_id: -1,
+    // 배치 쿼리 2: 필요한 모든 선수 정보를 한 번에 조회
+    const allPlayerIds = new Set<number>();
+    Array.from(teamPlayerStatsMap.values()).forEach((stats) => {
+      for (const s of stats) {
+        allPlayerIds.add(s.player_id);
+      }
+    });
+    const allPlayers =
+      allPlayerIds.size > 0
+        ? await prisma.player.findMany({
+            where: { player_id: { in: Array.from(allPlayerIds) } },
+            select: { player_id: true, name: true, jersey_number: true },
+          })
+        : [];
+    const playerMap = new Map(allPlayers.map((p) => [p.player_id, p]));
+
+    // 배치 쿼리 3: 모든 팀의 standings를 한 번에 조회
+    const allStandings = await prisma.standing.findMany({
+      where: { team_id: { in: allTeamIds } },
+      select: {
+        team_id: true,
+        position: true,
+        season: {
+          select: {
+            season_id: true,
+            season_name: true,
+            year: true,
+            category: true,
+            end_date: true,
+          },
+        },
+      },
+      orderBy: [{ season_id: 'asc' }],
+    });
+
+    // 팀별 standings 맵 생성
+    const standingsMap = new Map<number, typeof allStandings>();
+    for (const standing of allStandings) {
+      const teamId = standing.team_id;
+      if (teamId === null) continue;
+      if (!standingsMap.has(teamId)) {
+        standingsMap.set(teamId, []);
+      }
+      standingsMap.get(teamId)!.push(standing);
+    }
+
+    // 메모리에서 팀별 데이터 조합
+    const now = new Date();
+    const teamsWithReps = baseTeams.map((team) => {
+      // 대표 선수 계산
+      const teamStats = teamPlayerStatsMap.get(team.team_id) ?? [];
+      const representative_players = teamStats.map((stat) => {
+        const player = playerMap.get(stat.player_id);
+        return player
+          ? { ...player, appearances: stat.appearances }
+          : {
+              player_id: stat.player_id,
               name: 'Unknown',
               jersey_number: null,
-              appearances,
+              appearances: stat.appearances,
             };
-          }
-          const p = players.find((pl) => pl.player_id === pid);
-          return p
-            ? { ...p, appearances }
-            : {
-                player_id: pid,
-                name: 'Unknown',
-                jersey_number: null,
-                appearances,
-              };
-        });
+      });
 
-        // championships_count 계산 (standings 기반)
-        // 시즌 종료된 경우만 우승으로 인정 (end_date가 존재하고 현재 날짜 이전)
-        const now = new Date();
-        const standings = await prisma.standing.findMany({
-          where: { team_id: team.team_id },
-          select: {
-            position: true,
-            season: {
-              select: {
-                season_id: true,
-                season_name: true,
-                year: true,
-                category: true,
-                end_date: true,
-              },
-            },
-          },
-          orderBy: [{ season_id: 'asc' }],
-        });
-        const championships = standings
-          .filter((s) => (s.position ?? 0) === 1)
-          // 시즌 종료 여부 체크
-          .filter((s) => {
-            const endDate = s.season?.end_date;
-            return endDate && new Date(endDate) <= now;
-          })
-          .filter((s) => {
-            const league = inferLeague(s.season?.season_name ?? null);
-            return (
-              league === 'super' ||
-              league === 'cup' ||
-              league === 'g-league' ||
-              s.season?.season_id === 2 ||
-              s.season?.season_id === 1
-            );
-          })
-          .map((s) => ({
-            season_id: s.season?.season_id ?? 0,
-            season_name: s.season?.season_name ?? null,
-            year: s.season?.year ?? null,
-          }));
+      // championships 계산
+      const standings = standingsMap.get(team.team_id) ?? [];
+      const championships = standings
+        .filter((s) => (s.position ?? 0) === 1)
+        .filter((s) => {
+          const endDate = s.season?.end_date;
+          return endDate && new Date(endDate) <= now;
+        })
+        .filter((s) => {
+          const league = inferLeague(s.season?.season_name ?? null);
+          return (
+            league === 'super' ||
+            league === 'cup' ||
+            league === 'g-league' ||
+            s.season?.season_id === 2 ||
+            s.season?.season_id === 1
+          );
+        })
+        .map((s) => ({
+          season_id: s.season?.season_id ?? 0,
+          season_name: s.season?.season_name ?? null,
+          year: s.season?.year ?? null,
+        }));
 
-        const championships_count = championships.length;
-
-        return {
-          ...team,
-          representative_players,
-          championships_count,
-          championships,
-        };
-      })
-    );
+      return {
+        ...team,
+        representative_players,
+        championships_count: championships.length,
+        championships,
+      };
+    });
 
     return NextResponse.json({ data: teamsWithReps });
   } catch (error) {

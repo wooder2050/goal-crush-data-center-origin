@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo } from 'react';
 
 import { Card, CardContent, CardTitle } from '@/components/ui';
 import { getPositionColor } from '@/features/matches/lib/matchUtils';
@@ -17,22 +16,20 @@ export default function PlayersListBody({
   items: PlayersPageItem[];
   showFillers: boolean;
 }) {
-  const list = useMemo(() => items, [items]);
-
   // responsive fillers to keep the grid edges clean
-  const fill2 = (2 - (list.length % 2)) % 2; // mobile (2 cols)
-  const fill3 = (3 - (list.length % 3)) % 3; // md (3 cols)
-  const fill4 = (4 - (list.length % 4)) % 4; // lg (4 cols)
+  const fill2 = (2 - (items.length % 2)) % 2; // mobile (2 cols)
+  const fill3 = (3 - (items.length % 3)) % 3; // md (3 cols)
+  const fill4 = (4 - (items.length % 4)) % 4; // lg (4 cols)
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
-        {list.length === 0 ? (
+        {items.length === 0 ? (
           <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 text-center text-sm text-gray-500 py-8">
             검색 결과가 없습니다.
           </div>
         ) : (
-          list.map((p) => {
+          items.map((p) => {
             const hasImage = Boolean(p.profile_image_url);
             const seasonLabels = (p.seasons ?? [])
               .map((s) => s.season_name || (s.year ? `시즌 ${s.year}` : null))

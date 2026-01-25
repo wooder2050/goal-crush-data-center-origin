@@ -51,6 +51,31 @@ interface SelectedPlayer {
   position: string | null;
 }
 
+// FullImage 컴포넌트를 외부로 분리 및 React.memo 적용
+const FullImage = React.memo(function FullImage({
+  name,
+  url,
+}: {
+  name: string;
+  url: string | null;
+}) {
+  return (
+    <span className="relative block w-full h-56 sm:h-72 rounded-md overflow-hidden bg-transparent">
+      {url ? (
+        <Image
+          src={url}
+          alt={name}
+          fill
+          sizes="(min-width: 640px) 50vw, 100vw"
+          className="object-contain"
+        />
+      ) : (
+        <div className="h-full w-full bg-gray-200" />
+      )}
+    </span>
+  );
+});
+
 export default function FeaturedPlayersSection({ match }: Props) {
   const isScheduled = match.home_score == null && match.away_score == null;
 
@@ -211,24 +236,6 @@ export default function FeaturedPlayersSection({ match }: Props) {
   ]);
 
   if (!homePick && !awayPick) return null;
-
-  const FullImage = ({ name, url }: { name: string; url: string | null }) => {
-    return (
-      <span className="relative block w-full h-56 sm:h-72 rounded-md overflow-hidden bg-transparent">
-        {url ? (
-          <Image
-            src={url}
-            alt={name}
-            fill
-            sizes="(min-width: 640px) 50vw, 100vw"
-            className="object-contain"
-          />
-        ) : (
-          <div className="h-full w-full bg-gray-200" />
-        )}
-      </span>
-    );
-  };
 
   return (
     <Card className="p-3 sm:p-4">

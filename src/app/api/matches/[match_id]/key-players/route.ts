@@ -38,37 +38,69 @@ export async function GET(
     }
 
     const cutoff = match.match_date ? new Date(match.match_date) : new Date();
+    const homeTeamId = match.home_team_id!;
+    const awayTeamId = match.away_team_id!;
 
-    const buildAgg = async (teamId: number): Promise<PlayerAgg[]> => {
-      // 최근 10경기 집계 (현재 경기 이전)
-      const recentMatches = await prisma.match.findMany({
+    // 배치 쿼리 1: 두 팀의 최근 10경기를 각각 조회 (병렬)
+    const [homeRecentMatches, awayRecentMatches] = await Promise.all([
+      prisma.match.findMany({
         where: {
           match_date: { lt: cutoff },
-          OR: [{ home_team_id: teamId }, { away_team_id: teamId }],
+          OR: [{ home_team_id: homeTeamId }, { away_team_id: homeTeamId }],
         },
         orderBy: { match_date: 'desc' },
         take: 10,
         select: { match_id: true },
-      });
-      const ids = recentMatches.map((m) => m.match_id);
-      if (ids.length === 0) return [];
-
-      const stats = await prisma.playerMatchStats.findMany({
-        where: { team_id: teamId, match_id: { in: ids } },
-        include: {
-          player: {
-            select: {
-              player_id: true,
-              name: true,
-              jersey_number: true,
-              profile_image_url: true,
-            },
-          },
+      }),
+      prisma.match.findMany({
+        where: {
+          match_date: { lt: cutoff },
+          OR: [{ home_team_id: awayTeamId }, { away_team_id: awayTeamId }],
         },
-      });
+        orderBy: { match_date: 'desc' },
+        take: 10,
+        select: { match_id: true },
+      }),
+    ]);
+
+    const homeMatchIds = homeRecentMatches.map((m) => m.match_id);
+    const awayMatchIds = awayRecentMatches.map((m) => m.match_id);
+    const allMatchIds = Array.from(new Set([...homeMatchIds, ...awayMatchIds]));
+
+    // 배치 쿼리 2: 두 팀의 모든 stats를 한 번에 조회
+    const allStats =
+      allMatchIds.length > 0
+        ? await prisma.playerMatchStats.findMany({
+            where: {
+              team_id: { in: [homeTeamId, awayTeamId] },
+              match_id: { in: allMatchIds },
+            },
+            include: {
+              player: {
+                select: {
+                  player_id: true,
+                  name: true,
+                  jersey_number: true,
+                  profile_image_url: true,
+                },
+              },
+            },
+          })
+        : [];
+
+    // 메모리에서 팀별, 유효 경기별로 필터링하여 집계
+    const buildAggFromStats = (
+      teamId: number,
+      validMatchIds: number[]
+    ): PlayerAgg[] => {
+      const validSet = new Set(validMatchIds);
+      const teamStats = allStats.filter(
+        (s) =>
+          s.team_id === teamId && s.match_id != null && validSet.has(s.match_id)
+      );
 
       const agg = new Map<number, PlayerAgg>();
-      for (const s of stats) {
+      for (const s of teamStats) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const pid = (s as any).player_id as number | null;
         if (!pid) continue;
@@ -110,10 +142,8 @@ export async function GET(
       return arr.slice(0, 3);
     };
 
-    const [home, away] = await Promise.all([
-      buildAgg(match.home_team_id!),
-      buildAgg(match.away_team_id!),
-    ]);
+    const home = buildAggFromStats(homeTeamId, homeMatchIds);
+    const away = buildAggFromStats(awayTeamId, awayMatchIds);
 
     return NextResponse.json({
       match_id: match.match_id,
