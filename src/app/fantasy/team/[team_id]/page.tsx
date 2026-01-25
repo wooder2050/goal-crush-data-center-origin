@@ -129,10 +129,6 @@ export default async function TeamDetailPage({ params }: PageProps) {
       }}
       fantasySeason={{
         fantasy_season_id: fantasyTeam.fantasy_season.fantasy_season_id,
-        year: fantasyTeam.fantasy_season.year,
-        month: fantasyTeam.fantasy_season.month,
-        season_name: fantasyTeam.fantasy_season.season.season_name,
-        category: fantasyTeam.fantasy_season.season.category,
       }}
       players={playersWithPosition}
     />

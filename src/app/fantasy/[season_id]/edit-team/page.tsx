@@ -224,14 +224,9 @@ export default async function EditTeamPage({ params }: { params: Params }) {
     redirect(`/fantasy/${seasonId}/create-team`);
   }
 
-  // 편성 마감 확인
+  // 편성 마감 확인 (UI 표시용, 더 이상 리다이렉트하지 않음)
   const now = new Date();
   const isLocked = now > new Date(fantasySeason.lock_date);
-
-  // 편성이 마감되었으면 my-team으로 리다이렉트
-  if (isLocked) {
-    redirect(`/fantasy/${seasonId}/my-team`);
-  }
 
   // 선수 데이터 가져오기
   const { availablePlayers, recommendedPlayers } = await getPlayersData(
@@ -278,15 +273,6 @@ export default async function EditTeamPage({ params }: { params: Params }) {
   return (
     <EditTeamClient
       seasonId={seasonId}
-      fantasySeason={{
-        fantasy_season_id: fantasySeason.fantasy_season_id,
-        year: fantasySeason.year,
-        month: fantasySeason.month,
-        lock_date: fantasySeason.lock_date.toISOString(),
-        season: {
-          season_name: fantasySeason.season.season_name,
-        },
-      }}
       availablePlayers={availablePlayers}
       recommendedPlayers={recommendedPlayers}
       initialSelectedPlayers={initialSelectedPlayers}

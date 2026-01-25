@@ -41,10 +41,6 @@ interface TeamDetailClientProps {
   };
   fantasySeason: {
     fantasy_season_id: number;
-    year: number;
-    month: number;
-    season_name: string;
-    category: string;
   };
   players: PlayerWithOptionalStats[];
 }
@@ -56,10 +52,6 @@ export default function TeamDetailClient({
   players,
 }: TeamDetailClientProps) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-
-  const formatMonthYear = (year: number, month: number) => {
-    return `${year}년 ${month}월`;
-  };
 
   const getRankBadge = () => {
     if (fantasyTeam.rank_position === 1)
@@ -125,10 +117,7 @@ export default function TeamDetailClient({
               {fantasyTeam.team_name || `${user.name}님의 팀`}
             </h1>
           </div>
-          <p className="text-gray-600 mb-2">
-            {formatMonthYear(fantasySeason.year, fantasySeason.month)} •{' '}
-            {fantasySeason.season_name}
-          </p>
+          <p className="text-gray-600 mb-2">골때녀 판타지 축구</p>
           <div className="flex items-center justify-center space-x-4">
             <div
               className={`inline-flex items-center px-4 py-2 rounded-full text-lg font-bold ${rankBadge.color}`}
@@ -243,7 +232,7 @@ export default function TeamDetailClient({
               <div>
                 <h4 className="font-medium mb-3 flex items-center space-x-2">
                   <Target className="w-4 h-4 text-green-600" />
-                  <span>시즌 통계</span>
+                  <span>선수 통계</span>
                 </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">

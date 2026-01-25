@@ -217,22 +217,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!fantasySeason.is_active) {
-      return NextResponse.json(
-        { error: '비활성화된 판타지 시즌입니다.' },
-        { status: 400 }
-      );
-    }
-
-    // 편성 가능 기간 확인
-    const now = new Date();
-    if (now > fantasySeason.lock_date) {
-      return NextResponse.json(
-        { error: '편성 마감일이 지났습니다.' },
-        { status: 400 }
-      );
-    }
-
     // 기존 팀 확인
     const existingTeam = await prisma.fantasyTeam.findUnique({
       where: {
