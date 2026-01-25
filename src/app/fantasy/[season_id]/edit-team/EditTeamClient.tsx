@@ -28,12 +28,6 @@ interface Player {
 
 interface FantasySeason {
   fantasy_season_id: number;
-  year: number;
-  month: number;
-  lock_date: string;
-  season: {
-    season_name: string;
-  };
 }
 
 interface EditTeamClientProps {
@@ -49,18 +43,13 @@ interface EditTeamClientProps {
 
 export default function EditTeamClient({
   seasonId,
-  fantasySeason,
   availablePlayers,
   recommendedPlayers,
   initialSelectedPlayers,
   initialTeamName,
   teamId,
   isLocked,
-}: EditTeamClientProps) {
-  const formatMonthYear = (year: number, month: number) => {
-    return `${year}년 ${month}월`;
-  };
-
+}: Omit<EditTeamClientProps, 'fantasySeason'>) {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* 헤더 */}
@@ -77,10 +66,7 @@ export default function EditTeamClient({
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             판타지 팀 수정하기
           </h1>
-          <p className="text-gray-600">
-            {formatMonthYear(fantasySeason.year, fantasySeason.month)} •{' '}
-            {fantasySeason.season.season_name}
-          </p>
+          <p className="text-gray-600">골때녀 판타지 축구</p>
           <p className="text-sm text-gray-500 mt-1">
             현재 팀 구성을 수정할 수 있습니다. 같은 팀에서 최대 2명까지 선택할
             수 있습니다.

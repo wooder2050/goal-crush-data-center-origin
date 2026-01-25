@@ -1,8 +1,7 @@
-import { Calendar, Share2, Trophy, Users } from 'lucide-react';
+import { Share2, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import FantasyRankingTable from '@/features/fantasy/components/FantasyRankingTable';
@@ -155,16 +154,7 @@ export default async function FantasyRankingsPage({
     notFound();
   }
 
-  const { fantasy_season, rankings, pagination } = rankingData;
-
-  const formatMonthYear = (year: number, month: number) => {
-    return `${year}년 ${month}월`;
-  };
-
-  const isSeasonActive = () => {
-    const now = new Date();
-    return now <= new Date(fantasy_season.lock_date);
-  };
+  const { rankings, pagination } = rankingData;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -173,23 +163,13 @@ export default async function FantasyRankingsPage({
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {formatMonthYear(fantasy_season.year, fantasy_season.month)} 시즌
-              랭킹
+              판타지 랭킹
             </h1>
             <div className="flex items-center space-x-4 text-gray-600">
-              <div className="flex items-center space-x-1">
-                <Calendar className="w-4 h-4" />
-                <span>{fantasy_season.season.season_name}</span>
-              </div>
               <div className="flex items-center space-x-1">
                 <Users className="w-4 h-4" />
                 <span>{pagination.total_teams}팀 참여</span>
               </div>
-              {fantasy_season.is_active && (
-                <Badge variant={isSeasonActive() ? 'default' : 'secondary'}>
-                  {isSeasonActive() ? '진행 중' : '편성 마감'}
-                </Badge>
-              )}
             </div>
           </div>
 
@@ -389,11 +369,9 @@ export default async function FantasyRankingsPage({
               아직 참여한 팀이 없습니다
             </h3>
             <p className="text-gray-600 mb-6">첫 번째로 팀을 만들어 보세요!</p>
-            {isSeasonActive() && (
-              <Link href={`/fantasy/${fantasySeasonId}/create-team`}>
-                <Button>팀 만들기</Button>
-              </Link>
-            )}
+            <Link href={`/fantasy/${fantasySeasonId}/create-team`}>
+              <Button>팀 만들기</Button>
+            </Link>
           </CardContent>
         </Card>
       )}

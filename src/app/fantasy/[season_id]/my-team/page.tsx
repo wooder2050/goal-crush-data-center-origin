@@ -24,7 +24,6 @@ function MyTeamContent({ seasonId }: { seasonId: number }) {
   return (
     <MyTeamClient
       seasonId={seasonId}
-      fantasySeason={data.fantasySeason}
       fantasyTeam={data.fantasyTeam}
       players={data.players}
       isLocked={data.isLocked}

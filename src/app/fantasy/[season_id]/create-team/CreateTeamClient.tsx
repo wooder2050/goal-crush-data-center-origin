@@ -27,12 +27,6 @@ interface Player {
 
 interface FantasySeason {
   fantasy_season_id: number;
-  year: number;
-  month: number;
-  lock_date: string;
-  season: {
-    season_name: string;
-  };
 }
 
 interface CreateTeamClientProps {
@@ -47,17 +41,12 @@ interface CreateTeamClientProps {
 
 export default function CreateTeamClient({
   seasonId,
-  fantasySeason,
   availablePlayers,
   recommendedPlayers,
   initialSelectedPlayers = [],
   initialTeamName = '',
   isLocked,
-}: CreateTeamClientProps) {
-  const formatMonthYear = (year: number, month: number) => {
-    return `${year}년 ${month}월`;
-  };
-
+}: Omit<CreateTeamClientProps, 'fantasySeason'>) {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* 헤더 */}
@@ -75,10 +64,7 @@ export default function CreateTeamClient({
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             판타지 팀 만들기
           </h1>
-          <p className="text-gray-600">
-            {formatMonthYear(fantasySeason.year, fantasySeason.month)} •{' '}
-            {fantasySeason.season.season_name}
-          </p>
+          <p className="text-gray-600">골때녀 판타지 축구</p>
           <p className="text-sm text-gray-500 mt-1">
             5명의 선수를 선택하여 새로운 팀을 구성하세요. 같은 팀에서 최대
             2명까지 선택할 수 있습니다.

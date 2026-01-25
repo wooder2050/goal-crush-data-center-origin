@@ -20,29 +20,13 @@ import { MyTeamClientProps } from '@/types/fantasy';
 
 export default function MyTeamClient({
   seasonId,
-  fantasySeason,
   fantasyTeam,
   players,
   isLocked,
-}: MyTeamClientProps) {
+}: Omit<MyTeamClientProps, 'fantasySeason'>) {
   console.log('players', players);
   const pitchRef = useRef<HTMLDivElement>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-
-  const formatMonthYear = (year: number, month: number) => {
-    return `${year}년 ${month}월`;
-  };
-
-  const getStatusBadge = () => {
-    const now = new Date();
-    if (now < new Date(fantasySeason.start_date)) {
-      return <Badge variant="outline">시작 예정</Badge>;
-    }
-    if (now > new Date(fantasySeason.lock_date)) {
-      return <Badge variant="secondary">편성 마감</Badge>;
-    }
-    return <Badge variant="default">편성 중</Badge>;
-  };
 
   // 현재 URL 가져오기
   const getCurrentUrl = () => {
@@ -55,7 +39,7 @@ export default function MyTeamClient({
   // 클립보드 복사
   const copyToClipboard = async () => {
     try {
-      const shareText = `${fantasyTeam.team_name || '내 팀'} 포메이션을 확인해보세요! ${formatMonthYear(fantasySeason.year, fantasySeason.month)} ${fantasySeason.season.season_name} - 총 점수: ${fantasyTeam.total_points}점`;
+      const shareText = `${fantasyTeam.team_name || '내 팀'} 포메이션을 확인해보세요! 총 점수: ${fantasyTeam.total_points}점`;
       const textToCopy = `${shareText}\n${getCurrentUrl()}`;
       await navigator.clipboard.writeText(textToCopy);
       toast.success('링크가 클립보드에 복사되었습니다.');
@@ -89,13 +73,6 @@ export default function MyTeamClient({
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {fantasyTeam.team_name || '내 팀'}
             </h1>
-            <div className="flex items-center space-x-2 mb-2">
-              <span className="text-gray-600">
-                {formatMonthYear(fantasySeason.year, fantasySeason.month)} •{' '}
-                {fantasySeason.season.season_name}
-              </span>
-              {getStatusBadge()}
-            </div>
             <p className="text-sm text-gray-500">
               총 점수:{' '}
               <span className="font-bold text-lg text-gray-900">
@@ -146,10 +123,7 @@ export default function MyTeamClient({
                 <h2 className="text-2xl font-bold text-gray-900 mb-1">
                   {fantasyTeam.team_name || '내 팀'}
                 </h2>
-                <p className="text-gray-600 mb-2">
-                  {formatMonthYear(fantasySeason.year, fantasySeason.month)}{' '}
-                  {fantasySeason.season.season_name}
-                </p>
+                <p className="text-gray-600 mb-2">골때녀 판타지 축구</p>
                 <p className="text-lg font-semibold text-green-600">
                   총 점수: {fantasyTeam.total_points}점
                 </p>
@@ -206,7 +180,7 @@ export default function MyTeamClient({
 
               {/* 통계 요약 */}
               <div>
-                <h4 className="font-medium mb-2">시즌 통계</h4>
+                <h4 className="font-medium mb-2">선수 통계</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">총 골</span>
@@ -247,18 +221,6 @@ export default function MyTeamClient({
           </CardContent>
         </Card>
       </div>
-
-      {/* 편성 마감 안내 */}
-      {isLocked && (
-        <Card className="mt-6 border-orange-200 bg-orange-50">
-          <CardContent className="pt-6">
-            <p className="text-orange-800">
-              편성 마감일이 지나 팀을 수정할 수 없습니다. 경기가 진행되면
-              선수들의 활약에 따라 점수가 업데이트됩니다.
-            </p>
-          </CardContent>
-        </Card>
-      )}
 
       {/* 공유하기 모달 */}
       <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>

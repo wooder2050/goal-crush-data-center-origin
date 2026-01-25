@@ -191,15 +191,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // 편성 가능 기간 확인
-    const now = new Date();
-    if (now > existingTeam.fantasy_season.lock_date) {
-      return NextResponse.json(
-        { error: '편성 마감일이 지났습니다.' },
-        { status: 400 }
-      );
-    }
-
     const updateData: Record<string, unknown> = {};
 
     // 팀명 수정
@@ -442,15 +433,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (existingTeam.is_locked) {
       return NextResponse.json(
         { error: '잠금된 팀은 삭제할 수 없습니다.' },
-        { status: 400 }
-      );
-    }
-
-    // 편성 가능 기간 확인
-    const now = new Date();
-    if (now > existingTeam.fantasy_season.lock_date) {
-      return NextResponse.json(
-        { error: '편성 마감일이 지났습니다.' },
         { status: 400 }
       );
     }

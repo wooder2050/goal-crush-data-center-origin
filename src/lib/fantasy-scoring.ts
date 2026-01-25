@@ -201,11 +201,10 @@ export async function calculateMatchFantasyScores(matchId: number) {
       is_clean_sheet: (match.home_score || 0) === 0,
     };
 
-    // 현재 활성화된 판타지 시즌 조회
+    // 통합 판타지 시즌 조회 (시즌 ID 필터 제거 - 모든 경기가 통합 시즌에 반영됨)
     const activeFantasySeasons = await prisma.fantasySeason.findMany({
       where: {
         is_active: true,
-        ...(match.season_id && { season_id: match.season_id }),
       },
     });
 
@@ -355,13 +354,14 @@ export async function updateFantasyTeamTotals(fantasySeasonIds: number[]) {
 
 /**
  * 특정 시즌의 모든 경기에 대해 판타지 점수 재계산
+ * @deprecated 통합 시즌에서는 recalculateAllFantasyScores 사용 권장
  */
 export async function recalculateSeasonFantasyScores(seasonId: number) {
   try {
     const matches = await prisma.match.findMany({
       where: {
         season_id: seasonId,
-        status: 'finished', // 완료된 경기만
+        status: 'completed', // 완료된 경기만
       },
       select: { match_id: true },
     });
@@ -383,6 +383,49 @@ export async function recalculateSeasonFantasyScores(seasonId: number) {
     };
   } catch (error) {
     console.error('시즌 판타지 점수 재계산 중 오류:', error);
+    throw error;
+  }
+}
+
+/**
+ * 모든 경기에 대해 판타지 점수 재계산 (통합 시즌용)
+ * 배치 처리를 통해 대량의 경기도 효율적으로 처리
+ */
+export async function recalculateAllFantasyScores(batchSize = 10) {
+  try {
+    // 모든 완료된 경기 조회
+    const matches = await prisma.match.findMany({
+      where: {
+        status: 'completed',
+      },
+      select: { match_id: true },
+      orderBy: { match_date: 'asc' },
+    });
+
+    const results = [];
+    const totalMatches = matches.length;
+
+    // 배치 단위로 병렬 처리
+    for (let i = 0; i < totalMatches; i += batchSize) {
+      const batch = matches.slice(i, i + batchSize);
+      const batchResults = await Promise.all(
+        batch.map((match) => calculateMatchFantasyScores(match.match_id))
+      );
+      results.push(...batchResults);
+
+      console.log(
+        `판타지 점수 재계산 진행: ${Math.min(i + batchSize, totalMatches)}/${totalMatches}개 경기 처리`
+      );
+    }
+
+    console.log(`전체 판타지 점수 재계산 완료: ${results.length}개 경기 처리`);
+
+    return {
+      processed_matches: results.length,
+      results,
+    };
+  } catch (error) {
+    console.error('전체 판타지 점수 재계산 중 오류:', error);
     throw error;
   }
 }
