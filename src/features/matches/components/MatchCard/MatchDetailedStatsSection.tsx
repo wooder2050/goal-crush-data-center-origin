@@ -208,6 +208,8 @@ interface MatchDetailedStatsSectionProps {
   awayTeamName: string;
   homeTeamLogo?: string | null;
   awayTeamLogo?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
   variant?: 'team-comparison' | 'player-stats' | 'all';
 }
 
@@ -395,6 +397,8 @@ function TeamComparisonStats({
   awayTeamName,
   homeTeamLogo,
   awayTeamLogo,
+  homeScore,
+  awayScore,
 }: {
   homeStats: MatchDetailedStats[];
   awayStats: MatchDetailedStats[];
@@ -402,9 +406,15 @@ function TeamComparisonStats({
   awayTeamName: string;
   homeTeamLogo?: string | null;
   awayTeamLogo?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
 }) {
   const homeTotals = calculateTeamTotals(homeStats);
   const awayTotals = calculateTeamTotals(awayStats);
+
+  // 경기 스코어가 있으면 해당 값 사용 (자책골 포함된 정확한 스코어)
+  const homeGoals = homeScore ?? homeTotals.goals;
+  const awayGoals = awayScore ?? awayTotals.goals;
 
   // 팀별 점유율 계산 (점유 시간이 있는 경우)
   const totalPossessionTime =
@@ -497,15 +507,19 @@ function TeamComparisonStats({
             </thead>
             <tbody>
               {comparisonStats.map((stat) => {
-                // 점유율은 별도로 계산된 퍼센트 사용
-                const homeValue =
-                  stat.key === 'possession'
-                    ? homePossessionPercent
-                    : (homeTotals[stat.key] ?? 0);
-                const awayValue =
-                  stat.key === 'possession'
-                    ? awayPossessionPercent
-                    : (awayTotals[stat.key] ?? 0);
+                // 골은 경기 스코어 사용 (자책골 포함), 점유율은 별도 계산
+                let homeValue: number;
+                let awayValue: number;
+                if (stat.key === 'goals') {
+                  homeValue = homeGoals;
+                  awayValue = awayGoals;
+                } else if (stat.key === 'possession') {
+                  homeValue = homePossessionPercent;
+                  awayValue = awayPossessionPercent;
+                } else {
+                  homeValue = homeTotals[stat.key] ?? 0;
+                  awayValue = awayTotals[stat.key] ?? 0;
+                }
                 const homeDisplay =
                   stat.suffix === '%' ? homeValue.toFixed(1) : homeValue;
                 const awayDisplay =
@@ -1121,6 +1135,8 @@ export default function MatchDetailedStatsSection({
   awayTeamName,
   homeTeamLogo,
   awayTeamLogo,
+  homeScore,
+  awayScore,
   variant = 'all',
 }: MatchDetailedStatsSectionProps) {
   const { data: stats } = useGoalSuspenseQuery(getMatchDetailedStatsPrisma, [
@@ -1151,6 +1167,8 @@ export default function MatchDetailedStatsSection({
           awayTeamName={awayTeamName}
           homeTeamLogo={homeTeamLogo}
           awayTeamLogo={awayTeamLogo}
+          homeScore={homeScore}
+          awayScore={awayScore}
         />
       </div>
     );
@@ -1190,6 +1208,8 @@ export default function MatchDetailedStatsSection({
           awayTeamName={awayTeamName}
           homeTeamLogo={homeTeamLogo}
           awayTeamLogo={awayTeamLogo}
+          homeScore={homeScore}
+          awayScore={awayScore}
         />
       )}
 
