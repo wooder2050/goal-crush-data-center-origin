@@ -1,6 +1,6 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -32,7 +32,6 @@ import {
 import { H1 } from '@/components/ui/typography';
 import { useDeleteSeasonMutation } from '@/features/admin/hooks/useSeasonMutation';
 import { getSeasonsPaginatedPrisma } from '@/features/seasons/api-prisma';
-import { useGoalQuery } from '@/hooks/useGoalQuery';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,24 +58,16 @@ export default function AdminSeasonsPage() {
   const queryClient = useQueryClient();
 
   // 페이지네이션된 시즌 데이터 가져오기
-  const {
-    data: seasonsResponse,
-    isLoading,
-    refetch,
-  } = useGoalQuery(
-    () => getSeasonsPaginatedPrisma({ page: currentPage, limit: itemsPerPage }),
-    []
-  );
+  const { data: seasonsResponse, isLoading } = useQuery({
+    queryKey: ['getSeasonsPaginatedPrisma', currentPage, itemsPerPage],
+    queryFn: () =>
+      getSeasonsPaginatedPrisma({ page: currentPage, limit: itemsPerPage }),
+  });
   const seasons = seasonsResponse?.items || [];
   const totalCount = seasonsResponse?.totalCount || 0;
   const totalPages = seasonsResponse?.totalPages || 0;
 
   const deleteSeasonMutation = useDeleteSeasonMutation();
-
-  // 페이지 변경 시 데이터 새로고침
-  useEffect(() => {
-    refetch();
-  }, [currentPage, refetch]);
 
   // 페이지네이션 핸들러
   const handlePageChange = (page: number) => {
@@ -355,10 +346,10 @@ function EditSeasonForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 시즌 데이터 로드
-  const { data: season } = useGoalQuery(
-    () => fetch(`/api/seasons/${seasonId}`).then((res) => res.json()),
-    []
-  );
+  const { data: season } = useQuery({
+    queryKey: ['season', seasonId],
+    queryFn: () => fetch(`/api/seasons/${seasonId}`).then((res) => res.json()),
+  });
 
   // 시즌 데이터가 로드되면 폼에 설정
   useEffect(() => {

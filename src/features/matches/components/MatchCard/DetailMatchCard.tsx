@@ -117,6 +117,15 @@ function PassMapSection({
     return null;
   }
 
+  // 홈팀이 항상 왼쪽에 오도록 정렬
+  const sortedPassMapData = [...passMapData].sort((a, b) => {
+    const aIsHome = a.team_name === homeTeamName;
+    const bIsHome = b.team_name === homeTeamName;
+    if (aIsHome && !bIsHome) return -1;
+    if (!aIsHome && bIsHome) return 1;
+    return 0;
+  });
+
   return (
     <div className="mt-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -128,7 +137,7 @@ function PassMapSection({
         </span>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {passMapData.map((teamData) => {
+        {sortedPassMapData.map((teamData) => {
           const isHomeTeam = teamData.team_name === homeTeamName;
           return (
             <Card key={teamData.team_id} className="h-full">

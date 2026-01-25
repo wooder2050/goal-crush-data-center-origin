@@ -1,6 +1,7 @@
 'use client';
 import { format } from 'date-fns';
 import Image from 'next/image';
+import { useCallback, useMemo } from 'react';
 
 import { Card, CardContent, Grid } from '@/components/ui';
 import { getPositionColor } from '@/features/matches/lib/matchUtils';
@@ -36,13 +37,13 @@ export default function PlayerDetailContent({
 }: {
   playerId: number;
 }) {
-  const handleRatePlayer = () => {
+  const handleRatePlayer = useCallback(() => {
     window.location.href = `/players/${playerId}/rate`;
-  };
+  }, [playerId]);
 
-  const handleViewAllRatings = () => {
+  const handleViewAllRatings = useCallback(() => {
     window.location.href = `/players/${playerId}/ratings`;
-  };
+  }, [playerId]);
 
   return (
     <PlayerDataProvider playerId={playerId}>
@@ -85,21 +86,32 @@ function PlayerDetailContentInner({
     appearances: 0,
     goals_conceded: 0,
   };
-  const totalPenaltyGoals = (summary?.seasons ?? []).reduce(
-    (acc, s) => acc + (s.penalty_goals ?? 0),
-    0
+  const totalPenaltyGoals = useMemo(
+    () =>
+      (summary?.seasons ?? []).reduce(
+        (acc, s) => acc + (s.penalty_goals ?? 0),
+        0
+      ),
+    [summary?.seasons]
   );
-  const seasons: string[] = (summary?.seasons ?? []).map(
-    (s) => s.season_name ?? `시즌 ${s.year ?? ''}`
+  const seasons: string[] = useMemo(
+    () =>
+      (summary?.seasons ?? []).map(
+        (s) => s.season_name ?? `시즌 ${s.year ?? ''}`
+      ),
+    [summary?.seasons]
   );
-  const positions: PositionFreq[] = (summary?.positions_frequency ?? [])
-    .slice()
-    .sort((a, b) => b.matches - a.matches);
-  const teamHistoryRaw: TeamHistoryItem[] = (summary?.team_history ??
-    []) as TeamHistoryItem[];
-
+  const positions: PositionFreq[] = useMemo(
+    () =>
+      (summary?.positions_frequency ?? [])
+        .slice()
+        .sort((a, b) => b.matches - a.matches),
+    [summary?.positions_frequency]
+  );
   // Merge team histories by team_name
-  const mergedTeamHistory: TeamHistoryItem[] = (() => {
+  const mergedTeamHistory: TeamHistoryItem[] = useMemo(() => {
+    const teamHistoryRaw: TeamHistoryItem[] = (summary?.team_history ??
+      []) as TeamHistoryItem[];
     const map = new Map<string, { row: TeamHistoryItem; index: number }>();
     teamHistoryRaw.forEach((t, idx) => {
       const key = (t.team_name ?? '-').trim();
@@ -149,7 +161,7 @@ function PlayerDetailContentInner({
         return bStart.localeCompare(aStart);
       })
       .map((v) => v.row);
-  })();
+  }, [summary?.team_history]);
 
   const isSingleTeam = mergedTeamHistory.length === 1;
   const singleTeam = isSingleTeam ? mergedTeamHistory[0] : null;
@@ -170,57 +182,73 @@ function PlayerDetailContentInner({
       }
     : {};
 
-  const seasonRows = [...(summary?.seasons ?? [])].reverse().map((s) => ({
-    key: `${s.season_id ?? ''}-${s.team_id ?? ''}`,
-    season: s.season_name ?? `시즌 ${s.year ?? ''}`,
-    team: s.team_name ?? '-',
-    team_logo: s?.team_logo ?? null,
-    appearances: s.appearances ?? 0,
-    goals: s.goals ?? 0,
-    penalty_goals: s.penalty_goals ?? 0,
-    assists: s.assists ?? 0,
-    positions: s.positions ?? [],
-  }));
+  const seasonRows = useMemo(
+    () =>
+      [...(summary?.seasons ?? [])].reverse().map((s) => ({
+        key: `${s.season_id ?? ''}-${s.team_id ?? ''}`,
+        season: s.season_name ?? `시즌 ${s.year ?? ''}`,
+        team: s.team_name ?? '-',
+        team_logo: s?.team_logo ?? null,
+        appearances: s.appearances ?? 0,
+        goals: s.goals ?? 0,
+        penalty_goals: s.penalty_goals ?? 0,
+        assists: s.assists ?? 0,
+        positions: s.positions ?? [],
+      })),
+    [summary?.seasons]
+  );
 
-  const goalMatches = (summary?.goal_matches ?? []).slice();
+  const goalMatches = useMemo(
+    () => (summary?.goal_matches ?? []).slice(),
+    [summary?.goal_matches]
+  );
 
-  const getMatchOutcome = (
-    gm: NonNullable<(typeof summary)['goal_matches']>[number]
-  ): 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS' | null => {
-    const hs = gm.home_score;
-    const as = gm.away_score;
-    if (hs == null || as == null) return null;
-    const diff = gm.is_home ? hs - as : as - hs;
-    if (diff > 0) return 'WIN';
-    if (diff < 0) return 'LOSS';
-    // 무승부인 경우 승부차기 확인
-    if (gm.penalty_home_score != null && gm.penalty_away_score != null) {
-      const pkDiff = gm.is_home
-        ? gm.penalty_home_score - gm.penalty_away_score
-        : gm.penalty_away_score - gm.penalty_home_score;
-      if (pkDiff > 0) return 'PK_WIN';
-      if (pkDiff < 0) return 'PK_LOSS';
-    }
-    return 'DRAW';
-  };
+  const getMatchOutcome = useCallback(
+    (
+      gm: NonNullable<(typeof summary)['goal_matches']>[number]
+    ): 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS' | null => {
+      const hs = gm.home_score;
+      const as = gm.away_score;
+      if (hs == null || as == null) return null;
+      const diff = gm.is_home ? hs - as : as - hs;
+      if (diff > 0) return 'WIN';
+      if (diff < 0) return 'LOSS';
+      // 무승부인 경우 승부차기 확인
+      if (gm.penalty_home_score != null && gm.penalty_away_score != null) {
+        const pkDiff = gm.is_home
+          ? gm.penalty_home_score - gm.penalty_away_score
+          : gm.penalty_away_score - gm.penalty_home_score;
+        if (pkDiff > 0) return 'PK_WIN';
+        if (pkDiff < 0) return 'PK_LOSS';
+      }
+      return 'DRAW';
+    },
+    []
+  );
 
-  const outcomeStyle = (o: 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS') =>
-    o === 'WIN' || o === 'PK_WIN'
-      ? 'bg-green-100 text-green-700 border-green-200'
-      : o === 'LOSS' || o === 'PK_LOSS'
-        ? 'bg-red-100 text-red-700 border-red-200'
-        : 'bg-gray-100 text-gray-700 border-gray-200';
+  const outcomeStyle = useCallback(
+    (o: 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS') =>
+      o === 'WIN' || o === 'PK_WIN'
+        ? 'bg-green-100 text-green-700 border-green-200'
+        : o === 'LOSS' || o === 'PK_LOSS'
+          ? 'bg-red-100 text-red-700 border-red-200'
+          : 'bg-gray-100 text-gray-700 border-gray-200',
+    []
+  );
 
-  const outcomeLabel = (o: 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS') =>
-    o === 'WIN'
-      ? '승'
-      : o === 'PK_WIN'
-        ? 'PK승'
-        : o === 'LOSS'
-          ? '패'
-          : o === 'PK_LOSS'
-            ? 'PK패'
-            : '무';
+  const outcomeLabel = useCallback(
+    (o: 'WIN' | 'DRAW' | 'LOSS' | 'PK_WIN' | 'PK_LOSS') =>
+      o === 'WIN'
+        ? '승'
+        : o === 'PK_WIN'
+          ? 'PK승'
+          : o === 'LOSS'
+            ? '패'
+            : o === 'PK_LOSS'
+              ? 'PK패'
+              : '무',
+    []
+  );
 
   return (
     <Grid cols={12} gap="lg">
