@@ -49,15 +49,20 @@ export function PassMap({
 
   // 피치 좌표를 SVG 좌표로 변환 (90도 회전: 피치 x→SVG y, 피치 y→SVG x)
   // 피치 비율(40:20 = 2:1)을 정사각형(1:1)에 맞게 조정
+  // 데이터 기준: 홈팀 왼쪽(x=0, 자기 진영/골키퍼), 원정팀 오른쪽(x=40, 자기 진영/골키퍼)
+  // 세로형 피치에서: 두 팀 모두 아래→위 공격 (골대가 아래, 골키퍼가 아래)
   const toSvgX = (y: number) => {
     // 피치 y(0-20)를 SVG x(0-50)로 변환
-    return (y / PITCH_HEIGHT) * SVG_WIDTH;
+    // 홈팀: y 그대로 (좌우 유지)
+    // 원정팀: y 반전 (좌우 반전)
+    const normalizedY = isHomeTeam ? y : PITCH_HEIGHT - y;
+    return (normalizedY / PITCH_HEIGHT) * SVG_WIDTH;
   };
   const toSvgY = (x: number) => {
     // 피치 x(0-40)를 SVG y(0-50)로 변환 (압축됨)
-    // 홈팀: 위에서 아래로 공격 (x가 클수록 아래로)
-    // 원정팀: 아래에서 위로 공격 (반전)
-    const normalizedX = isHomeTeam ? x : PITCH_WIDTH - x;
+    // 홈팀: x가 작을수록 아래로 (골키퍼 x≈0 → 아래, 반전 필요)
+    // 원정팀: x가 클수록 아래로 (골키퍼 x≈40 → 아래, 그대로)
+    const normalizedX = isHomeTeam ? PITCH_WIDTH - x : x;
     // 골키퍼 때문에 전체가 밑으로 치우치므로 약간 위로 보정 (0.85 비율)
     return (normalizedX / PITCH_WIDTH) * SVG_HEIGHT * 0.85 + 2;
   };
