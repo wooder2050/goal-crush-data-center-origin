@@ -38,6 +38,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/ratings`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/stats`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/fantasy`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/community`,
       lastModified: new Date(),
       changeFrequency: 'daily',
@@ -49,48 +67,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.7,
     },
-    {
-      url: `${baseUrl}/profile`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
   ];
 
   try {
-    // 데이터베이스에서 실제 데이터 가져오기
+    // 데이터베이스에서 실제 데이터 가져오기 (모든 데이터 포함)
     const [seasons, teams, players, coaches, matches, posts] =
       await Promise.all([
         prisma.season.findMany({
           select: { season_id: true, updated_at: true },
           orderBy: { updated_at: 'desc' },
-          take: 10, // 최근 10개 시즌만
         }),
         prisma.team.findMany({
           select: { team_id: true, updated_at: true },
           orderBy: { updated_at: 'desc' },
-          take: 50, // 최근 50개 팀만
         }),
         prisma.player.findMany({
           select: { player_id: true, updated_at: true },
           orderBy: { updated_at: 'desc' },
-          take: 100, // 최근 100명 선수만
         }),
         prisma.coach.findMany({
           select: { coach_id: true, created_at: true },
           orderBy: { created_at: 'desc' },
-          take: 30, // 최근 30명 감독만
         }),
         prisma.match.findMany({
           select: { match_id: true, updated_at: true },
           orderBy: { updated_at: 'desc' },
-          take: 100, // 최근 100개 경기만
         }),
         prisma.communityPost.findMany({
           select: { post_id: true, updated_at: true },
           where: { is_deleted: false },
           orderBy: { updated_at: 'desc' },
-          take: 50, // 최근 50개 포스트만
         }),
       ]);
 

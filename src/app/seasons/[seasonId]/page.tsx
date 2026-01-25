@@ -1,80 +1,62 @@
-'use client';
+import type { Metadata } from 'next';
 
-import { useMemo } from 'react';
+import { prisma } from '@/lib/prisma';
 
-import { GoalWrapper } from '@/common/GoalWrapper';
-import { useResolvedPathParams } from '@/common/path-params/client';
-import { Section } from '@/components/ui';
-import ChallengeResults from '@/features/matches/components/ChallengeResults';
-import GLeagueTournamentResults from '@/features/matches/components/GLeagueTournamentResults';
-import OtherLeagueResults from '@/features/matches/components/OtherLeagueResults';
-import PlayoffResults from '@/features/matches/components/PlayoffResults';
-import SbsCupResults from '@/features/matches/components/SbsCupResults';
-import SuperResults from '@/features/matches/components/SuperResults';
-import UpcomingMatches from '@/features/matches/components/UpcomingMatches';
-import UpcomingMatchesSkeleton from '@/features/matches/components/UpcomingMatchesSkeleton';
-import { getAllSeasonsPrisma } from '@/features/seasons/api-prisma';
-import SeasonPageSkeleton from '@/features/seasons/components/SeasonPageSkeleton';
-import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
-import type { Season } from '@/lib/types';
+import SeasonDetailContent from './SeasonDetailContent';
 
-const categoryToComponent = {
-  G_LEAGUE: GLeagueTournamentResults,
-  SUPER_LEAGUE: SuperResults,
-  CHALLENGE_LEAGUE: ChallengeResults,
-  PLAYOFF: PlayoffResults,
-  SBS_CUP: SbsCupResults,
-  GIFA_CUP: SbsCupResults,
-  CHAMPION_MATCH: SbsCupResults,
-  OTHER: OtherLeagueResults,
-} as const;
+export const dynamic = 'force-dynamic';
 
-function SeasonDynamicPageInner() {
-  const [seasonIdStr] = useResolvedPathParams('seasonId');
-  const idNum = Number(seasonIdStr);
-  const resolvedId = Number.isFinite(idNum) ? idNum : null;
-
-  const { data: seasons = [] } = useGoalSuspenseQuery(getAllSeasonsPrisma, []);
-
-  const matchedSeason: Season | undefined = useMemo(() => {
-    return seasons.find((s) => s.season_id === resolvedId);
-  }, [seasons, resolvedId]);
-
-  if (!matchedSeason || !matchedSeason.season_id) {
-    return (
-      <Section padding="sm" className="pt-2 sm:pt-3">
-        <div className="text-center">
-          <p className="text-lg text-gray-700">
-            해당 시즌 페이지를 찾을 수 없습니다.
-          </p>
-        </div>
-      </Section>
-    );
-  }
-
-  const category = (matchedSeason.category ??
-    'OTHER') as keyof typeof categoryToComponent;
-  const Component = categoryToComponent[category] ?? OtherLeagueResults;
-
-  return (
-    <Section padding="sm" className="pt-2 sm:pt-3">
-      <div className="space-y-6">
-        <GoalWrapper fallback={<UpcomingMatchesSkeleton items={1} />}>
-          <UpcomingMatches seasonId={matchedSeason.season_id} limit={10} />
-        </GoalWrapper>
-        <Component
-          seasonId={matchedSeason.season_id}
-          title={matchedSeason.season_name}
-        />
-      </div>
-    </Section>
-  );
+interface Props {
+  params: Promise<{ seasonId: string }>;
 }
 
-export default function SeasonDynamicPage() {
-  return (
-    <GoalWrapper fallback={<SeasonPageSkeleton />}>
-      <SeasonDynamicPageInner />
-    </GoalWrapper>
-  );
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { seasonId } = await params;
+  const id = parseInt(seasonId, 10);
+
+  if (isNaN(id)) {
+    return {
+      title: '시즌을 찾을 수 없습니다',
+    };
+  }
+
+  const season = await prisma.season.findUnique({
+    where: { season_id: id },
+  });
+
+  if (!season) {
+    return {
+      title: '시즌을 찾을 수 없습니다',
+    };
+  }
+
+  const seasonName = season.season_name;
+  const title = `${seasonName} - 골때녀 순위표 및 경기 결과`;
+  const description = `골 때리는 그녀들 ${seasonName} 순위표, 경기 결과, 팀별 성적을 확인하세요.`;
+
+  return {
+    title,
+    description,
+    keywords: [
+      `${seasonName}`,
+      `${seasonName} 순위`,
+      `${seasonName} 순위표`,
+      '골때녀 순위',
+      '골때리는 그녀들 순위',
+      '골 때리는 그녀들 순위',
+      '골때녀 순위표',
+      '골때리는 그녀들 순위표',
+    ],
+    alternates: { canonical: `/seasons/${seasonId}` },
+    openGraph: {
+      title,
+      description,
+      url: `https://www.gtndatacenter.com/seasons/${seasonId}`,
+    },
+  };
+}
+
+export default async function Page({ params }: Props) {
+  const { seasonId } = await params;
+  return <SeasonDetailContent seasonId={seasonId} />;
 }
