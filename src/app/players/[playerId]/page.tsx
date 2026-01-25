@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const player = await prisma.player.findUnique({
     where: { player_id: id },
     include: {
-      teams: {
+      player_team_history: {
         orderBy: { created_at: 'desc' },
         take: 1,
         include: {
@@ -39,8 +39,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const playerName = player.player_name;
-  const currentTeam = player.teams[0]?.team?.team_name;
+  const playerName = player.name;
+  const currentTeam = player.player_team_history[0]?.team?.team_name;
   const teamInfo = currentTeam ? ` (${currentTeam})` : '';
   const title = `${playerName}${teamInfo} - 골때녀 선수 정보`;
   const description = `골 때리는 그녀들 ${playerName} 선수의 프로필, 시즌별 기록, 득점, 어시스트 통계를 확인하세요.`;
