@@ -333,8 +333,8 @@ export function PassMap({
                         <span className="text-gray-400 text-xs">
                           {player.jersey_number}
                         </span>
-                        <span className="text-xs sm:text-sm font-medium truncate max-w-[80px]">
-                          {player.player_name.split(' ').pop()}
+                        <span className="text-xs sm:text-sm font-medium truncate max-w-[100px]">
+                          {player.player_name}
                         </span>
                       </div>
                     </td>
