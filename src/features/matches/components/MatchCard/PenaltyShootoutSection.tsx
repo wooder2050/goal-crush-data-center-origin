@@ -134,9 +134,9 @@ const PenaltyShootoutSection: React.FC<PenaltyShootoutSectionProps> = ({
             </div>
 
             {/* Detailed records */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 lg:gap-5">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3">
               {/* Home Team Records */}
-              <div className="bg-gray-50 rounded-lg px-2 py-2 sm:p-3">
+              <div className="bg-gray-50 rounded-lg px-3 py-2 sm:p-2">
                 <div className="text-xs sm:text-sm font-semibold text-gray-800 mb-2 flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-black rounded-full mr-2"></div>
@@ -164,16 +164,16 @@ const PenaltyShootoutSection: React.FC<PenaltyShootoutSectionProps> = ({
                       ) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between bg-white rounded px-2 py-1.5 sm:p-2 border border-gray-200"
+                          className="flex items-center justify-between bg-white rounded px-2 py-1.5 sm:p-2 border border-gray-200 gap-2"
                         >
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 min-w-0 flex-1">
                             <Badge
                               variant="outline"
-                              className="text-[10px] sm:text-xs px-1 py-0 bg-black text-white border-black"
+                              className="text-[10px] sm:text-xs px-1 py-0 bg-black text-white border-black flex-shrink-0"
                             >
                               {record.kicker_order}
                             </Badge>
-                            <div className="flex flex-col min-w-0 flex-1">
+                            <div className="flex flex-col min-w-0">
                               <span className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                                 {record.kicker?.name}
                               </span>
@@ -185,13 +185,13 @@ const PenaltyShootoutSection: React.FC<PenaltyShootoutSectionProps> = ({
                               </span>
                             </div>
                           </div>
-                          <div className="flex items-center">
+                          <div className="flex items-center flex-shrink-0">
                             {record.is_successful ? (
-                              <Badge className="text-xs bg-gray-100 text-gray-800 border-gray-300">
+                              <Badge className="text-xs bg-gray-100 text-gray-800 border-gray-300 whitespace-nowrap">
                                 ⚽ 성공
                               </Badge>
                             ) : (
-                              <Badge className="text-xs bg-gray-100 text-gray-800 border-gray-300">
+                              <Badge className="text-xs bg-gray-100 text-gray-800 border-gray-300 whitespace-nowrap">
                                 ❌ 실패
                               </Badge>
                             )}
@@ -203,7 +203,7 @@ const PenaltyShootoutSection: React.FC<PenaltyShootoutSectionProps> = ({
               </div>
 
               {/* Away Team Records */}
-              <div className="bg-gray-50 rounded-lg px-2 py-2 sm:p-3">
+              <div className="bg-gray-50 rounded-lg px-3 py-2 sm:p-2">
                 <div className="text-xs sm:text-sm font-semibold text-gray-800 mb-2 flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-gray-600 rounded-full mr-2"></div>
@@ -231,16 +231,16 @@ const PenaltyShootoutSection: React.FC<PenaltyShootoutSectionProps> = ({
                       ) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between bg-white rounded px-2 py-1.5 sm:p-2 border border-gray-200"
+                          className="flex items-center justify-between bg-white rounded px-2 py-1.5 sm:p-2 border border-gray-200 gap-2"
                         >
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 min-w-0 flex-1">
                             <Badge
                               variant="outline"
-                              className="text-[10px] sm:text-xs px-1 py-0 bg-gray-600 text-white border-gray-600"
+                              className="text-[10px] sm:text-xs px-1 py-0 bg-gray-600 text-white border-gray-600 flex-shrink-0"
                             >
                               {record.kicker_order}
                             </Badge>
-                            <div className="flex flex-col min-w-0 flex-1">
+                            <div className="flex flex-col min-w-0">
                               <span className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                                 {record.kicker?.name}
                               </span>
@@ -252,13 +252,13 @@ const PenaltyShootoutSection: React.FC<PenaltyShootoutSectionProps> = ({
                               </span>
                             </div>
                           </div>
-                          <div className="flex items-center">
+                          <div className="flex items-center flex-shrink-0">
                             {record.is_successful ? (
-                              <Badge className="text-xs bg-gray-100 text-gray-800 border-gray-300">
+                              <Badge className="text-xs bg-gray-100 text-gray-800 border-gray-300 whitespace-nowrap">
                                 ⚽ 성공
                               </Badge>
                             ) : (
-                              <Badge className="text-xs bg-gray-100 text-gray-800 border-gray-300">
+                              <Badge className="text-xs bg-gray-100 text-gray-800 border-gray-300 whitespace-nowrap">
                                 ❌ 실패
                               </Badge>
                             )}
