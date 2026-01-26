@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,8 +8,12 @@ import { PassMap } from '@/features/event-actions/components/PassMap';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 
 import {
+  getMatchActionsPrisma,
   getMatchByIdPrisma,
   getMatchDetailedStatsPrisma,
+  getMatchPassMapPrisma,
+  type RawMatchAction,
+  type TeamPassNetworkData,
 } from '../../api-prisma';
 import { hasPenaltyShootout } from '../../lib/matchUtils';
 import CoachHeadToHeadList from './CoachHeadToHeadList';
@@ -44,47 +48,6 @@ import TeamLineupsSection from './TeamLineupsSection';
 interface DetailMatchCardProps {
   matchId: number;
   className?: string;
-}
-
-interface PlayerPosition {
-  player_id: number;
-  player_name: string;
-  jersey_number: number;
-  profile_image_url?: string | null;
-  avg_x: number;
-  avg_y: number;
-  total_passes: number;
-  success_passes: number;
-}
-
-interface PassConnection {
-  from_jersey: number;
-  to_jersey: number;
-  count: number;
-}
-
-interface TeamPassNetworkData {
-  team_id: number;
-  team_name: string;
-  primary_color: string;
-  secondary_color: string;
-  players: PlayerPosition[];
-  connections: PassConnection[];
-  total_passes: number;
-  success_passes: number;
-}
-
-interface RawAction {
-  action_id: number;
-  team_id: number;
-  period_id: number;
-  action_type: string;
-  start_x: number;
-  start_y: number;
-  player?: {
-    name: string;
-    jersey_number: number | null;
-  };
 }
 
 // 피치 크기
@@ -144,7 +107,7 @@ function RawDataPitch({
   awayTeamName,
   isSecondHalf = false,
 }: {
-  actions: RawAction[];
+  actions: RawMatchAction[];
   homeTeamName: string;
   awayTeamName: string;
   isSecondHalf?: boolean;
@@ -347,8 +310,8 @@ function RawDataPitch({
   );
 }
 
-// 패스맵 섹션 컴포넌트 (match_actions 데이터가 있을 때만 표시)
-function PassMapSection({
+// 패스맵 내부 컴포넌트 (useGoalSuspenseQuery 사용)
+function PassMapSectionInner({
   matchId,
   homeTeamName,
   homeTeamId,
@@ -361,44 +324,19 @@ function PassMapSection({
   awayTeamName: string;
   awayTeamId: number;
 }) {
-  const [passMapData, setPassMapData] = useState<TeamPassNetworkData[]>([]);
-  const [rawActions, setRawActions] = useState<RawAction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [showDebug, setShowDebug] = useState(false);
 
-  useEffect(() => {
-    async function fetchPassMapData() {
-      try {
-        setIsLoading(true);
-        const res = await fetch(
-          `/api/admin/matches/${matchId}/actions/pass-map`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setPassMapData(data);
-        }
+  const { data: passMapData } = useGoalSuspenseQuery(getMatchPassMapPrisma, [
+    matchId,
+  ]) as { data: TeamPassNetworkData[] };
 
-        // 원본 액션 데이터도 가져오기
-        const actionsRes = await fetch(`/api/admin/matches/${matchId}/actions`);
-        if (actionsRes.ok) {
-          const actionsData = await actionsRes.json();
-          setRawActions(actionsData);
-        }
-      } catch (error) {
-        console.error('패스맵 데이터 로딩 오류:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+  const { data: rawActions } = useGoalSuspenseQuery(getMatchActionsPrisma, [
+    matchId,
+  ]) as { data: RawMatchAction[] };
 
-    if (matchId) {
-      fetchPassMapData();
-    }
-  }, [matchId]);
-
-  // 로딩 중이거나 데이터가 없으면 표시하지 않음
+  // 데이터가 없으면 표시하지 않음
   if (
-    isLoading ||
+    !passMapData ||
     passMapData.length === 0 ||
     !passMapData.some((team) => team.total_passes > 0)
   ) {
@@ -552,6 +490,33 @@ function PassMapSection({
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// 패스맵 섹션 래퍼 컴포넌트 (GoalWrapper로 감싸서 Suspense 처리)
+function PassMapSection({
+  matchId,
+  homeTeamName,
+  homeTeamId,
+  awayTeamName,
+  awayTeamId,
+}: {
+  matchId: number;
+  homeTeamName: string;
+  homeTeamId: number;
+  awayTeamName: string;
+  awayTeamId: number;
+}) {
+  return (
+    <GoalWrapper fallback={null}>
+      <PassMapSectionInner
+        matchId={matchId}
+        homeTeamName={homeTeamName}
+        homeTeamId={homeTeamId}
+        awayTeamName={awayTeamName}
+        awayTeamId={awayTeamId}
+      />
+    </GoalWrapper>
   );
 }
 

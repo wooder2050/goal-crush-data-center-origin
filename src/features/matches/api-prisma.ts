@@ -647,3 +647,74 @@ export const getMatchDetailedStatsPrisma = async (
   }
   return response.json();
 };
+
+// ============== Pass Map & Actions ==============
+
+// Pass map network data type
+export interface PlayerPosition {
+  player_id: number;
+  player_name: string;
+  jersey_number: number;
+  profile_image_url?: string | null;
+  avg_x: number;
+  avg_y: number;
+  total_passes: number;
+  success_passes: number;
+}
+
+export interface PassConnection {
+  from_jersey: number;
+  to_jersey: number;
+  count: number;
+}
+
+export interface TeamPassNetworkData {
+  team_id: number;
+  team_name: string;
+  primary_color: string;
+  secondary_color: string;
+  players: PlayerPosition[];
+  connections: PassConnection[];
+  total_passes: number;
+  success_passes: number;
+}
+
+// Get pass map data for a match
+export const getMatchPassMapPrisma = async (
+  matchId: number
+): Promise<TeamPassNetworkData[]> => {
+  const response = await fetch(
+    `/api/admin/matches/${matchId}/actions/pass-map`
+  );
+  if (!response.ok) {
+    // Return empty array if not found or error
+    return [];
+  }
+  return response.json();
+};
+
+// Raw action data type
+export interface RawMatchAction {
+  action_id: number;
+  team_id: number;
+  period_id: number;
+  action_type: string;
+  start_x: number;
+  start_y: number;
+  player?: {
+    name: string;
+    jersey_number: number | null;
+  };
+}
+
+// Get raw actions for a match
+export const getMatchActionsPrisma = async (
+  matchId: number
+): Promise<RawMatchAction[]> => {
+  const response = await fetch(`/api/admin/matches/${matchId}/actions`);
+  if (!response.ok) {
+    // Return empty array if not found or error
+    return [];
+  }
+  return response.json();
+};
