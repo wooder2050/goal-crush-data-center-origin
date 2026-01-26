@@ -25,6 +25,8 @@ import {
   LineupPlayer,
   MatchAction,
   PERIOD_LABELS,
+  PITCH_HEIGHT,
+  PITCH_WIDTH,
   PitchCoordinate,
 } from '@/features/event-actions';
 import {
@@ -61,6 +63,8 @@ export default function EventRecordPage() {
   const [inputStep, setInputStep] = useState<InputStep>('idle');
   const [showGuide, setShowGuide] = useState(false);
   const [periodDurationMinutes, setPeriodDurationMinutes] = useState(10); // 피리어드 길이 (분)
+  const [isSidesSwapped, setIsSidesSwapped] = useState(false); // 진영 반전 여부
+  const [isUpdatingSides, setIsUpdatingSides] = useState(false); // 진영 반전 업데이트 중
 
   // 입력 상태
   const [startCoordinate, setStartCoordinate] =
@@ -110,6 +114,37 @@ export default function EventRecordPage() {
         .finally(() => setIsLoadingActions(false));
     }
   }, [matchId]);
+
+  // 경기 데이터에서 is_sides_swapped 초기값 설정
+  useEffect(() => {
+    const matchData = match as { is_sides_swapped?: boolean } | undefined;
+    if (matchData?.is_sides_swapped !== undefined) {
+      setIsSidesSwapped(matchData.is_sides_swapped);
+    }
+  }, [match]);
+
+  // 진영 반전 토글 핸들러
+  const handleSidesSwapToggle = async () => {
+    const newValue = !isSidesSwapped;
+    setIsUpdatingSides(true);
+    try {
+      const response = await fetch(`/api/admin/matches/${matchId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_sides_swapped: newValue }),
+      });
+      if (response.ok) {
+        setIsSidesSwapped(newValue);
+      } else {
+        alert('진영 반전 설정 저장에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Failed to update sides swap:', error);
+      alert('진영 반전 설정 저장에 실패했습니다.');
+    } finally {
+      setIsUpdatingSides(false);
+    }
+  };
 
   // 타이머 시작/정지
   const toggleTimer = useCallback(() => {
@@ -265,6 +300,25 @@ export default function EventRecordPage() {
 
     setIsSaving(true);
     try {
+      // 진영 반전 시 좌표 변환 (x, y 모두 반전)
+      const transformCoordinate = (x: number, y: number) => {
+        if (isSidesSwapped) {
+          return {
+            x: PITCH_WIDTH - x,
+            y: PITCH_HEIGHT - y,
+          };
+        }
+        return { x, y };
+      };
+
+      const transformedStart = transformCoordinate(
+        startCoordinate.x,
+        startCoordinate.y
+      );
+      const transformedEnd = endCoordinate
+        ? transformCoordinate(endCoordinate.x, endCoordinate.y)
+        : null;
+
       const actionData: CreateActionData = {
         period_id: currentPeriod,
         time_seconds: elapsedSeconds,
@@ -273,10 +327,10 @@ export default function EventRecordPage() {
         action_type: selectedActionType,
         result: result,
         body_part: selectedBodyPart || undefined,
-        start_x: startCoordinate.x,
-        start_y: startCoordinate.y,
-        end_x: endCoordinate?.x,
-        end_y: endCoordinate?.y,
+        start_x: transformedStart.x,
+        start_y: transformedStart.y,
+        end_x: transformedEnd?.x,
+        end_y: transformedEnd?.y,
         is_set_piece: false,
       };
 
@@ -766,6 +820,23 @@ export default function EventRecordPage() {
                     {minutes}분
                   </Button>
                 ))}
+              </div>
+              {/* 진영 반전 토글 */}
+              <div className="flex items-center gap-1 ml-2 border-l pl-2">
+                <Button
+                  variant={isSidesSwapped ? 'destructive' : 'outline'}
+                  size="sm"
+                  onClick={handleSidesSwapToggle}
+                  disabled={isUpdatingSides}
+                  className="h-6 px-2 text-xs"
+                  title="홈팀과 원정팀의 진영을 반대로 기록합니다"
+                >
+                  {isUpdatingSides
+                    ? '저장중...'
+                    : isSidesSwapped
+                      ? '🔄 진영반전 ON'
+                      : '진영반전'}
+                </Button>
               </div>
             </div>
 

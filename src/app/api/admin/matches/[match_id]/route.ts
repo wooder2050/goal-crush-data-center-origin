@@ -79,6 +79,8 @@ async function updateMatch(matchId: number, data: Record<string, unknown>) {
         data.highlight_url !== undefined ? data.highlight_url : undefined,
       full_video_url:
         data.full_video_url !== undefined ? data.full_video_url : undefined,
+      is_sides_swapped:
+        data.is_sides_swapped !== undefined ? data.is_sides_swapped : undefined,
     },
     include: {
       home_team: true,

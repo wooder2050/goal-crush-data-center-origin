@@ -343,10 +343,10 @@ function PassMapSectionInner({
     return null;
   }
 
-  // 홈팀이 항상 왼쪽에 오도록 정렬
+  // 홈팀이 항상 왼쪽에 오도록 정렬 (team_id로 비교)
   const sortedPassMapData = [...passMapData].sort((a, b) => {
-    const aIsHome = a.team_name === homeTeamName;
-    const bIsHome = b.team_name === homeTeamName;
+    const aIsHome = a.team_id === homeTeamId;
+    const bIsHome = b.team_id === homeTeamId;
     if (aIsHome && !bIsHome) return -1;
     if (!aIsHome && bIsHome) return 1;
     return 0;
@@ -364,7 +364,8 @@ function PassMapSectionInner({
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {sortedPassMapData.map((teamData) => {
-          const isHomeTeam = teamData.team_name === homeTeamName;
+          // 팀 이름 대신 team_id로 비교 (시즌별 팀 이름 차이 문제 방지)
+          const isHomeTeam = teamData.team_id === homeTeamId;
           return (
             <Card key={teamData.team_id} className="h-full">
               <CardContent className="px-4 py-4">
