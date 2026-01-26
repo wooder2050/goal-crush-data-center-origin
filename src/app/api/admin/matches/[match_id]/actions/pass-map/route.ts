@@ -164,8 +164,11 @@ export async function GET(
           y: normalizedPos.y,
         });
 
-        // 패스 분석
-        if (action.action_type === 'PASS') {
+        // 패스 분석 (PASS, KEEPER_THROW 모두 패스로 취급)
+        if (
+          action.action_type === 'PASS' ||
+          action.action_type === 'KEEPER_THROW'
+        ) {
           const playerData = playerMap.get(jerseyNumber)!;
           playerData.total_passes++;
 
