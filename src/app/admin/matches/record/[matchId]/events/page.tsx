@@ -25,8 +25,6 @@ import {
   LineupPlayer,
   MatchAction,
   PERIOD_LABELS,
-  PITCH_HEIGHT,
-  PITCH_WIDTH,
   PitchCoordinate,
 } from '@/features/event-actions';
 import {
@@ -300,25 +298,8 @@ export default function EventRecordPage() {
 
     setIsSaving(true);
     try {
-      // 진영 반전 시 좌표 변환 (x, y 모두 반전)
-      const transformCoordinate = (x: number, y: number) => {
-        if (isSidesSwapped) {
-          return {
-            x: PITCH_WIDTH - x,
-            y: PITCH_HEIGHT - y,
-          };
-        }
-        return { x, y };
-      };
-
-      const transformedStart = transformCoordinate(
-        startCoordinate.x,
-        startCoordinate.y
-      );
-      const transformedEnd = endCoordinate
-        ? transformCoordinate(endCoordinate.x, endCoordinate.y)
-        : null;
-
+      // 진영 반전 시에도 좌표는 그대로 저장
+      // (피치 뷰에서 팀 이름만 바꿔 표시하므로 사용자가 클릭한 위치가 이미 올바른 좌표)
       const actionData: CreateActionData = {
         period_id: currentPeriod,
         time_seconds: elapsedSeconds,
@@ -327,10 +308,10 @@ export default function EventRecordPage() {
         action_type: selectedActionType,
         result: result,
         body_part: selectedBodyPart || undefined,
-        start_x: transformedStart.x,
-        start_y: transformedStart.y,
-        end_x: transformedEnd?.x,
-        end_y: transformedEnd?.y,
+        start_x: startCoordinate.x,
+        start_y: startCoordinate.y,
+        end_x: endCoordinate?.x,
+        end_y: endCoordinate?.y,
         is_set_piece: false,
       };
 
@@ -960,8 +941,16 @@ export default function EventRecordPage() {
                   inputStep !== 'coordinate_start' &&
                   inputStep !== 'coordinate_end')
               }
-              homeTeamName={match.home_team?.team_name}
-              awayTeamName={match.away_team?.team_name}
+              homeTeamName={
+                isSidesSwapped
+                  ? match.away_team?.team_name
+                  : match.home_team?.team_name
+              }
+              awayTeamName={
+                isSidesSwapped
+                  ? match.home_team?.team_name
+                  : match.away_team?.team_name
+              }
             />
           </Card>
 
