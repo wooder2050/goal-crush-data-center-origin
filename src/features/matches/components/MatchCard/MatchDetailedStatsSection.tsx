@@ -577,9 +577,7 @@ function SingleTeamStatsTable({
   // 골키퍼 카테고리인 경우 골키퍼 통계가 있는 선수만 필터링
   // 필드 플레이어 카테고리는 모든 선수 표시 (골키퍼 포함)
   const filteredPlayers =
-    category.name === '골키퍼'
-      ? players.filter(hasGoalkeeperStats)
-      : players;
+    category.name === '골키퍼' ? players.filter(hasGoalkeeperStats) : players;
 
   // 필터링된 선수가 없으면 메시지 표시
   if (filteredPlayers.length === 0) {
@@ -929,9 +927,7 @@ function PlayerStatsTable({
   // 골키퍼 카테고리인 경우 골키퍼 통계가 있는 선수만 필터링
   // 그 외 카테고리는 모든 선수 표시 (골키퍼 포함)
   const filteredPlayers =
-    category.name === '골키퍼'
-      ? players.filter(hasGoalkeeperStats)
-      : players;
+    category.name === '골키퍼' ? players.filter(hasGoalkeeperStats) : players;
 
   // 필터링된 선수가 없으면 테이블 표시 안함
   if (filteredPlayers.length === 0) {
