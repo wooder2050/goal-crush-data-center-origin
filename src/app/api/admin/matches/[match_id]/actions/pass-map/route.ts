@@ -7,13 +7,20 @@ const PITCH_WIDTH = 40;
 const PITCH_HEIGHT = 20;
 
 // 후반(2, 4) 피리어드 좌표 반전 함수
+// isSidesSwapped가 true인 경우, 전후반 반전 로직도 반대로 적용
 function normalizeCoordinates(
   x: number,
   y: number,
-  periodId: number
+  periodId: number,
+  isSidesSwapped: boolean = false
 ): { x: number; y: number } {
-  // 후반(period 2, 4)은 진영이 바뀌므로 좌표를 반전
-  if (periodId === 2 || periodId === 4) {
+  // is_sides_swapped가 true면 전반/후반 로직이 반대
+  // 일반: 후반(2, 4)에서 반전
+  // 반전: 전반(1, 3)에서 반전
+  const isSecondHalf = periodId === 2 || periodId === 4;
+  const shouldInvert = isSidesSwapped ? !isSecondHalf : isSecondHalf;
+
+  if (shouldInvert) {
     return {
       x: PITCH_WIDTH - x,
       y: PITCH_HEIGHT - y,
@@ -64,6 +71,14 @@ export async function GET(
         { status: 400 }
       );
     }
+
+    // 경기 정보 가져오기 (is_sides_swapped 확인)
+    const match = await prisma.match.findUnique({
+      where: { match_id: matchId },
+      select: { is_sides_swapped: true },
+    });
+
+    const isSidesSwapped = match?.is_sides_swapped ?? false;
 
     // 모든 액션 가져오기 (패스 연결 분석을 위해)
     const actions = await prisma.matchAction.findMany({
@@ -153,11 +168,12 @@ export async function GET(
           });
         }
 
-        // 후반 진영 반전 적용
+        // 후반 진영 반전 적용 (is_sides_swapped 고려)
         const normalizedPos = normalizeCoordinates(
           action.start_x,
           action.start_y,
-          action.period_id
+          action.period_id,
+          isSidesSwapped
         );
         playerMap.get(jerseyNumber)!.positions.push({
           x: normalizedPos.x,
