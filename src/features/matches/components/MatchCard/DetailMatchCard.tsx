@@ -75,6 +75,10 @@ const ACTION_TYPE_COLORS: Record<string, string> = {
   CATCH: '#10b981', // 에메랄드
   PUNCH: '#f97316', // 오렌지
   THROW: '#0284c7', // 라이트블루
+  KEEPER_THROW: '#0284c7', // 라이트블루 (스로와 동일)
+  KEEPER_CLAIM: '#10b981', // 에메랄드 (캐치와 동일)
+  KEEPER_PUNCH: '#f97316', // 오렌지 (펀칭과 동일)
+  BAD_TOUCH: '#64748b', // 슬레이트 (볼로스트와 동일)
 };
 
 // 액션 타입 한글 이름
@@ -98,6 +102,10 @@ const ACTION_TYPE_LABELS: Record<string, string> = {
   CATCH: '캐치',
   PUNCH: '펀칭',
   THROW: '스로',
+  KEEPER_THROW: 'GK 스로',
+  KEEPER_CLAIM: 'GK 캐치',
+  KEEPER_PUNCH: 'GK 펀칭',
+  BAD_TOUCH: '볼로스트',
 };
 
 // 원본 데이터를 PitchView와 동일한 방향으로 표시하는 컴포넌트
