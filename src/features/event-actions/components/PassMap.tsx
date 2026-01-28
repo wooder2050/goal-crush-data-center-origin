@@ -25,6 +25,7 @@ interface PassConnection {
 interface PassMapProps {
   players: PlayerPosition[];
   connections: PassConnection[];
+  teamId: number;
   teamName: string;
   totalPasses: number;
   successPasses: number;
@@ -33,9 +34,13 @@ interface PassMapProps {
   isHomeTeam?: boolean; // 홈팀 여부 (원정팀은 좌우 반전)
 }
 
+// 구척장신 팀 ID (흰색 유니폼 팀)
+const GUCHUKJANGSHIN_TEAM_ID = 20;
+
 export function PassMap({
   players,
   connections,
+  teamId,
   teamName,
   totalPasses,
   successPasses,
@@ -43,6 +48,11 @@ export function PassMap({
   secondaryColor = '#FFFFFF',
   isHomeTeam = true,
 }: PassMapProps) {
+  // 구척장신만 색상 교체 (흰색 유니폼이라 패스맵에서 안 보임)
+  const isGuchukjangshin = teamId === GUCHUKJANGSHIN_TEAM_ID;
+  const usePrimary = isGuchukjangshin ? secondaryColor : primaryColor;
+  const useSecondary = isGuchukjangshin ? primaryColor : secondaryColor;
+
   // SVG viewBox 크기 (정사각형 50x50)
   const SVG_WIDTH = 50;
   const SVG_HEIGHT = 50;
@@ -231,7 +241,7 @@ export function PassMap({
                 y1={toSvgY(fromPlayer.display_x)}
                 x2={toSvgX(toPlayer.display_y)}
                 y2={toSvgY(toPlayer.display_x)}
-                stroke={primaryColor}
+                stroke={usePrimary}
                 strokeWidth={strokeWidth}
                 opacity={opacity}
                 strokeLinecap="round"
@@ -255,16 +265,16 @@ export function PassMap({
                   cx={toSvgX(player.display_y)}
                   cy={toSvgY(player.display_x)}
                   r={radius}
-                  fill={primaryColor}
+                  fill={usePrimary}
                   fillOpacity={0.9}
-                  stroke={secondaryColor}
+                  stroke={useSecondary}
                   strokeWidth="0.6"
                 />
                 {/* 등번호 (secondary 색상) */}
                 <text
                   x={toSvgX(player.display_y)}
                   y={toSvgY(player.display_x) + 0.8}
-                  fill={secondaryColor}
+                  fill={useSecondary}
                   fontSize="2.2"
                   textAnchor="middle"
                   fontWeight="bold"

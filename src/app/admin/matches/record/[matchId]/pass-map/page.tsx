@@ -154,6 +154,7 @@ export default function PassMapPage() {
                   <PassMap
                     players={teamData.players}
                     connections={teamData.connections}
+                    teamId={teamData.team_id}
                     teamName={teamData.team_name}
                     totalPasses={teamData.total_passes}
                     successPasses={teamData.success_passes}
