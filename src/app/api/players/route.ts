@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const pageParam = searchParams.get('page');
     const limitParam = searchParams.get('limit');
     const teamParam = searchParams.get('team_id');
+    const seasonParam = searchParams.get('season_id');
     const orderParam = (searchParams.get('order') ?? 'apps') as
       | 'apps'
       | 'goals'
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
     const isPaged = page !== null && limit !== null;
 
     const teamId = teamParam ? parseInt(teamParam, 10) : null;
+    const seasonId = seasonParam ? parseInt(seasonParam, 10) : null;
 
     const whereName = name
       ? {
@@ -47,6 +49,19 @@ export async function GET(request: NextRequest) {
         }
       : undefined;
 
+    // Season filter: players who participated in matches of that season
+    const whereSeason = seasonId
+      ? {
+          player_match_stats: {
+            some: {
+              match: {
+                season_id: seasonId,
+              },
+            },
+          },
+        }
+      : undefined;
+
     // for pagination total (respect filters)
     const totalCount = isPaged
       ? await prisma.player.count({
@@ -58,10 +73,11 @@ export async function GET(request: NextRequest) {
                   player_match_stats: {
                     some: {
                       team_id: teamId,
+                      ...(seasonId ? { match: { season_id: seasonId } } : {}),
                     },
                   },
                 }
-              : {}),
+              : (whereSeason ?? {})),
           },
         })
       : null;
@@ -273,12 +289,17 @@ export async function GET(request: NextRequest) {
 
     // If team filter exists, filter players who played for the team, but sort by TOTAL career stats
     if (teamId) {
-      // Candidate players: by name AND have stats with the team
+      // Candidate players: by name AND have stats with the team (and optionally in specified season)
       const candidateIdsRaw = await prisma.player.findMany({
         where: {
           ...(whereName ?? {}),
           ...(wherePosition ?? {}),
-          player_match_stats: { some: { team_id: teamId } },
+          player_match_stats: {
+            some: {
+              team_id: teamId,
+              ...(seasonId ? { match: { season_id: seasonId } } : {}),
+            },
+          },
         },
         select: { player_id: true },
       });
@@ -434,7 +455,11 @@ export async function GET(request: NextRequest) {
     if (orderParam === 'goals') {
       // goals ordering requires aggregation; build sorted id list before pagination
       const candidateIdsRaw = await prisma.player.findMany({
-        where: { ...(whereName ?? {}), ...(wherePosition ?? {}) },
+        where: {
+          ...(whereName ?? {}),
+          ...(wherePosition ?? {}),
+          ...(whereSeason ?? {}),
+        },
         select: { player_id: true },
       });
       const candidateIds = candidateIdsRaw.map((x) => x.player_id);
@@ -559,7 +584,11 @@ export async function GET(request: NextRequest) {
     if (orderParam === 'assists') {
       // assists ordering requires aggregation; build sorted id list before pagination
       const candidateIdsRaw = await prisma.player.findMany({
-        where: { ...(whereName ?? {}), ...(wherePosition ?? {}) },
+        where: {
+          ...(whereName ?? {}),
+          ...(wherePosition ?? {}),
+          ...(whereSeason ?? {}),
+        },
         select: { player_id: true },
       });
       const candidateIds = candidateIdsRaw.map((x) => x.player_id);
@@ -718,7 +747,11 @@ export async function GET(request: NextRequest) {
         created_at: true,
         updated_at: true,
       },
-      where: { ...(whereName ?? {}), ...(wherePosition ?? {}) },
+      where: {
+        ...(whereName ?? {}),
+        ...(wherePosition ?? {}),
+        ...(whereSeason ?? {}),
+      },
       orderBy: [{ player_match_stats: { _count: 'desc' } }, { name: 'asc' }],
       ...(isPaged ? { skip: (page! - 1) * limit!, take: limit! } : {}),
     });
