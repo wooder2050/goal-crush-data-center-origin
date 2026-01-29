@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import PlayerInfiniteList from '@/features/players/components/PlayerInfiniteList';
 import TeamOptionItem from '@/features/players/components/TeamOptionItem';
+import { getAllSeasonsPrisma } from '@/features/seasons/api-prisma';
 import { getTeamsPrisma } from '@/features/teams/api-prisma';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import type { Team } from '@/lib/types';
@@ -42,12 +43,14 @@ export default function PlayersContent({
   stickyHeaderSlot?: React.ReactNode;
 }) {
   const { data: teams = [] } = useGoalSuspenseQuery(getTeamsPrisma, []);
+  const { data: seasons = [] } = useGoalSuspenseQuery(getAllSeasonsPrisma, []);
   const [keyword, setKeyword] = useState('');
   const [keywordInput, setKeywordInput] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [order, setOrder] = useState<OrderValue>('apps');
   const [position, setPosition] = useState<PositionValue>('ALL');
   const [teamId, setTeamId] = useState<number | null>(null);
+  const [seasonId, setSeasonId] = useState<number | null>(null);
 
   const teamOptions = useMemo(() => {
     // teams가 배열이 아니거나 undefined/null인 경우 빈 배열 반환
@@ -73,6 +76,19 @@ export default function PlayersContent({
       a.team_name.localeCompare(b.team_name)
     );
   }, [teams]);
+
+  const seasonOptions = useMemo(() => {
+    if (!Array.isArray(seasons)) {
+      return [];
+    }
+    return seasons
+      .map((s) => ({
+        season_id: s.season_id!,
+        season_name: s.season_name ?? '',
+        year: s.year ?? 0,
+      }))
+      .sort((a, b) => b.year - a.year || b.season_id - a.season_id);
+  }, [seasons]);
 
   // Select styles: visually connect with the category bar by removing trigger border and focus ring
   const triggerBase =
@@ -176,6 +192,31 @@ export default function PlayersContent({
                 </SelectItem>
               </SelectContent>
             </Select>
+
+            <Select
+              value={seasonId != null ? String(seasonId) : 'all'}
+              onValueChange={(val) =>
+                setSeasonId(val === 'all' ? null : Number(val))
+              }
+            >
+              <SelectTrigger className="h-9 rounded-full border border-gray-200 bg-gray-50 px-3 text-sm shadow-none focus:outline-none focus:ring-1 focus:ring-gray-300 focus:ring-offset-0 data-[state=open]:ring-1 data-[state=open]:ring-gray-300 data-[state=open]:ring-offset-0">
+                <SelectValue placeholder="시즌 전체" />
+              </SelectTrigger>
+              <SelectContent className={contentBase}>
+                <SelectItem value="all" className={itemBase}>
+                  📅 시즌 전체
+                </SelectItem>
+                {seasonOptions.map((s) => (
+                  <SelectItem
+                    key={s.season_id}
+                    value={String(s.season_id)}
+                    className={itemBase}
+                  >
+                    {s.season_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -258,6 +299,34 @@ export default function PlayersContent({
                   </SelectContent>
                 </Select>
               </div>
+              <div className="px-0 sm:px-3">
+                <Select
+                  value={seasonId != null ? String(seasonId) : 'all'}
+                  onValueChange={(val) =>
+                    setSeasonId(val === 'all' ? null : Number(val))
+                  }
+                >
+                  <SelectTrigger
+                    className={`${triggerBase} min-w-[100px] sm:min-w-[120px]`}
+                  >
+                    <SelectValue placeholder="시즌 전체" />
+                  </SelectTrigger>
+                  <SelectContent className={contentBase}>
+                    <SelectItem value="all" className={itemBase}>
+                      📅 시즌 전체
+                    </SelectItem>
+                    {seasonOptions.map((s) => (
+                      <SelectItem
+                        key={s.season_id}
+                        value={String(s.season_id)}
+                        className={itemBase}
+                      >
+                        {s.season_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </div>
@@ -300,6 +369,7 @@ export default function PlayersContent({
         order={order}
         position={position === 'ALL' ? undefined : position}
         teamId={teamId}
+        seasonId={seasonId}
         onTotalChange={onTotalChange}
       />
     </>

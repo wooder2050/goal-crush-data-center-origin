@@ -154,9 +154,9 @@ export function PassMap({
   return (
     <div className="space-y-3">
       {/* 헤더 */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <h3 className="text-sm font-semibold text-gray-800">
-          {teamName} 패스 네트워크
+          {teamName} 패스맵
         </h3>
         <div className="text-xs text-gray-500">
           패스 {totalPasses}회 (성공 {successPasses}) - {successRate}%

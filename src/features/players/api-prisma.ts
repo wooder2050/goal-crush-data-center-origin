@@ -45,6 +45,7 @@ export const getPlayersPagePrisma = async (
   limit: number,
   opts?: {
     teamId?: number;
+    seasonId?: number;
     name?: string;
     order?: 'apps' | 'goals' | 'assists';
     position?: string;
@@ -54,6 +55,7 @@ export const getPlayersPagePrisma = async (
   qs.set('page', String(page));
   qs.set('limit', String(limit));
   if (opts?.teamId) qs.set('team_id', String(opts.teamId));
+  if (opts?.seasonId) qs.set('season_id', String(opts.seasonId));
   if (opts?.name) qs.set('name', opts.name);
   if (opts?.order) qs.set('order', opts.order);
   if (opts?.position) qs.set('position', opts.position);

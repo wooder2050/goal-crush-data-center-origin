@@ -13,12 +13,14 @@ import { useGoalInfiniteQuery } from '@/hooks/useGoalQuery';
 
 export default function PlayerInfiniteList({
   teamId,
+  seasonId,
   keyword,
   order,
   position,
   onTotalChange,
 }: {
   teamId: number | null;
+  seasonId?: number | null;
   keyword?: string;
   order?: 'apps' | 'goals';
   position?: string;
@@ -39,6 +41,7 @@ export default function PlayerInfiniteList({
       PAGE_SIZE,
       {
         teamId: teamId ?? undefined,
+        seasonId: seasonId ?? undefined,
         name: debouncedKeyword || undefined,
         order,
         position,
