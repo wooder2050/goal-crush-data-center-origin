@@ -76,3 +76,6 @@ build_output.log
 *storybook.log
 storybook-static
 CLAUDE.md
+
+# MCP configuration
+.mcp.json

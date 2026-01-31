@@ -11,193 +11,16 @@ import {
   MatchDetailedStats,
 } from '../../api-prisma';
 
-// 통계 항목별 아이콘 컴포넌트
-function StatIcon({ statKey }: { statKey: string }) {
-  const iconClass = 'w-4 h-4 text-gray-500';
-
-  switch (statKey) {
-    case 'goals':
-      // 축구공
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 2l2.5 4.5h5L17 12l2.5 5.5h-5L12 22l-2.5-4.5h-5L7 12l-2.5-5.5h5L12 2z" />
-          <path d="M12 7v10M7 9.5l10 5M7 14.5l10-5" />
-        </svg>
-      );
-    case 'possession':
-    case 'possession_time':
-      // 파이 차트 (점유율/점유 시간)
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 2v10l7 7" />
-        </svg>
-      );
-    case 'assists':
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M7 17L17 7M17 7H7M17 7v10" />
-        </svg>
-      );
-    case 'yellow_cards':
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <rect x="6" y="3" width="12" height="18" rx="1" />
-        </svg>
-      );
-    case 'red_cards':
-      return (
-        <svg className={iconClass} viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="3" width="12" height="18" rx="1" />
-        </svg>
-      );
-    case 'fouls':
-      // 호루라기
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        >
-          <ellipse cx="16" cy="14" rx="6" ry="5" />
-          <path d="M10 14h-6a2 2 0 01-2-2v-2a2 2 0 012-2h3" />
-          <circle cx="16" cy="14" r="2" />
-          <path d="M7 8l3 3" />
-        </svg>
-      );
-    case 'passes':
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M5 12h14M12 5l7 7-7 7" />
-        </svg>
-      );
-    case 'passes_completed':
-    case 'key_passes':
-      return null;
-    case 'pass_accuracy':
-    case 'shot_accuracy':
-      // 🎯
-      return <span className="text-sm">🎯</span>;
-    case 'shots':
-      // 🥅
-      return <span className="text-sm">🥅</span>;
-    case 'shots_on_target':
-    case 'dribbles':
-    case 'tackles':
-    case 'tackles_won':
-      return null;
-    case 'interceptions':
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
-      );
-    case 'clearances':
-      // 🧹
-      return <span className="text-sm">🧹</span>;
-    case 'free_kick_goals':
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 8v8M8 12h8" />
-        </svg>
-      );
-    case 'free_kicks':
-    case 'throw_ins':
-      return null;
-    case 'corner_kicks':
-      // 🚩
-      return <span className="text-sm">🚩</span>;
-    case 'penalty_goals':
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <circle cx="12" cy="16" r="2" />
-          <rect x="4" y="4" width="16" height="16" rx="1" />
-        </svg>
-      );
-    case 'saves':
-      // 🧤
-      return <span className="text-sm">🧤</span>;
-    case 'goals_conceded':
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M16 16s-1.5-2-4-2-4 2-4 2M9 9h.01M15 9h.01" />
-        </svg>
-      );
-    case 'gk_throws':
-    case 'gk_throws_completed':
-      return (
-        <svg
-          className={iconClass}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M12 5v14M5 12l7 7 7-7" />
-        </svg>
-      );
-    default:
-      return null;
-  }
+// 색상이 밝은지 판단하는 함수 (밝으면 true)
+function isLightColor(hexColor: string): boolean {
+  // hex to RGB
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  // 밝기 계산 (YIQ formula)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 180; // 180 이상이면 밝은 색상
 }
 
 interface MatchDetailedStatsSectionProps {
@@ -211,6 +34,10 @@ interface MatchDetailedStatsSectionProps {
   homeScore?: number | null;
   awayScore?: number | null;
   variant?: 'team-comparison' | 'player-stats' | 'all';
+  homeTeamPrimaryColor?: string;
+  homeTeamSecondaryColor?: string;
+  awayTeamPrimaryColor?: string;
+  awayTeamSecondaryColor?: string;
 }
 
 // 통계 항목 타입 정의
@@ -399,6 +226,10 @@ function TeamComparisonStats({
   awayTeamLogo,
   homeScore,
   awayScore,
+  homeTeamPrimaryColor = '#000000',
+  homeTeamSecondaryColor = '#FFFFFF',
+  awayTeamPrimaryColor = '#6B7280',
+  awayTeamSecondaryColor = '#FFFFFF',
 }: {
   homeStats: MatchDetailedStats[];
   awayStats: MatchDetailedStats[];
@@ -408,6 +239,10 @@ function TeamComparisonStats({
   awayTeamLogo?: string | null;
   homeScore?: number | null;
   awayScore?: number | null;
+  homeTeamPrimaryColor?: string;
+  homeTeamSecondaryColor?: string;
+  awayTeamPrimaryColor?: string;
+  awayTeamSecondaryColor?: string;
 }) {
   const homeTotals = calculateTeamTotals(homeStats);
   const awayTotals = calculateTeamTotals(awayStats);
@@ -430,128 +265,219 @@ function TeamComparisonStats({
         10
       : 0;
 
-  // 표시할 통계 항목 (골키퍼 제외)
-  const comparisonStats = [
-    { key: 'goals', label: '골' },
-    // 점유율은 possession_time이 있을 때만 표시
-    ...(totalPossessionTime > 0
-      ? [{ key: 'possession', label: '점유율', suffix: '%' }]
-      : []),
-    { key: 'assists', label: '어시스트' },
-    { key: 'yellow_cards', label: '옐로카드' },
-    { key: 'red_cards', label: '레드카드' },
-    { key: 'fouls', label: '반칙' },
-    { key: 'passes', label: '패스' },
-    { key: 'passes_completed', label: '패스 성공' },
-    { key: 'pass_accuracy', label: '패스 성공률', suffix: '%' },
-    { key: 'key_passes', label: '키패스' },
-    { key: 'shots', label: '슛' },
-    { key: 'shots_on_target', label: '유효슛' },
-    { key: 'shot_accuracy', label: '슈팅 유효률', suffix: '%' },
-    { key: 'dribbles', label: '드리블' },
-    { key: 'tackles', label: '태클' },
-    { key: 'tackles_won', label: '태클 성공' },
-    { key: 'interceptions', label: '인터셉트' },
-    { key: 'clearances', label: '클리어링' },
-    { key: 'free_kicks', label: '프리킥' },
-    { key: 'corner_kicks', label: '코너킥' },
-    { key: 'throw_ins', label: '킥인' },
+  // 표시할 통계 항목 (골키퍼 제외, 점유율은 별도 표시) - 카테고리별 그룹화
+  const statCategories = [
+    {
+      name: '득점',
+      stats: [
+        { key: 'goals', label: '골' },
+        { key: 'assists', label: '어시스트' },
+      ],
+    },
+    {
+      name: '공격',
+      stats: [
+        { key: 'shots', label: '슛' },
+        { key: 'shots_on_target', label: '유효슛' },
+        { key: 'shot_accuracy', label: '슈팅 정확도', suffix: '%' },
+        { key: 'dribbles', label: '드리블' },
+      ],
+    },
+    {
+      name: '패스',
+      stats: [
+        { key: 'passes', label: '패스' },
+        { key: 'passes_completed', label: '패스 성공' },
+        { key: 'pass_accuracy', label: '패스 성공률', suffix: '%' },
+        { key: 'key_passes', label: '키패스' },
+      ],
+    },
+    {
+      name: '수비',
+      stats: [
+        { key: 'tackles', label: '태클' },
+        { key: 'tackles_won', label: '태클 성공' },
+        { key: 'interceptions', label: '인터셉트' },
+        { key: 'clearances', label: '클리어링' },
+      ],
+    },
+    {
+      name: '규율',
+      stats: [
+        { key: 'fouls', label: '반칙' },
+        { key: 'yellow_cards', label: '옐로카드' },
+        { key: 'red_cards', label: '레드카드' },
+      ],
+    },
+    {
+      name: '세트피스',
+      stats: [
+        { key: 'free_kicks', label: '프리킥' },
+        { key: 'corner_kicks', label: '코너킥' },
+        { key: 'throw_ins', label: '킥인' },
+      ],
+    },
   ];
 
   return (
     <Card>
       <CardContent className="px-0 py-4">
-        <h4 className="mb-3 px-4 text-sm font-medium text-gray-700">
+        <h4 className="mb-4 px-4 text-sm font-medium text-gray-700">
           팀 전체 통계 비교
         </h4>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 text-xs whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-1.5">
-                    {homeTeamLogo && (
-                      <div className="w-5 h-5 relative flex-shrink-0 rounded-full overflow-hidden">
-                        <Image
-                          src={homeTeamLogo}
-                          alt={homeTeamName}
-                          fill
-                          className="object-cover"
-                          sizes="20px"
-                        />
-                      </div>
-                    )}
-                    <span>{homeTeamName}</span>
-                  </div>
-                </th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 whitespace-nowrap">
-                  항목
-                </th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 text-xs whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-1.5">
-                    <span>{awayTeamName}</span>
-                    {awayTeamLogo && (
-                      <div className="w-5 h-5 relative flex-shrink-0 rounded-full overflow-hidden">
-                        <Image
-                          src={awayTeamLogo}
-                          alt={awayTeamName}
-                          fill
-                          className="object-cover"
-                          sizes="20px"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {comparisonStats.map((stat) => {
-                // 골은 경기 스코어 사용 (자책골 포함), 점유율은 별도 계산
-                let homeValue: number;
-                let awayValue: number;
-                if (stat.key === 'goals') {
-                  homeValue = homeGoals;
-                  awayValue = awayGoals;
-                } else if (stat.key === 'possession') {
-                  homeValue = homePossessionPercent;
-                  awayValue = awayPossessionPercent;
-                } else {
-                  homeValue = homeTotals[stat.key] ?? 0;
-                  awayValue = awayTotals[stat.key] ?? 0;
-                }
-                const homeDisplay =
-                  stat.suffix === '%' ? homeValue.toFixed(1) : homeValue;
-                const awayDisplay =
-                  stat.suffix === '%' ? awayValue.toFixed(1) : awayValue;
-                const homeHigher = homeValue > awayValue;
-                const awayHigher = awayValue > homeValue;
 
-                return (
-                  <tr key={stat.key} className="border-t border-gray-200">
-                    <td
-                      className={`px-3 py-2 text-center tabular-nums ${homeHigher ? 'font-semibold text-blue-600' : ''}`}
+        {/* 팀 헤더 */}
+        <div className="flex items-center justify-between px-4 mb-4">
+          <div className="flex items-center gap-2">
+            {homeTeamLogo && (
+              <div className="w-6 h-6 relative flex-shrink-0 rounded-full overflow-hidden">
+                <Image
+                  src={homeTeamLogo}
+                  alt={homeTeamName}
+                  fill
+                  className="object-cover"
+                  sizes="24px"
+                />
+              </div>
+            )}
+            <span className="text-sm font-medium text-gray-800">
+              {homeTeamName}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-800">
+              {awayTeamName}
+            </span>
+            {awayTeamLogo && (
+              <div className="w-6 h-6 relative flex-shrink-0 rounded-full overflow-hidden">
+                <Image
+                  src={awayTeamLogo}
+                  alt={awayTeamName}
+                  fill
+                  className="object-cover"
+                  sizes="24px"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 점유율 바 - FotMob 스타일 */}
+        {totalPossessionTime > 0 && (
+          <div className="px-4 py-4 border-t border-gray-200">
+            <div className="text-sm font-bold text-gray-800 text-center mb-4">
+              점유율
+            </div>
+            <div className="flex h-9 rounded-lg overflow-hidden text-sm font-bold">
+              <div
+                className="flex items-center justify-start pl-3 transition-all duration-300 border-r-2 border-white"
+                style={{
+                  width: `${homePossessionPercent}%`,
+                  backgroundColor: homeTeamPrimaryColor,
+                  color: homeTeamSecondaryColor,
+                }}
+              >
+                {homePossessionPercent.toFixed(1)}%
+              </div>
+              <div
+                className="flex items-center justify-end pr-3 transition-all duration-300 border-l-2 border-white"
+                style={{
+                  width: `${awayPossessionPercent}%`,
+                  backgroundColor: awayTeamPrimaryColor,
+                  color: awayTeamSecondaryColor,
+                }}
+              >
+                {awayPossessionPercent.toFixed(1)}%
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 카테고리별 통계 */}
+        <div>
+          {statCategories.map((category) => (
+            <div
+              key={category.name}
+              className="px-4 py-4 border-t border-gray-200 last:border-b"
+            >
+              {/* 카테고리 제목 */}
+              <div className="text-sm font-bold text-gray-800 text-center mb-4">
+                {category.name}
+              </div>
+              {/* 통계 항목들 */}
+              <div className="space-y-3">
+                {category.stats.map((stat) => {
+                  let homeValue: number;
+                  let awayValue: number;
+                  if (stat.key === 'goals') {
+                    homeValue = homeGoals;
+                    awayValue = awayGoals;
+                  } else {
+                    homeValue = homeTotals[stat.key] ?? 0;
+                    awayValue = awayTotals[stat.key] ?? 0;
+                  }
+                  const homeDisplay =
+                    stat.suffix === '%' ? homeValue.toFixed(1) : homeValue;
+                  const awayDisplay =
+                    stat.suffix === '%' ? awayValue.toFixed(1) : awayValue;
+                  const homeHigher = homeValue > awayValue;
+                  const awayHigher = awayValue > homeValue;
+
+                  return (
+                    <div
+                      key={stat.key}
+                      className="flex items-center justify-between"
                     >
-                      {homeDisplay}
-                      {stat.suffix || ''}
-                    </td>
-                    <td className="px-3 py-2 text-center text-gray-600">
-                      <span className="inline-flex items-center justify-center gap-1">
-                        <StatIcon statKey={stat.key} />
-                        <span>{stat.label}</span>
-                      </span>
-                    </td>
-                    <td
-                      className={`px-3 py-2 text-center tabular-nums ${awayHigher ? 'font-semibold text-blue-600' : ''}`}
-                    >
-                      {awayDisplay}
-                      {stat.suffix || ''}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      {/* 홈팀 값 */}
+                      <div className="w-16 text-left tabular-nums">
+                        {homeHigher ? (
+                          <span
+                            className="inline-flex items-center justify-center min-w-[2.5rem] px-2 py-0.5 text-sm font-semibold rounded-full"
+                            style={{
+                              backgroundColor: homeTeamPrimaryColor,
+                              color: homeTeamSecondaryColor,
+                            }}
+                          >
+                            {homeDisplay}
+                            {stat.suffix || ''}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-700">
+                            {homeDisplay}
+                            {stat.suffix || ''}
+                          </span>
+                        )}
+                      </div>
+                      {/* 항목명 */}
+                      <div className="flex-1 text-center text-sm text-gray-600">
+                        {stat.label}
+                      </div>
+                      {/* 원정팀 값 */}
+                      <div className="w-16 text-right tabular-nums">
+                        {awayHigher ? (
+                          <span
+                            className="inline-flex items-center justify-center min-w-[2.5rem] px-2 py-0.5 text-sm font-semibold rounded-full"
+                            style={{
+                              backgroundColor: awayTeamPrimaryColor,
+                              color: awayTeamSecondaryColor,
+                            }}
+                          >
+                            {awayDisplay}
+                            {stat.suffix || ''}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-700">
+                            {awayDisplay}
+                            {stat.suffix || ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
@@ -566,6 +492,8 @@ function SingleTeamStatsTable({
   category,
   globalMaxValues,
   globalMinValues,
+  teamPrimaryColor = '#000000',
+  teamSecondaryColor = '#FFFFFF',
 }: {
   players: MatchDetailedStats[];
   teamName: string;
@@ -573,6 +501,8 @@ function SingleTeamStatsTable({
   category: StatCategory;
   globalMaxValues?: Record<string, number>;
   globalMinValues?: Record<string, number>;
+  teamPrimaryColor?: string;
+  teamSecondaryColor?: string;
 }) {
   // 골키퍼 카테고리인 경우 골키퍼 통계가 있는 선수만 필터링
   // 필드 플레이어 카테고리는 모든 선수 표시 (골키퍼 포함)
@@ -750,16 +680,43 @@ function SingleTeamStatsTable({
                     return (
                       <td
                         key={stat.key}
-                        className={`px-2 py-2 text-center tabular-nums ${
-                          isGlobalBest
-                            ? 'font-bold text-amber-600 bg-amber-50'
-                            : isTeamBest
-                              ? 'font-semibold text-blue-600'
-                              : ''
-                        }`}
+                        className="px-2 py-2 text-center tabular-nums"
                       >
-                        {displayValue}
-                        {stat.suffix && value !== 0 ? stat.suffix : ''}
+                        {isGlobalBest ? (
+                          <span
+                            className="inline-flex items-center justify-center min-w-[2rem] px-1.5 py-0.5 text-xs font-bold rounded-full"
+                            style={{
+                              backgroundColor: teamPrimaryColor,
+                              color: teamSecondaryColor,
+                            }}
+                          >
+                            {displayValue}
+                            {stat.suffix && value !== 0 ? stat.suffix : ''}
+                          </span>
+                        ) : isTeamBest ? (
+                          <span
+                            className="inline-flex items-center justify-center min-w-[2rem] px-1.5 py-0.5 text-xs font-semibold rounded-full"
+                            style={
+                              isLightColor(teamPrimaryColor)
+                                ? {
+                                    backgroundColor: `${teamPrimaryColor}50`,
+                                    color: `${teamSecondaryColor}90`,
+                                  }
+                                : {
+                                    backgroundColor: `${teamPrimaryColor}20`,
+                                    color: teamPrimaryColor,
+                                  }
+                            }
+                          >
+                            {displayValue}
+                            {stat.suffix && value !== 0 ? stat.suffix : ''}
+                          </span>
+                        ) : (
+                          <>
+                            {displayValue}
+                            {stat.suffix && value !== 0 ? stat.suffix : ''}
+                          </>
+                        )}
                       </td>
                     );
                   })}
@@ -781,6 +738,10 @@ function SideBySidePlayerStats({
   awayTeamName,
   homeTeamLogo,
   awayTeamLogo,
+  homeTeamPrimaryColor = '#000000',
+  homeTeamSecondaryColor = '#FFFFFF',
+  awayTeamPrimaryColor = '#6B7280',
+  awayTeamSecondaryColor = '#FFFFFF',
 }: {
   homeStats: MatchDetailedStats[];
   awayStats: MatchDetailedStats[];
@@ -788,6 +749,10 @@ function SideBySidePlayerStats({
   awayTeamName: string;
   homeTeamLogo?: string | null;
   awayTeamLogo?: string | null;
+  homeTeamPrimaryColor?: string;
+  homeTeamSecondaryColor?: string;
+  awayTeamPrimaryColor?: string;
+  awayTeamSecondaryColor?: string;
 }) {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const category = FIELD_PLAYER_CATEGORIES[selectedCategory];
@@ -862,6 +827,8 @@ function SideBySidePlayerStats({
               teamLogo={homeTeamLogo}
               category={category}
               globalMaxValues={globalMaxValues}
+              teamPrimaryColor={homeTeamPrimaryColor}
+              teamSecondaryColor={homeTeamSecondaryColor}
             />
           )}
           {awayStats.length > 0 && (
@@ -871,6 +838,8 @@ function SideBySidePlayerStats({
               teamLogo={awayTeamLogo}
               category={category}
               globalMaxValues={globalMaxValues}
+              teamPrimaryColor={awayTeamPrimaryColor}
+              teamSecondaryColor={awayTeamSecondaryColor}
             />
           )}
         </div>
@@ -890,6 +859,8 @@ function SideBySidePlayerStats({
                 category={GOALKEEPER_CATEGORY}
                 globalMaxValues={gkGlobalMaxValues}
                 globalMinValues={gkGlobalMinValues}
+                teamPrimaryColor={homeTeamPrimaryColor}
+                teamSecondaryColor={homeTeamSecondaryColor}
               />
             )}
             {awayGoalkeepers.length > 0 && (
@@ -900,6 +871,8 @@ function SideBySidePlayerStats({
                 category={GOALKEEPER_CATEGORY}
                 globalMaxValues={gkGlobalMaxValues}
                 globalMinValues={gkGlobalMinValues}
+                teamPrimaryColor={awayTeamPrimaryColor}
+                teamSecondaryColor={awayTeamSecondaryColor}
               />
             )}
           </div>
@@ -913,9 +886,13 @@ function SideBySidePlayerStats({
 function PlayerStatsTable({
   players,
   teamName,
+  teamPrimaryColor = '#3b82f6',
+  teamSecondaryColor = '#FFFFFF',
 }: {
   players: MatchDetailedStats[];
   teamName: string;
+  teamPrimaryColor?: string;
+  teamSecondaryColor?: string;
 }) {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const category = STAT_CATEGORIES[selectedCategory];
@@ -1104,12 +1081,25 @@ function PlayerStatsTable({
                     return (
                       <td
                         key={stat.key}
-                        className={`px-2 py-2 text-center tabular-nums ${
-                          isBest ? 'font-semibold text-blue-600' : ''
-                        }`}
+                        className="px-2 py-2 text-center tabular-nums"
                       >
-                        {displayValue}
-                        {stat.suffix && value !== 0 ? stat.suffix : ''}
+                        {isBest ? (
+                          <span
+                            className="inline-flex items-center justify-center min-w-[2rem] px-1.5 py-0.5 text-xs font-bold rounded-full"
+                            style={{
+                              backgroundColor: teamPrimaryColor,
+                              color: teamSecondaryColor,
+                            }}
+                          >
+                            {displayValue}
+                            {stat.suffix && value !== 0 ? stat.suffix : ''}
+                          </span>
+                        ) : (
+                          <>
+                            {displayValue}
+                            {stat.suffix && value !== 0 ? stat.suffix : ''}
+                          </>
+                        )}
                       </td>
                     );
                   })}
@@ -1134,6 +1124,10 @@ export default function MatchDetailedStatsSection({
   homeScore,
   awayScore,
   variant = 'all',
+  homeTeamPrimaryColor = '#000000',
+  homeTeamSecondaryColor = '#FFFFFF',
+  awayTeamPrimaryColor = '#6B7280',
+  awayTeamSecondaryColor = '#FFFFFF',
 }: MatchDetailedStatsSectionProps) {
   const { data: stats } = useGoalSuspenseQuery(getMatchDetailedStatsPrisma, [
     matchId,
@@ -1147,6 +1141,25 @@ export default function MatchDetailedStatsSection({
   // 팀별로 분리
   const homeStats = stats.filter((s) => s.team_id === homeTeamId);
   const awayStats = stats.filter((s) => s.team_id === awayTeamId);
+
+  // 구척장신(team_id: 20)은 색상을 반대로 적용 (흰색 배경 대신 검정 배경)
+  const GUCHUK_TEAM_ID = 20;
+  const finalHomeTeamPrimaryColor =
+    homeTeamId === GUCHUK_TEAM_ID
+      ? homeTeamSecondaryColor
+      : homeTeamPrimaryColor;
+  const finalHomeTeamSecondaryColor =
+    homeTeamId === GUCHUK_TEAM_ID
+      ? homeTeamPrimaryColor
+      : homeTeamSecondaryColor;
+  const finalAwayTeamPrimaryColor =
+    awayTeamId === GUCHUK_TEAM_ID
+      ? awayTeamSecondaryColor
+      : awayTeamPrimaryColor;
+  const finalAwayTeamSecondaryColor =
+    awayTeamId === GUCHUK_TEAM_ID
+      ? awayTeamPrimaryColor
+      : awayTeamSecondaryColor;
 
   // 팀 비교 통계만 표시
   if (variant === 'team-comparison') {
@@ -1165,6 +1178,10 @@ export default function MatchDetailedStatsSection({
           awayTeamLogo={awayTeamLogo}
           homeScore={homeScore}
           awayScore={awayScore}
+          homeTeamPrimaryColor={finalHomeTeamPrimaryColor}
+          homeTeamSecondaryColor={finalHomeTeamSecondaryColor}
+          awayTeamPrimaryColor={finalAwayTeamPrimaryColor}
+          awayTeamSecondaryColor={finalAwayTeamSecondaryColor}
         />
       </div>
     );
@@ -1185,6 +1202,10 @@ export default function MatchDetailedStatsSection({
           awayTeamName={awayTeamName}
           homeTeamLogo={homeTeamLogo}
           awayTeamLogo={awayTeamLogo}
+          homeTeamPrimaryColor={finalHomeTeamPrimaryColor}
+          homeTeamSecondaryColor={finalHomeTeamSecondaryColor}
+          awayTeamPrimaryColor={finalAwayTeamPrimaryColor}
+          awayTeamSecondaryColor={finalAwayTeamSecondaryColor}
         />
       </div>
     );
@@ -1206,6 +1227,10 @@ export default function MatchDetailedStatsSection({
           awayTeamLogo={awayTeamLogo}
           homeScore={homeScore}
           awayScore={awayScore}
+          homeTeamPrimaryColor={finalHomeTeamPrimaryColor}
+          homeTeamSecondaryColor={finalHomeTeamSecondaryColor}
+          awayTeamPrimaryColor={finalAwayTeamPrimaryColor}
+          awayTeamSecondaryColor={finalAwayTeamSecondaryColor}
         />
       )}
 
@@ -1214,6 +1239,8 @@ export default function MatchDetailedStatsSection({
         <PlayerStatsTable
           players={homeStats}
           teamName={`홈팀 선수별: ${homeTeamName}`}
+          teamPrimaryColor={finalHomeTeamPrimaryColor}
+          teamSecondaryColor={finalHomeTeamSecondaryColor}
         />
       )}
 
@@ -1222,6 +1249,8 @@ export default function MatchDetailedStatsSection({
         <PlayerStatsTable
           players={awayStats}
           teamName={`원정팀 선수별: ${awayTeamName}`}
+          teamPrimaryColor={finalAwayTeamPrimaryColor}
+          teamSecondaryColor={finalAwayTeamSecondaryColor}
         />
       )}
     </div>
