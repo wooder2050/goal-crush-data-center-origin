@@ -302,7 +302,7 @@ function TeamComparisonStats({
       ],
     },
     {
-      name: '규율',
+      name: '반칙',
       stats: [
         { key: 'fouls', label: '반칙' },
         { key: 'yellow_cards', label: '옐로카드' },
