@@ -541,6 +541,10 @@ function HeadToHeadOrTeamStatsSection({
   awayTeamLogo,
   homeScore,
   awayScore,
+  homeTeamPrimaryColor,
+  homeTeamSecondaryColor,
+  awayTeamPrimaryColor,
+  awayTeamSecondaryColor,
 }: {
   matchId: number;
   homeTeamId: number;
@@ -551,6 +555,10 @@ function HeadToHeadOrTeamStatsSection({
   awayTeamLogo?: string | null;
   homeScore?: number | null;
   awayScore?: number | null;
+  homeTeamPrimaryColor?: string;
+  homeTeamSecondaryColor?: string;
+  awayTeamPrimaryColor?: string;
+  awayTeamSecondaryColor?: string;
 }) {
   const { data: stats } = useGoalSuspenseQuery(getMatchDetailedStatsPrisma, [
     matchId,
@@ -570,6 +578,10 @@ function HeadToHeadOrTeamStatsSection({
         homeScore={homeScore}
         awayScore={awayScore}
         variant="team-comparison"
+        homeTeamPrimaryColor={homeTeamPrimaryColor}
+        homeTeamSecondaryColor={homeTeamSecondaryColor}
+        awayTeamPrimaryColor={awayTeamPrimaryColor}
+        awayTeamSecondaryColor={awayTeamSecondaryColor}
       />
     );
   }
@@ -683,6 +695,18 @@ function DetailMatchCardInner({
                   awayTeamLogo={match.away_team?.logo}
                   homeScore={match.home_score}
                   awayScore={match.away_score}
+                  homeTeamPrimaryColor={
+                    match.home_team?.primary_color || '#000000'
+                  }
+                  homeTeamSecondaryColor={
+                    match.home_team?.secondary_color || '#FFFFFF'
+                  }
+                  awayTeamPrimaryColor={
+                    match.away_team?.primary_color || '#6B7280'
+                  }
+                  awayTeamSecondaryColor={
+                    match.away_team?.secondary_color || '#FFFFFF'
+                  }
                 />
               </GoalWrapper>
             ) : (
@@ -745,6 +769,18 @@ function DetailMatchCardInner({
                   homeTeamLogo={match.home_team?.logo}
                   awayTeamLogo={match.away_team?.logo}
                   variant="player-stats"
+                  homeTeamPrimaryColor={
+                    match.home_team?.primary_color || '#000000'
+                  }
+                  homeTeamSecondaryColor={
+                    match.home_team?.secondary_color || '#FFFFFF'
+                  }
+                  awayTeamPrimaryColor={
+                    match.away_team?.primary_color || '#6B7280'
+                  }
+                  awayTeamSecondaryColor={
+                    match.away_team?.secondary_color || '#FFFFFF'
+                  }
                 />
               </GoalWrapper>
             </div>
