@@ -296,14 +296,11 @@ function PenaltyShootoutPageContentInner() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 py-3 text-left font-medium text-gray-700">
+                    <th className="px-3 py-3 text-center font-medium text-gray-700 w-16">
                       순위
                     </th>
                     <th className="px-3 py-3 text-left font-medium text-gray-700">
                       선수
-                    </th>
-                    <th className="px-3 py-3 text-left font-medium text-gray-700">
-                      소속팀
                     </th>
                     {isKicker ? (
                       <>
@@ -342,7 +339,7 @@ function PenaltyShootoutPageContentInner() {
                   {isLoading ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={6}
                         className="px-3 py-8 text-center text-gray-500"
                       >
                         <div className="flex items-center justify-center">
@@ -354,7 +351,7 @@ function PenaltyShootoutPageContentInner() {
                   ) : data?.rankings?.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={6}
                         className="px-3 py-8 text-center text-gray-500"
                       >
                         조건에 맞는 선수가 없습니다.
@@ -367,16 +364,16 @@ function PenaltyShootoutPageContentInner() {
                         className="border-t border-gray-200 hover:bg-gray-50"
                       >
                         <td className="px-3 py-3">
-                          <div className="flex items-center">
+                          <div className="flex items-center justify-center">
                             <span
-                              className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                              className={`inline-flex items-center justify-center w-7 h-7 text-sm font-bold ${
                                 player.rank === 1
-                                  ? 'bg-yellow-100 text-yellow-800'
+                                  ? 'text-yellow-600'
                                   : player.rank === 2
-                                    ? 'bg-gray-100 text-gray-800'
+                                    ? 'text-gray-500'
                                     : player.rank === 3
-                                      ? 'bg-orange-100 text-orange-800'
-                                      : 'bg-gray-50 text-gray-600'
+                                      ? 'text-orange-600'
+                                      : 'text-gray-500'
                               }`}
                             >
                               {player.rank}
@@ -385,22 +382,40 @@ function PenaltyShootoutPageContentInner() {
                         </td>
                         <td className="px-3 py-3">
                           <div className="flex items-center gap-3">
-                            {player.player_image ? (
-                              <span className="hidden sm:block relative h-8 w-8 overflow-hidden rounded-full flex-shrink-0">
-                                <Image
-                                  src={player.player_image}
-                                  alt="선수 이미지"
-                                  fill
-                                  sizes="32px"
-                                  className="object-cover"
-                                />
-                              </span>
-                            ) : (
-                              <span className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-[12px] text-gray-700">
-                                {(player.player_name ?? '-').charAt(0)}
-                              </span>
-                            )}
-                            <div>
+                            {/* 선수 프로필 이미지 - FotMob 스타일 */}
+                            <div className="relative flex-shrink-0">
+                              {player.player_image ? (
+                                <div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-100">
+                                  <Image
+                                    src={player.player_image}
+                                    alt="선수 이미지"
+                                    fill
+                                    sizes="40px"
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="h-10 w-10 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
+                                  {(player.player_name ?? '-').charAt(0)}
+                                </div>
+                              )}
+                              {/* 팀 로고 오버레이 - FotMob 스타일 */}
+                              {player.team_logos &&
+                                player.team_logos.length > 0 && (
+                                  <div className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-white p-0.5 shadow-sm">
+                                    <div className="relative h-full w-full overflow-hidden rounded-full">
+                                      <Image
+                                        src={player.team_logos[0]}
+                                        alt="팀 로고"
+                                        fill
+                                        sizes="18px"
+                                        className="object-cover"
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                            </div>
+                            <div className="min-w-0">
                               <div className="font-medium text-gray-900">
                                 <Link
                                   href={`/players/${player.player_id}`}
@@ -409,34 +424,18 @@ function PenaltyShootoutPageContentInner() {
                                   {player.player_name}
                                 </Link>
                               </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-2">
-                            {player.team_logos &&
-                              player.team_logos.length > 0 && (
-                                <span className="relative h-6 w-6 overflow-hidden rounded-full flex-shrink-0">
-                                  <Image
-                                    src={player.team_logos[0]}
-                                    alt="팀 로고"
-                                    fill
-                                    sizes="24px"
-                                    className="object-cover"
-                                  />
-                                </span>
-                              )}
-                            <div className="hidden sm:block text-sm text-gray-900">
-                              {player.first_team_id ? (
-                                <Link
-                                  href={`/teams/${player.first_team_id}`}
-                                  className="hover:text-blue-600 hover:underline"
-                                >
-                                  {player.first_team_name}
-                                </Link>
-                              ) : (
-                                player.teams
-                              )}
+                              <div className="text-xs text-gray-500">
+                                {player.first_team_id ? (
+                                  <Link
+                                    href={`/teams/${player.first_team_id}`}
+                                    className="hover:text-blue-600 hover:underline"
+                                  >
+                                    {player.first_team_name}
+                                  </Link>
+                                ) : (
+                                  player.teams
+                                )}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -469,16 +468,16 @@ function PenaltyShootoutPageContentInner() {
                         className="border-t border-gray-200 hover:bg-gray-50"
                       >
                         <td className="px-3 py-3">
-                          <div className="flex items-center">
+                          <div className="flex items-center justify-center">
                             <span
-                              className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                              className={`inline-flex items-center justify-center w-7 h-7 text-sm font-bold ${
                                 player.rank === 1
-                                  ? 'bg-yellow-100 text-yellow-800'
+                                  ? 'text-yellow-600'
                                   : player.rank === 2
-                                    ? 'bg-gray-100 text-gray-800'
+                                    ? 'text-gray-500'
                                     : player.rank === 3
-                                      ? 'bg-orange-100 text-orange-800'
-                                      : 'bg-gray-50 text-gray-600'
+                                      ? 'text-orange-600'
+                                      : 'text-gray-500'
                               }`}
                             >
                               {player.rank}
@@ -487,22 +486,40 @@ function PenaltyShootoutPageContentInner() {
                         </td>
                         <td className="px-3 py-3">
                           <div className="flex items-center gap-3">
-                            {player.player_image ? (
-                              <span className="hidden sm:block relative h-8 w-8 overflow-hidden rounded-full flex-shrink-0">
-                                <Image
-                                  src={player.player_image}
-                                  alt="선수 이미지"
-                                  fill
-                                  sizes="32px"
-                                  className="object-cover"
-                                />
-                              </span>
-                            ) : (
-                              <span className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-[12px] text-gray-700">
-                                {(player.player_name ?? '-').charAt(0)}
-                              </span>
-                            )}
-                            <div>
+                            {/* 선수 프로필 이미지 - FotMob 스타일 */}
+                            <div className="relative flex-shrink-0">
+                              {player.player_image ? (
+                                <div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-100">
+                                  <Image
+                                    src={player.player_image}
+                                    alt="선수 이미지"
+                                    fill
+                                    sizes="40px"
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="h-10 w-10 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
+                                  {(player.player_name ?? '-').charAt(0)}
+                                </div>
+                              )}
+                              {/* 팀 로고 오버레이 - FotMob 스타일 */}
+                              {player.team_logos &&
+                                player.team_logos.length > 0 && (
+                                  <div className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-white p-0.5 shadow-sm">
+                                    <div className="relative h-full w-full overflow-hidden rounded-full">
+                                      <Image
+                                        src={player.team_logos[0]}
+                                        alt="팀 로고"
+                                        fill
+                                        sizes="18px"
+                                        className="object-cover"
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                            </div>
+                            <div className="min-w-0">
                               <div className="font-medium text-gray-900">
                                 <Link
                                   href={`/players/${player.player_id}`}
@@ -511,34 +528,18 @@ function PenaltyShootoutPageContentInner() {
                                   {player.player_name}
                                 </Link>
                               </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-2">
-                            {player.team_logos &&
-                              player.team_logos.length > 0 && (
-                                <span className="relative h-6 w-6 overflow-hidden rounded-full flex-shrink-0">
-                                  <Image
-                                    src={player.team_logos[0]}
-                                    alt="팀 로고"
-                                    fill
-                                    sizes="24px"
-                                    className="object-cover"
-                                  />
-                                </span>
-                              )}
-                            <div className="hidden sm:block text-sm text-gray-900">
-                              {player.first_team_id ? (
-                                <Link
-                                  href={`/teams/${player.first_team_id}`}
-                                  className="hover:text-blue-600 hover:underline"
-                                >
-                                  {player.first_team_name}
-                                </Link>
-                              ) : (
-                                player.teams
-                              )}
+                              <div className="text-xs text-gray-500">
+                                {player.first_team_id ? (
+                                  <Link
+                                    href={`/teams/${player.first_team_id}`}
+                                    className="hover:text-blue-600 hover:underline"
+                                  >
+                                    {player.first_team_name}
+                                  </Link>
+                                ) : (
+                                  player.teams
+                                )}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -587,223 +588,209 @@ function PenaltyShootoutPageContentInner() {
               조건에 맞는 선수가 없습니다.
             </div>
           ) : isKicker ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {(data?.rankings as KickerRanking[])?.map((player) => (
-                <Card
+                <div
                   key={`mobile-${player.player_id}-${player.rank}`}
-                  className="p-4"
+                  className="flex items-center bg-white border-b border-gray-100 py-3 px-2"
                 >
-                  <div className="flex items-center mb-4">
-                    {/* 순위 */}
-                    <span
-                      className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold flex-shrink-0 ${
-                        player.rank === 1
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : player.rank === 2
-                            ? 'bg-gray-100 text-gray-800'
-                            : player.rank === 3
-                              ? 'bg-orange-100 text-orange-800'
-                              : 'bg-gray-50 text-gray-600'
-                      }`}
-                    >
-                      {player.rank}
-                    </span>
+                  {/* 순위 */}
+                  <span
+                    className={`w-8 text-center text-sm font-bold flex-shrink-0 ${
+                      player.rank === 1
+                        ? 'text-yellow-600'
+                        : player.rank === 2
+                          ? 'text-gray-500'
+                          : player.rank === 3
+                            ? 'text-orange-600'
+                            : 'text-gray-500'
+                    }`}
+                  >
+                    {player.rank}
+                  </span>
 
-                    {/* 선수 이미지 */}
-                    <div className="ml-3 flex-shrink-0">
-                      {player.player_image ? (
-                        <div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-200">
+                  {/* 선수 이미지 + 팀 로고 오버레이 - FotMob 스타일 */}
+                  <div className="relative flex-shrink-0 ml-2">
+                    {player.player_image ? (
+                      <div className="relative h-11 w-11 overflow-hidden rounded-full bg-gray-100">
+                        <Image
+                          src={player.player_image}
+                          alt="선수 이미지"
+                          fill
+                          sizes="44px"
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-11 w-11 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
+                        {(player.player_name ?? '-').charAt(0)}
+                      </div>
+                    )}
+                    {/* 팀 로고 오버레이 */}
+                    {player.team_logos && player.team_logos.length > 0 && (
+                      <div className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-white p-0.5 shadow-sm">
+                        <div className="relative h-full w-full overflow-hidden rounded-full">
                           <Image
-                            src={player.player_image}
-                            alt="선수 이미지"
-                            width={40}
-                            height={40}
-                            className="object-cover rounded-full"
+                            src={player.team_logos[0]}
+                            alt="팀 로고"
+                            fill
+                            sizes="18px"
+                            className="object-cover"
                           />
                         </div>
-                      ) : (
-                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-sm text-gray-700">
-                          {(player.player_name ?? '-').charAt(0)}
-                        </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
+                  </div>
 
-                    {/* 선수 이름 및 팀 정보 */}
-                    <div className="flex-1 ml-3 min-w-0">
-                      <div className="font-medium text-gray-900 truncate">
+                  {/* 선수 이름 및 팀 정보 */}
+                  <div className="flex-1 ml-3 min-w-0">
+                    <div className="font-medium text-gray-900 truncate">
+                      <Link
+                        href={`/players/${player.player_id}`}
+                        className="hover:text-blue-600 hover:underline"
+                      >
+                        {player.player_name}
+                      </Link>
+                    </div>
+                    <div className="text-xs text-gray-500 truncate">
+                      {player.first_team_id ? (
                         <Link
-                          href={`/players/${player.player_id}`}
+                          href={`/teams/${player.first_team_id}`}
                           className="hover:text-blue-600 hover:underline"
                         >
-                          {player.player_name}
+                          {player.first_team_name}
                         </Link>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        {player.team_logos && player.team_logos.length > 0 && (
-                          <span className="relative h-4 w-4 overflow-hidden rounded-full flex-shrink-0">
-                            <Image
-                              src={player.team_logos[0]}
-                              alt="팀 로고"
-                              fill
-                              sizes="16px"
-                              className="object-cover"
-                            />
-                          </span>
-                        )}
-                        <span className="text-sm text-gray-600 truncate">
-                          {player.first_team_id ? (
-                            <Link
-                              href={`/teams/${player.first_team_id}`}
-                              className="hover:text-blue-600 hover:underline"
-                            >
-                              {player.first_team_name}
-                            </Link>
-                          ) : (
-                            player.teams
-                          )}
-                        </span>
-                      </div>
+                      ) : (
+                        player.teams
+                      )}
                     </div>
                   </div>
 
-                  {/* 통계 정보 */}
-                  <div className="grid grid-cols-4 gap-3 text-center">
-                    <div>
-                      <div className="text-lg font-bold text-gray-900">
-                        {player.total_kicks}
-                      </div>
-                      <div className="text-xs text-gray-500">총 킥</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-green-600">
+                  {/* 통계 정보 - 간소화 */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="text-center">
+                      <div className="text-base font-bold text-green-600">
                         {player.successful_kicks}
                       </div>
-                      <div className="text-xs text-gray-500">성공</div>
+                      <div className="text-[10px] text-gray-400">성공</div>
                     </div>
-                    <div>
-                      <div className="text-lg font-bold text-red-600">
+                    <div className="text-center">
+                      <div className="text-base font-bold text-red-600">
                         {player.failed_kicks}
                       </div>
-                      <div className="text-xs text-gray-500">실패</div>
+                      <div className="text-[10px] text-gray-400">실패</div>
                     </div>
-                    <div>
-                      <div className="text-lg font-bold text-blue-600">
+                    <div className="text-center">
+                      <div className="text-base font-bold text-blue-600">
                         {player.success_rate}%
                       </div>
-                      <div className="text-xs text-gray-500">성공률</div>
+                      <div className="text-[10px] text-gray-400">성공률</div>
                     </div>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {(data?.rankings as GoalkeeperRanking[])?.map((player) => (
-                <Card
+                <div
                   key={`mobile-${player.player_id}-${player.rank}`}
-                  className="p-4"
+                  className="flex items-center bg-white border-b border-gray-100 py-3 px-2"
                 >
-                  <div className="flex items-center mb-4">
-                    {/* 순위 */}
-                    <span
-                      className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold flex-shrink-0 ${
-                        player.rank === 1
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : player.rank === 2
-                            ? 'bg-gray-100 text-gray-800'
-                            : player.rank === 3
-                              ? 'bg-orange-100 text-orange-800'
-                              : 'bg-gray-50 text-gray-600'
-                      }`}
-                    >
-                      {player.rank}
-                    </span>
+                  {/* 순위 */}
+                  <span
+                    className={`w-8 text-center text-sm font-bold flex-shrink-0 ${
+                      player.rank === 1
+                        ? 'text-yellow-600'
+                        : player.rank === 2
+                          ? 'text-gray-500'
+                          : player.rank === 3
+                            ? 'text-orange-600'
+                            : 'text-gray-500'
+                    }`}
+                  >
+                    {player.rank}
+                  </span>
 
-                    {/* 선수 이미지 */}
-                    <div className="ml-3 flex-shrink-0">
-                      {player.player_image ? (
-                        <div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-200">
+                  {/* 선수 이미지 + 팀 로고 오버레이 - FotMob 스타일 */}
+                  <div className="relative flex-shrink-0 ml-2">
+                    {player.player_image ? (
+                      <div className="relative h-11 w-11 overflow-hidden rounded-full bg-gray-100">
+                        <Image
+                          src={player.player_image}
+                          alt="선수 이미지"
+                          fill
+                          sizes="44px"
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-11 w-11 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
+                        {(player.player_name ?? '-').charAt(0)}
+                      </div>
+                    )}
+                    {/* 팀 로고 오버레이 */}
+                    {player.team_logos && player.team_logos.length > 0 && (
+                      <div className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-white p-0.5 shadow-sm">
+                        <div className="relative h-full w-full overflow-hidden rounded-full">
                           <Image
-                            src={player.player_image}
-                            alt="선수 이미지"
-                            width={40}
-                            height={40}
-                            className="object-cover rounded-full"
+                            src={player.team_logos[0]}
+                            alt="팀 로고"
+                            fill
+                            sizes="18px"
+                            className="object-cover"
                           />
                         </div>
-                      ) : (
-                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-sm text-gray-700">
-                          {(player.player_name ?? '-').charAt(0)}
-                        </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
+                  </div>
 
-                    {/* 선수 이름 및 팀 정보 */}
-                    <div className="flex-1 ml-3 min-w-0">
-                      <div className="font-medium text-gray-900 truncate">
+                  {/* 선수 이름 및 팀 정보 */}
+                  <div className="flex-1 ml-3 min-w-0">
+                    <div className="font-medium text-gray-900 truncate">
+                      <Link
+                        href={`/players/${player.player_id}`}
+                        className="hover:text-blue-600 hover:underline"
+                      >
+                        {player.player_name}
+                      </Link>
+                    </div>
+                    <div className="text-xs text-gray-500 truncate">
+                      {player.first_team_id ? (
                         <Link
-                          href={`/players/${player.player_id}`}
+                          href={`/teams/${player.first_team_id}`}
                           className="hover:text-blue-600 hover:underline"
                         >
-                          {player.player_name}
+                          {player.first_team_name}
                         </Link>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        {player.team_logos && player.team_logos.length > 0 && (
-                          <span className="relative h-4 w-4 overflow-hidden rounded-full flex-shrink-0">
-                            <Image
-                              src={player.team_logos[0]}
-                              alt="팀 로고"
-                              fill
-                              sizes="16px"
-                              className="object-cover"
-                            />
-                          </span>
-                        )}
-                        <span className="text-sm text-gray-600 truncate">
-                          {player.first_team_id ? (
-                            <Link
-                              href={`/teams/${player.first_team_id}`}
-                              className="hover:text-blue-600 hover:underline"
-                            >
-                              {player.first_team_name}
-                            </Link>
-                          ) : (
-                            player.teams
-                          )}
-                        </span>
-                      </div>
+                      ) : (
+                        player.teams
+                      )}
                     </div>
                   </div>
 
-                  {/* 통계 정보 */}
-                  <div className="grid grid-cols-4 gap-3 text-center">
-                    <div>
-                      <div className="text-lg font-bold text-gray-900">
-                        {player.total_faced}
-                      </div>
-                      <div className="text-xs text-gray-500">상대</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-green-600">
+                  {/* 통계 정보 - 간소화 */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="text-center">
+                      <div className="text-base font-bold text-green-600">
                         {player.saves}
                       </div>
-                      <div className="text-xs text-gray-500">선방</div>
+                      <div className="text-[10px] text-gray-400">선방</div>
                     </div>
-                    <div>
-                      <div className="text-lg font-bold text-red-600">
+                    <div className="text-center">
+                      <div className="text-base font-bold text-red-600">
                         {player.conceded}
                       </div>
-                      <div className="text-xs text-gray-500">실점</div>
+                      <div className="text-[10px] text-gray-400">실점</div>
                     </div>
-                    <div>
-                      <div className="text-lg font-bold text-blue-600">
+                    <div className="text-center">
+                      <div className="text-base font-bold text-blue-600">
                         {player.save_rate}%
                       </div>
-                      <div className="text-xs text-gray-500">선방율</div>
+                      <div className="text-[10px] text-gray-400">선방율</div>
                     </div>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           )}

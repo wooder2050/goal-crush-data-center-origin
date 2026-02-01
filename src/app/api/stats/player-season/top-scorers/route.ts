@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
             select: {
               player_id: true,
               name: true,
+              profile_image_url: true,
             },
           },
           team: {
@@ -54,6 +55,7 @@ export async function GET(request: NextRequest) {
         created_at: stat.created_at,
         updated_at: stat.updated_at,
         player_name: stat.player?.name || null,
+        player_image: stat.player?.profile_image_url || null,
         team_name: stat.team?.team_name || null,
         team_logo: stat.team?.logo || null,
       }));
@@ -67,6 +69,7 @@ export async function GET(request: NextRequest) {
             select: {
               player_id: true,
               name: true,
+              profile_image_url: true,
             },
           },
           team: {
@@ -96,6 +99,7 @@ export async function GET(request: NextRequest) {
           playerCareerStats.set(playerId, {
             player_id: playerId,
             player_name: stat.player?.name || '',
+            player_image: stat.player?.profile_image_url || '',
             total_goals: 0,
             total_assists: 0,
             total_matches_played: 0,
@@ -111,6 +115,11 @@ export async function GET(request: NextRequest) {
         playerStats.total_goals += stat.goals || 0;
         playerStats.total_assists += stat.assists || 0;
         playerStats.total_matches_played += stat.matches_played || 0;
+
+        // Update player_image if not set
+        if (!playerStats.player_image && stat.player?.profile_image_url) {
+          playerStats.player_image = stat.player.profile_image_url;
+        }
 
         if (stat.team?.team_name) {
           playerStats.teams.add(stat.team.team_name);
@@ -134,6 +143,7 @@ export async function GET(request: NextRequest) {
         .map((player) => ({
           player_id: player.player_id,
           player_name: player.player_name,
+          player_image: player.player_image || '',
           team_name: player.latest_team_name,
           team_logo: player.latest_team_logo || '',
           goals: player.total_goals,

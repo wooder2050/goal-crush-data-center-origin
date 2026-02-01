@@ -247,18 +247,57 @@ export async function computeCoachSeasonStats(
       ? await getTeamsByIdsCached(db, unionTeamIds)
       : new Map();
 
+  // Fetch season-specific team names
+  const teamSeasonPairs: { team_id: number; season_id: number }[] = [];
+  for (let i = 0; i < seasonStatsArray.length; i++) {
+    const s = seasonStatsArray[i];
+    const teamIds = Array.from(s.teamIds);
+    for (let j = 0; j < teamIds.length; j++) {
+      teamSeasonPairs.push({ team_id: teamIds[j], season_id: s.season_id });
+    }
+  }
+
+  const teamSeasonNames =
+    teamSeasonPairs.length > 0
+      ? await db.teamSeasonName.findMany({
+          where: {
+            OR: teamSeasonPairs.map((p) => ({
+              team_id: p.team_id,
+              season_id: p.season_id,
+            })),
+          },
+          select: { team_id: true, season_id: true, team_name: true },
+        })
+      : [];
+
+  const teamSeasonNameMap = new Map<string, string>();
+  teamSeasonNames.forEach((tsn) => {
+    teamSeasonNameMap.set(`${tsn.team_id}-${tsn.season_id}`, tsn.team_name);
+  });
+
   const season_stats: CoachSeasonStats[] = seasonStatsArray
     .map((s) => {
       const matches_played = s.matches_played ?? 0;
       const win_rate =
         matches_played > 0 ? Math.round((s.wins / matches_played) * 100) : 0;
       const goal_difference = (s.goals_for ?? 0) - (s.goals_against ?? 0);
-      const teams = Array.from(s.teams);
+      // Use season-specific team names
+      const teams = Array.from(s.teamIds).map((id) => {
+        const seasonSpecificName = teamSeasonNameMap.get(
+          `${id}-${s.season_id}`
+        );
+        if (seasonSpecificName) return seasonSpecificName;
+        const t = teamMap.get(id);
+        return t?.team_name ?? 'Unknown';
+      });
       const teams_detailed = Array.from(s.teamIds).map((id) => {
         const t = teamMap.get(id);
+        const seasonSpecificName = teamSeasonNameMap.get(
+          `${id}-${s.season_id}`
+        );
         return {
           team_id: id,
-          team_name: t?.team_name ?? 'Unknown',
+          team_name: seasonSpecificName ?? t?.team_name ?? 'Unknown',
           logo: t?.logo ?? null,
         };
       });
