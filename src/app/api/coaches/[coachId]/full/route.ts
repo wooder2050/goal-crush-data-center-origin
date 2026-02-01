@@ -38,6 +38,46 @@ export async function GET(
       return NextResponse.json({ error: 'Coach not found' }, { status: 404 });
     }
 
+    // Fetch season-specific team names for team_coach_history
+    const historySeasonTeamPairs = coach.team_coach_history
+      .filter((h) => h.team_id && h.season_id)
+      .map((h) => ({ team_id: h.team_id!, season_id: h.season_id! }));
+
+    const teamSeasonNames =
+      historySeasonTeamPairs.length > 0
+        ? await prisma.teamSeasonName.findMany({
+            where: {
+              OR: historySeasonTeamPairs.map((p) => ({
+                team_id: p.team_id,
+                season_id: p.season_id,
+              })),
+            },
+            select: { team_id: true, season_id: true, team_name: true },
+          })
+        : [];
+
+    const teamSeasonNameMap = new Map<string, string>();
+    teamSeasonNames.forEach((tsn) => {
+      teamSeasonNameMap.set(`${tsn.team_id}-${tsn.season_id}`, tsn.team_name);
+    });
+
+    // Apply season-specific team names to team_coach_history
+    const team_coach_history = coach.team_coach_history.map((h) => {
+      const seasonSpecificName =
+        h.team_id && h.season_id
+          ? teamSeasonNameMap.get(`${h.team_id}-${h.season_id}`)
+          : undefined;
+      return {
+        ...h,
+        team: h.team
+          ? {
+              ...h.team,
+              team_name: seasonSpecificName ?? h.team.team_name,
+            }
+          : null,
+      };
+    });
+
     // Overview (season stats + trophies)
     const season_stats = await getCoachSeasonStatsCached(prisma, coachIdNum);
     const total_matches = season_stats.reduce(
@@ -56,7 +96,10 @@ export async function GET(
     const responseStats = season_stats;
 
     return NextResponse.json({
-      coach,
+      coach: {
+        ...coach,
+        team_coach_history,
+      },
       overview: {
         coach_id: coachIdNum,
         season_stats: responseStats,

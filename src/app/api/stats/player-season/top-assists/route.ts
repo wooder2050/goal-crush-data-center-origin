@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
           }),
       },
       include: {
-        player: { select: { name: true } },
+        player: { select: { name: true, profile_image_url: true } },
         team: { select: { team_name: true, logo: true } },
       },
       orderBy: { assists: 'desc' },
@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     const flattened = (stats as PlayerSeasonStatsWithDetails[]).map((s) => ({
       ...s,
       player_name: s.player?.name ?? null,
+      player_image: s.player?.profile_image_url ?? null,
       team_name: s.team?.team_name ?? null,
       team_logo: s.team?.logo ?? null,
     }));
