@@ -63,6 +63,56 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // 시즌별 팀 이름 조회 (특정 시즌 필터링 시)
+    const teamSeasonNamesMap = new Map<string, string>();
+    if (filterSeasonId) {
+      const teamSeasonNames = await prisma.teamSeasonName.findMany({
+        where: {
+          season_id: filterSeasonId,
+        },
+        select: {
+          team_id: true,
+          team_name: true,
+        },
+      });
+      teamSeasonNames.forEach((tsn) => {
+        teamSeasonNamesMap.set(`${tsn.team_id}`, tsn.team_name);
+      });
+    }
+
+    // 현재 소속팀 정보 가져오기 (is_active = true)
+    const activeTeamHistories = await prisma.playerTeamHistory.findMany({
+      where: {
+        is_active: true,
+      },
+      include: {
+        team: {
+          select: {
+            team_id: true,
+            team_name: true,
+            logo: true,
+          },
+        },
+      },
+    });
+
+    // player_id -> 현재 소속팀 매핑
+    const playerCurrentTeamMap = new Map<
+      number,
+      { team_id: number; team_name: string; logo: string | null }
+    >();
+    activeTeamHistories.forEach((history) => {
+      if (history.player_id && history.team) {
+        if (!playerCurrentTeamMap.has(history.player_id)) {
+          playerCurrentTeamMap.set(history.player_id, {
+            team_id: history.team.team_id,
+            team_name: history.team.team_name,
+            logo: history.team.logo,
+          });
+        }
+      }
+    });
+
     // 교체 투입 선수 목록 가져오기
     const substitutions = await prisma.substitution.findMany({
       where: {
@@ -109,9 +159,9 @@ export async function GET(request: NextRequest) {
         team_logos: Set<string>;
         team_ids: Set<number>;
         seasons: Set<string>;
-        first_team_id: number | null;
-        first_team_name: string | null;
-        first_team_logo: string | null;
+        current_team_id: number | null;
+        current_team_name: string | null;
+        current_team_logo: string | null;
       }
     >();
 
@@ -127,6 +177,13 @@ export async function GET(request: NextRequest) {
         !stat.team_id
       )
         return;
+
+      // 시즌별 팀 이름 가져오기 (있으면 시즌별, 없으면 기본 팀 이름)
+      const teamId = stat.team?.team_id;
+      const seasonTeamName =
+        teamId && filterSeasonId
+          ? teamSeasonNamesMap.get(`${teamId}`) || stat.team?.team_name
+          : stat.team?.team_name;
 
       // 승패 판정 (승부차기 포함)
       let isWin = false;
@@ -156,6 +213,15 @@ export async function GET(request: NextRequest) {
       }
 
       if (!playerStatsMap.has(playerId)) {
+        // 현재 소속팀 정보 가져오기
+        const currentTeam = playerCurrentTeamMap.get(playerId);
+        // 시즌 필터링 시 현재 팀 이름도 시즌별 이름으로 대체
+        const currentTeamSeasonName =
+          currentTeam?.team_id && filterSeasonId
+            ? teamSeasonNamesMap.get(`${currentTeam.team_id}`) ||
+              currentTeam?.team_name
+            : currentTeam?.team_name;
+
         playerStatsMap.set(playerId, {
           player_id: playerId,
           player_name: stat.player?.name || null,
@@ -167,9 +233,9 @@ export async function GET(request: NextRequest) {
           team_logos: new Set(),
           team_ids: new Set(),
           seasons: new Set(),
-          first_team_id: null,
-          first_team_name: null,
-          first_team_logo: null,
+          current_team_id: currentTeam?.team_id || null,
+          current_team_name: currentTeamSeasonName || null,
+          current_team_logo: currentTeam?.logo || null,
         });
       }
 
@@ -182,13 +248,8 @@ export async function GET(request: NextRequest) {
         playerStats.losses += 1;
       }
 
-      if (stat.team?.team_name) {
-        playerStats.teams.add(stat.team.team_name);
-        if (!playerStats.first_team_id && stat.team.team_id) {
-          playerStats.first_team_id = stat.team.team_id;
-          playerStats.first_team_name = stat.team.team_name;
-          playerStats.first_team_logo = stat.team.logo || null;
-        }
+      if (seasonTeamName) {
+        playerStats.teams.add(seasonTeamName);
       }
 
       if (stat.team?.logo) {
@@ -213,6 +274,17 @@ export async function GET(request: NextRequest) {
             ? (stats.wins / stats.matches_played) * 100
             : 0;
 
+        // 현재 소속팀 로고를 team_logos 배열 맨 앞에 추가
+        const teamLogosArray = Array.from(stats.team_logos) as string[];
+        if (stats.current_team_logo) {
+          const filteredLogos = teamLogosArray.filter(
+            (logo) => logo !== stats.current_team_logo
+          );
+          filteredLogos.unshift(stats.current_team_logo);
+          teamLogosArray.length = 0;
+          teamLogosArray.push(...filteredLogos);
+        }
+
         return {
           player_id: stats.player_id,
           player_name: stats.player_name,
@@ -222,12 +294,13 @@ export async function GET(request: NextRequest) {
           losses: stats.losses,
           win_rate: winRate.toFixed(2),
           teams: Array.from(stats.teams).join(', '),
-          team_logos: Array.from(stats.team_logos),
+          team_logos: teamLogosArray,
           team_ids: Array.from(stats.team_ids),
           seasons: Array.from(stats.seasons).join(', '),
-          first_team_id: stats.first_team_id,
-          first_team_name: stats.first_team_name,
-          first_team_logo: stats.first_team_logo,
+          // 프론트엔드 호환성을 위해 first_team_* 필드에 현재 소속팀 정보 매핑
+          first_team_id: stats.current_team_id,
+          first_team_name: stats.current_team_name,
+          first_team_logo: stats.current_team_logo,
         };
       });
 

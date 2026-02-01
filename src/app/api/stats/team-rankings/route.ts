@@ -46,6 +46,18 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // 시즌별 팀 이름 조회 (특정 시즌 필터링 시)
+    const teamSeasonNamesMap = new Map<number, string>();
+    if (filterSeasonId) {
+      const teamSeasonNames = await prisma.teamSeasonName.findMany({
+        where: { season_id: filterSeasonId },
+        select: { team_id: true, team_name: true },
+      });
+      teamSeasonNames.forEach((tsn) => {
+        teamSeasonNamesMap.set(tsn.team_id, tsn.team_name);
+      });
+    }
+
     // 모든 경기 결과 가져오기 (스코어가 있는 경기만)
     const matches = await prisma.match.findMany({
       where: {
@@ -89,11 +101,19 @@ export async function GET(request: NextRequest) {
 
       if (!homeTeamId || !awayTeamId) return;
 
+      // 시즌별 팀 이름 우선 사용, 없으면 기본 팀 이름 사용
+      const homeTeamName = filterSeasonId
+        ? (teamSeasonNamesMap.get(homeTeamId) ?? match.home_team?.team_name)
+        : match.home_team?.team_name;
+      const awayTeamName = filterSeasonId
+        ? (teamSeasonNamesMap.get(awayTeamId) ?? match.away_team?.team_name)
+        : match.away_team?.team_name;
+
       // 홈팀 통계 처리
       if (!teamStatsMap.has(homeTeamId)) {
         teamStatsMap.set(homeTeamId, {
           team_id: homeTeamId,
-          team_name: match.home_team?.team_name,
+          team_name: homeTeamName,
           team_logo: match.home_team?.logo,
           matches_played: 0,
           wins: 0,
@@ -128,7 +148,7 @@ export async function GET(request: NextRequest) {
       if (!teamStatsMap.has(awayTeamId)) {
         teamStatsMap.set(awayTeamId, {
           team_id: awayTeamId,
-          team_name: match.away_team?.team_name,
+          team_name: awayTeamName,
           team_logo: match.away_team?.logo,
           matches_played: 0,
           wins: 0,

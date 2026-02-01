@@ -14,10 +14,22 @@ export async function GET(request: NextRequest) {
 
     // season_id가 제공된 경우 시즌별 득점왕, 없으면 커리어 누적 득점왕
     if (seasonId && !isNaN(parseInt(seasonId))) {
+      const parsedSeasonId = parseInt(seasonId);
+
+      // 시즌별 팀 이름 조회
+      const teamSeasonNames = await prisma.teamSeasonName.findMany({
+        where: { season_id: parsedSeasonId },
+        select: { team_id: true, team_name: true },
+      });
+      const teamSeasonNamesMap = new Map<number, string>();
+      teamSeasonNames.forEach((tsn) => {
+        teamSeasonNamesMap.set(tsn.team_id, tsn.team_name);
+      });
+
       // 시즌별 득점왕 조회
       const stats = await prisma.playerSeasonStats.findMany({
         where: {
-          season_id: parseInt(seasonId),
+          season_id: parsedSeasonId,
         },
         include: {
           player: {
@@ -40,25 +52,33 @@ export async function GET(request: NextRequest) {
       });
 
       // 시즌별 데이터를 클라이언트 형식으로 변환
-      const topScorers = stats.map((stat) => ({
-        stat_id: stat.stat_id,
-        player_id: stat.player?.player_id || null,
-        season_id: stat.season_id,
-        team_id: stat.team_id,
-        matches_played: stat.matches_played,
-        goals: stat.goals,
-        assists: stat.assists,
-        yellow_cards: stat.yellow_cards,
-        red_cards: stat.red_cards,
-        minutes_played: stat.minutes_played,
-        saves: stat.saves,
-        created_at: stat.created_at,
-        updated_at: stat.updated_at,
-        player_name: stat.player?.name || null,
-        player_image: stat.player?.profile_image_url || null,
-        team_name: stat.team?.team_name || null,
-        team_logo: stat.team?.logo || null,
-      }));
+      const topScorers = stats.map((stat) => {
+        // 시즌별 팀 이름 우선 사용, 없으면 기본 팀 이름 사용
+        const seasonTeamName =
+          stat.team_id != null
+            ? (teamSeasonNamesMap.get(stat.team_id) ?? stat.team?.team_name)
+            : stat.team?.team_name;
+
+        return {
+          stat_id: stat.stat_id,
+          player_id: stat.player?.player_id || null,
+          season_id: stat.season_id,
+          team_id: stat.team_id,
+          matches_played: stat.matches_played,
+          goals: stat.goals,
+          assists: stat.assists,
+          yellow_cards: stat.yellow_cards,
+          red_cards: stat.red_cards,
+          minutes_played: stat.minutes_played,
+          saves: stat.saves,
+          created_at: stat.created_at,
+          updated_at: stat.updated_at,
+          player_name: stat.player?.name || null,
+          player_image: stat.player?.profile_image_url || null,
+          team_name: seasonTeamName || null,
+          team_logo: stat.team?.logo || null,
+        };
+      });
 
       return NextResponse.json(topScorers);
     } else {
