@@ -20,6 +20,50 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const parsedSeasonId = parseInt(seasonId);
+
+    // 시즌별 팀 이름 조회
+    const teamSeasonNames = await prisma.teamSeasonName.findMany({
+      where: { season_id: parsedSeasonId },
+      select: { team_id: true, team_name: true },
+    });
+    const teamSeasonNamesMap = new Map<number, string>();
+    teamSeasonNames.forEach((tsn) => {
+      teamSeasonNamesMap.set(tsn.team_id, tsn.team_name);
+    });
+
+    // 시즌별 팀 이름 적용 헬퍼 함수
+    const applySeasonTeamNames = <
+      T extends {
+        team_id?: number | null;
+        team?: {
+          team_id: number;
+          team_name: string;
+          logo: string | null;
+        } | null;
+      },
+    >(
+      standings: T[]
+    ) => {
+      return standings.map((standing) => {
+        const seasonTeamName =
+          standing.team_id != null
+            ? (teamSeasonNamesMap.get(standing.team_id) ??
+              standing.team?.team_name)
+            : standing.team?.team_name;
+
+        return {
+          ...standing,
+          team: standing.team
+            ? {
+                ...standing.team,
+                team_name: seasonTeamName ?? standing.team.team_name,
+              }
+            : null,
+        };
+      });
+    };
+
     // 전체일 때는 standing 테이블 사용, 그 외에는 group_league_standings 테이블 사용
     const isOverall = !tournamentStage || tournamentStage === 'all';
 
@@ -27,7 +71,7 @@ export async function GET(request: NextRequest) {
       // 전체 순위 - standing 테이블 사용
       const standings = await prisma.standing.findMany({
         where: {
-          season_id: parseInt(seasonId),
+          season_id: parsedSeasonId,
         },
         include: {
           team: {
@@ -45,7 +89,7 @@ export async function GET(request: NextRequest) {
         ],
       });
 
-      return NextResponse.json(standings);
+      return NextResponse.json(applySeasonTeamNames(standings));
     } else {
       // 조별리그 또는 토너먼트 - group_league_standings 테이블 사용
       const where: {
@@ -53,7 +97,7 @@ export async function GET(request: NextRequest) {
         tournament_stage?: string;
         group_stage?: string;
       } = {
-        season_id: parseInt(seasonId),
+        season_id: parsedSeasonId,
       };
 
       // 토너먼트 스테이지 필터링
@@ -94,7 +138,7 @@ export async function GET(request: NextRequest) {
       if (standings.length === 0) {
         const fallbackStandings = await prisma.standing.findMany({
           where: {
-            season_id: parseInt(seasonId),
+            season_id: parsedSeasonId,
           },
           include: {
             team: {
@@ -111,10 +155,10 @@ export async function GET(request: NextRequest) {
             { goals_for: 'desc' },
           ],
         });
-        return NextResponse.json(fallbackStandings);
+        return NextResponse.json(applySeasonTeamNames(fallbackStandings));
       }
 
-      return NextResponse.json(standings);
+      return NextResponse.json(applySeasonTeamNames(standings));
     }
   } catch (error) {
     console.error('Error fetching group league standings:', error);

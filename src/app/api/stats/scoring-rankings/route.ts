@@ -50,6 +50,23 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // 시즌별 팀 이름 조회 (특정 시즌 필터링 시)
+    const teamSeasonNamesMap = new Map<string, string>();
+    if (filterSeasonId) {
+      const teamSeasonNames = await prisma.teamSeasonName.findMany({
+        where: {
+          season_id: filterSeasonId,
+        },
+        select: {
+          team_id: true,
+          team_name: true,
+        },
+      });
+      teamSeasonNames.forEach((tsn) => {
+        teamSeasonNamesMap.set(`${tsn.team_id}`, tsn.team_name);
+      });
+    }
+
     // 현재 소속팀 정보 가져오기 (is_active = true)
     const activeTeamHistories = await prisma.playerTeamHistory.findMany({
       where: {
@@ -95,9 +112,22 @@ export async function GET(request: NextRequest) {
         ? `${playerId}` // 특정 시즌만 필터링
         : `${playerId}`; // 전체 커리어
 
+      // 시즌별 ��� 이름 가져오기 (있으면 시즌별, 없으면 기본 팀 이름)
+      const teamId = stat.team?.team_id;
+      const seasonTeamName =
+        teamId && filterSeasonId
+          ? teamSeasonNamesMap.get(`${teamId}`) || stat.team?.team_name
+          : stat.team?.team_name;
+
       if (!playerStatsMap.has(key)) {
         // 현재 소속팀 정보 가져오기
         const currentTeam = playerCurrentTeamMap.get(playerId);
+        // 시즌 필터링 시 현재 팀 이름도 시즌별 이름으로 대체
+        const currentTeamSeasonName =
+          currentTeam?.team_id && filterSeasonId
+            ? teamSeasonNamesMap.get(`${currentTeam.team_id}`) ||
+              currentTeam?.team_name
+            : currentTeam?.team_name;
 
         playerStatsMap.set(key, {
           player_id: playerId,
@@ -113,7 +143,7 @@ export async function GET(request: NextRequest) {
           seasons: new Set(),
           // 현재 소속팀 정보 (player_team_history 기준)
           current_team_id: currentTeam?.team_id || null,
-          current_team_name: currentTeam?.team_name || null,
+          current_team_name: currentTeamSeasonName || null,
           current_team_logo: currentTeam?.logo || null,
         });
       }
@@ -124,8 +154,8 @@ export async function GET(request: NextRequest) {
       playerStats.assists += stat.assists || 0;
       playerStats.attack_points = playerStats.goals + playerStats.assists;
 
-      if (stat.team?.team_name) {
-        playerStats.teams.add(stat.team.team_name);
+      if (seasonTeamName) {
+        playerStats.teams.add(seasonTeamName);
       }
 
       if (stat.team?.logo) {

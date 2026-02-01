@@ -283,6 +283,23 @@ export async function GET(request: NextRequest) {
         team: { select: { team_id: true, team_name: true, logo: true } },
       },
     });
+
+    // 시즌별 팀 이름 조회
+    const teamSeasonNames = await prisma.teamSeasonName.findMany({
+      where: { season_id: { in: seasonIds } },
+      select: {
+        team_id: true,
+        season_id: true,
+        team_name: true,
+      },
+    });
+
+    // 시즌+팀 조합으로 시즌별 팀 이름 매핑
+    const teamSeasonNameMap = new Map<string, string>();
+    for (const tsn of teamSeasonNames) {
+      teamSeasonNameMap.set(`${tsn.season_id}-${tsn.team_id}`, tsn.team_name);
+    }
+
     const winnersBySeason = new Map<
       number,
       Array<{ id: number | null; name: string | null; logo: string | null }>
@@ -290,9 +307,15 @@ export async function GET(request: NextRequest) {
     for (const w of winners) {
       if (w.season_id == null) continue;
       const arr = winnersBySeason.get(w.season_id) ?? [];
+      // 시즌별 팀 이름 우선 사용, 없으면 기본 팀 이름 사용
+      const seasonTeamName =
+        w.team?.team_id != null
+          ? (teamSeasonNameMap.get(`${w.season_id}-${w.team.team_id}`) ??
+            w.team?.team_name)
+          : w.team?.team_name;
       arr.push({
         id: w.team?.team_id ?? null,
-        name: w.team?.team_name ?? null,
+        name: seasonTeamName ?? null,
         logo: w.team?.logo ?? null,
       });
       winnersBySeason.set(w.season_id, arr);

@@ -19,6 +19,16 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid season ID' }, { status: 400 });
     }
 
+    // 시즌별 팀 이름 조회
+    const teamSeasonNames = await prisma.teamSeasonName.findMany({
+      where: { season_id: seasonIdNum },
+      select: { team_id: true, team_name: true },
+    });
+    const teamSeasonNamesMap = new Map<number, string>();
+    teamSeasonNames.forEach((tsn) => {
+      teamSeasonNamesMap.set(tsn.team_id, tsn.team_name);
+    });
+
     const standings = await prisma.standing.findMany({
       where: { season_id: seasonIdNum },
       select: {
@@ -48,7 +58,26 @@ export async function GET(
       orderBy: { position: 'asc' },
     });
 
-    return NextResponse.json(standings);
+    // 시즌별 팀 이름 적용
+    const standingsWithSeasonTeamNames = standings.map((standing) => {
+      const seasonTeamName =
+        standing.team_id != null
+          ? (teamSeasonNamesMap.get(standing.team_id) ??
+            standing.team?.team_name)
+          : standing.team?.team_name;
+
+      return {
+        ...standing,
+        team: standing.team
+          ? {
+              ...standing.team,
+              team_name: seasonTeamName ?? standing.team.team_name,
+            }
+          : null,
+      };
+    });
+
+    return NextResponse.json(standingsWithSeasonTeamNames);
   } catch (error) {
     console.error('Error fetching standings by season:', error);
     return NextResponse.json(
