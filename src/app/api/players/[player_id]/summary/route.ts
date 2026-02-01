@@ -210,6 +210,30 @@ export async function GET(
         };
       });
 
+    // Fetch season-specific team names from team_season_names table
+    const seasonTeamPairs = seasons
+      .filter((s) => s.team_id && s.season_id)
+      .map((s) => ({ team_id: s.team_id as number, season_id: s.season_id }));
+
+    const teamSeasonNames =
+      seasonTeamPairs.length > 0
+        ? await prisma.teamSeasonName.findMany({
+            where: {
+              OR: seasonTeamPairs.map((p) => ({
+                team_id: p.team_id,
+                season_id: p.season_id,
+              })),
+            },
+            select: { team_id: true, season_id: true, team_name: true },
+          })
+        : [];
+
+    // Create a map for quick lookup: "team_id-season_id" -> team_name
+    const teamSeasonNameMap = new Map<string, string>();
+    teamSeasonNames.forEach((tsn) => {
+      teamSeasonNameMap.set(`${tsn.team_id}-${tsn.season_id}`, tsn.team_name);
+    });
+
     // Enrich seasons with team info (names and logos) for those missing but with team_id
     const idsNeedingTeamInfo = Array.from(
       new Set(
@@ -218,29 +242,41 @@ export async function GET(
           .map((s) => s.team_id as number)
       )
     );
+    const teamMap = new Map<
+      number,
+      { team_name: string; logo: string | null }
+    >();
     if (idsNeedingTeamInfo.length > 0) {
       const teams = await prisma.team.findMany({
         where: { team_id: { in: idsNeedingTeamInfo } },
         select: { team_id: true, team_name: true, logo: true },
       });
-      const teamMap = new Map<
-        number,
-        { team_name: string; logo: string | null }
-      >();
       teams.forEach((t) =>
         teamMap.set(t.team_id, { team_name: t.team_name, logo: t.logo ?? null })
       );
-      for (let i = 0; i < seasons.length; i++) {
-        const tid = seasons[i].team_id as number | null;
-        if (tid) {
+    }
+
+    // Apply season-specific team names and fill missing info
+    for (let i = 0; i < seasons.length; i++) {
+      const tid = seasons[i].team_id as number | null;
+      const sid = seasons[i].season_id;
+      if (tid) {
+        // First check for season-specific team name
+        const seasonSpecificName = teamSeasonNameMap.get(`${tid}-${sid}`);
+        if (seasonSpecificName) {
+          seasons[i].team_name = seasonSpecificName;
+        } else if (!seasons[i].team_name) {
+          // Fallback to default team name
           const teamInfo = teamMap.get(tid);
           if (teamInfo) {
-            if (!seasons[i].team_name) {
-              seasons[i].team_name = teamInfo.team_name;
-            }
-            if (!seasons[i].team_logo) {
-              seasons[i].team_logo = teamInfo.logo;
-            }
+            seasons[i].team_name = teamInfo.team_name;
+          }
+        }
+        // Always fill logo if missing
+        if (!seasons[i].team_logo) {
+          const teamInfo = teamMap.get(tid);
+          if (teamInfo) {
+            seasons[i].team_logo = teamInfo.logo;
           }
         }
       }
@@ -478,6 +514,49 @@ export async function GET(
       }
       const matchMap = new Map<number, (typeof matches)[number]>();
       matches.forEach((m) => matchMap.set(m.match_id, m));
+
+      // Fetch season-specific team names for goal matches
+      const goalMatchTeamSeasonPairs: { team_id: number; season_id: number }[] =
+        [];
+      matches.forEach((m) => {
+        const seasonId = m.season?.season_id;
+        if (seasonId) {
+          if (m.home_team?.team_id) {
+            goalMatchTeamSeasonPairs.push({
+              team_id: m.home_team.team_id,
+              season_id: seasonId,
+            });
+          }
+          if (m.away_team?.team_id) {
+            goalMatchTeamSeasonPairs.push({
+              team_id: m.away_team.team_id,
+              season_id: seasonId,
+            });
+          }
+        }
+      });
+
+      const goalMatchTeamSeasonNames =
+        goalMatchTeamSeasonPairs.length > 0
+          ? await prisma.teamSeasonName.findMany({
+              where: {
+                OR: goalMatchTeamSeasonPairs.map((p) => ({
+                  team_id: p.team_id,
+                  season_id: p.season_id,
+                })),
+              },
+              select: { team_id: true, season_id: true, team_name: true },
+            })
+          : [];
+
+      const goalMatchTeamSeasonNameMap = new Map<string, string>();
+      goalMatchTeamSeasonNames.forEach((tsn) => {
+        goalMatchTeamSeasonNameMap.set(
+          `${tsn.team_id}-${tsn.season_id}`,
+          tsn.team_name
+        );
+      });
+
       goal_matches = goalPmsRows
         .map((g) => {
           const m = matchMap.get(g.match_id!);
@@ -487,16 +566,36 @@ export async function GET(
             playerTeamId != null && playerTeamId === m.home_team_id;
           const teamMeta = isHome ? m.home_team : m.away_team;
           const opponentMeta = isHome ? m.away_team : m.home_team;
+          const seasonId = m.season?.season_id;
+
+          // Get season-specific team names if available
+          const teamName =
+            teamMeta?.team_id && seasonId
+              ? (goalMatchTeamSeasonNameMap.get(
+                  `${teamMeta.team_id}-${seasonId}`
+                ) ??
+                teamMeta?.team_name ??
+                null)
+              : (teamMeta?.team_name ?? null);
+          const opponentName =
+            opponentMeta?.team_id && seasonId
+              ? (goalMatchTeamSeasonNameMap.get(
+                  `${opponentMeta.team_id}-${seasonId}`
+                ) ??
+                opponentMeta?.team_name ??
+                null)
+              : (opponentMeta?.team_name ?? null);
+
           return {
             match_id: m.match_id,
             match_date: m.match_date?.toISOString() ?? null,
-            season_id: m.season?.season_id ?? null,
+            season_id: seasonId ?? null,
             season_name: m.season?.season_name ?? null,
             team_id: teamMeta?.team_id ?? null,
-            team_name: teamMeta?.team_name ?? null,
+            team_name: teamName,
             team_logo: teamMeta?.logo ?? null,
             opponent_id: opponentMeta?.team_id ?? null,
-            opponent_name: opponentMeta?.team_name ?? null,
+            opponent_name: opponentName,
             opponent_logo: opponentMeta?.logo ?? null,
             player_goals: g.goals ?? 0,
             penalty_goals: penaltyCountByMatch.get(m.match_id) ?? 0,
