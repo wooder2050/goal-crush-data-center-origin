@@ -35,6 +35,8 @@ interface LineupPitchViewProps {
   homeTeamSecondaryColor?: string;
   awayTeamPrimaryColor?: string;
   awayTeamSecondaryColor?: string;
+  homeBestPlayerId?: number | null;
+  awayBestPlayerId?: number | null;
 }
 
 // 포지션별 X 위치 (가로형 피치)
@@ -85,6 +87,8 @@ function LineupPitchView({
   homeTeamSecondaryColor = '#FFFFFF',
   awayTeamPrimaryColor = '#ef4444',
   awayTeamSecondaryColor = '#FFFFFF',
+  homeBestPlayerId,
+  awayBestPlayerId,
 }: LineupPitchViewProps) {
   // SVG viewBox 크기 (가로형 + 교체선수 영역)
   const SVG_WIDTH = 100;
@@ -196,7 +200,8 @@ function LineupPitchView({
     player: PlayerPosition & { display_x: number; display_y: number },
     primaryColor: string,
     secondaryColor: string,
-    imageSize: number = 9
+    imageSize: number = 9,
+    isBestPlayer: boolean = false
   ) => {
     const x = player.display_x;
     const y = player.display_y;
@@ -237,6 +242,7 @@ function LineupPitchView({
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
+                      objectPosition: 'top',
                     }}
                   />
                 </div>
@@ -268,12 +274,52 @@ function LineupPitchView({
           {/* 골, 어시스트, 카드 아이콘 (프로필 이미지 오른쪽 하단) */}
           {renderPlayerStats(player, x, y, imageSize)}
 
+          {/* MVP 아이콘 (프로필 이미지 왼쪽 상단) */}
+          {isBestPlayer &&
+            (() => {
+              const radius = imageSize / 2;
+              const iconX = x - radius * 0.9;
+              const iconY = y - radius * 0.9;
+              const scale = imageSize < 7 ? 0.12 : 0.16;
+              return (
+                <g
+                  transform={`translate(${iconX - 1}, ${iconY - 1}) scale(${scale})`}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    overflow="visible"
+                  >
+                    <circle
+                      cx="10"
+                      cy="10"
+                      r="9"
+                      fill="white"
+                      stroke="#ff4800"
+                      strokeWidth="1.5"
+                    />
+                    <text
+                      x="10"
+                      y="14"
+                      fill="#ff4800"
+                      fontSize="10"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                    >
+                      ★
+                    </text>
+                  </svg>
+                </g>
+              );
+            })()}
+
           {/* 등번호 + 선수 이름 (이미지 아래) */}
           <text
             x={x}
-            y={y + imageSize / 2 + (imageSize < 7 ? 2.5 : 3.5)}
+            y={y + imageSize / 2 + (imageSize < 7 ? 2 : 3)}
             fill="#333"
-            fontSize={imageSize < 7 ? '2' : '2.8'}
+            fontSize={imageSize < 7 ? '1.6' : '2.2'}
             textAnchor="middle"
             fontWeight="600"
             className="cursor-pointer"
@@ -545,8 +591,17 @@ function LineupPitchView({
       const secondaryColor = isHomePlayer
         ? homeSecondaryColor
         : awaySecondaryColor;
+      const isBest = isHomePlayer
+        ? player.player_id === homeBestPlayerId
+        : player.player_id === awayBestPlayerId;
 
-      return renderPlayer(displayPlayer, primaryColor, secondaryColor, 5);
+      return renderPlayer(
+        displayPlayer,
+        primaryColor,
+        secondaryColor,
+        5,
+        isBest
+      );
     });
   };
 
@@ -689,12 +744,24 @@ function LineupPitchView({
 
         {/* 홈팀 선수들 (왼쪽 하프) */}
         {adjustedHomePlayers.map((player) =>
-          renderPlayer(player, homeTeamPrimaryColor, homeTeamSecondaryColor)
+          renderPlayer(
+            player,
+            homeTeamPrimaryColor,
+            homeTeamSecondaryColor,
+            9,
+            player.player_id === homeBestPlayerId
+          )
         )}
 
         {/* 원정팀 선수들 (오른쪽 하프) */}
         {adjustedAwayPlayers.map((player) =>
-          renderPlayer(player, awayTeamPrimaryColor, awayTeamSecondaryColor)
+          renderPlayer(
+            player,
+            awayTeamPrimaryColor,
+            awayTeamSecondaryColor,
+            9,
+            player.player_id === awayBestPlayerId
+          )
         )}
 
         {/* 교체 선수들 (중앙 정렬) */}
