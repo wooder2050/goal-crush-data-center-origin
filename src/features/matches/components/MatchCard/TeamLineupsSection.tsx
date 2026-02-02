@@ -345,6 +345,51 @@ function TeamLineupsSectionInner({
   const homeLineupWithStats = addStatsToLineup(homeLineups);
   const awayLineupWithStats = addStatsToLineup(awayLineups);
 
+  // 베스트 플레이어 계산 (골 > 어시스트 > 출전시간 순)
+  const selectBestPlayer = (
+    players: LineupPlayer[],
+    concededGoals: number
+  ): number | null => {
+    if (players.length === 0) return null;
+
+    const getRegularGoals = (p: LineupPlayer): number =>
+      Math.max(0, (p.goals || 0) - (ownGoalsByPlayer[p.player_id] || 0));
+    const getAssists = (p: LineupPlayer): number =>
+      assistsByPlayer[p.player_id] || 0;
+
+    const hasAnyContribution = players.some(
+      (p) => getRegularGoals(p) > 0 || getAssists(p) > 0
+    );
+
+    const sorted = [...players].sort((a, b) => {
+      if (getRegularGoals(b) !== getRegularGoals(a))
+        return getRegularGoals(b) - getRegularGoals(a);
+      if (getAssists(b) !== getAssists(a)) return getAssists(b) - getAssists(a);
+      return 0;
+    });
+
+    if (hasAnyContribution) {
+      return sorted[0]?.player_id || null;
+    }
+
+    // 무실점일 경우 골키퍼 선정
+    if (concededGoals === 0) {
+      const goalkeeper = players.find(
+        (p) =>
+          (p.position || '').toLowerCase() === 'goalkeeper' ||
+          (p.position || '').toLowerCase() === 'gk'
+      );
+      if (goalkeeper) return goalkeeper.player_id;
+    }
+
+    return null;
+  };
+
+  const homeConcededGoals = match.away_score || 0;
+  const awayConcededGoals = match.home_score || 0;
+  const homeBestPlayerId = selectBestPlayer(homeLineups, homeConcededGoals);
+  const awayBestPlayerId = selectBestPlayer(awayLineups, awayConcededGoals);
+
   // Resolve team colors (with defaults)
   const homeTeamPrimaryColor = match.home_team?.primary_color || '#000000';
   const awayTeamPrimaryColor = match.away_team?.primary_color || '#6B7280';
@@ -400,6 +445,8 @@ function TeamLineupsSectionInner({
               homeTeamSecondaryColor={homeTeamSecondaryColor}
               awayTeamPrimaryColor={awayTeamPrimaryColor}
               awayTeamSecondaryColor={awayTeamSecondaryColor}
+              homeBestPlayerId={homeBestPlayerId}
+              awayBestPlayerId={awayBestPlayerId}
             />
           )}
 
