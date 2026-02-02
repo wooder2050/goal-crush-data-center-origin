@@ -14,10 +14,13 @@ import {
   getMatchAssistsPrisma,
   getMatchGoalsPrisma,
   getMatchLineupsPrisma,
+  getMatchPassMapPrisma,
   getPredictedMatchLineupsPrisma,
   getSeasonPlayersPrisma,
+  type TeamPassNetworkData,
 } from '../../api-prisma';
 import { getPositionColor, getPositionText } from '../../lib/matchUtils';
+import LineupPitchView from './LineupPitchView';
 import LineupsEmpty from './LineupsEmpty';
 import LineupsSkeleton from './LineupsSkeleton';
 
@@ -35,6 +38,7 @@ interface LineupPlayer {
   assists?: number;
   own_goals?: number;
   regular_goals?: number;
+  profile_image_url?: string | null;
   // Optional fields for different data sources
   stat_id?: number;
   match_id?: number;
@@ -171,10 +175,134 @@ function TeamLineupsSectionInner({
     match.match_id,
   ]);
 
+  // Fetch pass map data (for pitch view)
+  const { data: passMapData } = useGoalSuspenseQuery(getMatchPassMapPrisma, [
+    match.match_id,
+  ]) as { data: TeamPassNetworkData[] | undefined };
+
   const homeTeamKey = `${match.match_id}_${match.home_team_id}`;
   const awayTeamKey = `${match.match_id}_${match.away_team_id}`;
   const homeLineups = lineups[homeTeamKey] || [];
   const awayLineups = lineups[awayTeamKey] || [];
+
+  // Extract player positions from pass map data for pitch view
+  const homePassMapPlayersRaw =
+    passMapData?.find((team) => team.team_id === match.home_team_id)?.players ||
+    [];
+  const awayPassMapPlayersRaw =
+    passMapData?.find((team) => team.team_id === match.away_team_id)?.players ||
+    [];
+
+  // 라인업 데이터에서 포지션 및 기록 정보를 가져와 패스맵 플레이어에 매핑
+  const playerStatsById = new Map<
+    number,
+    {
+      position: string;
+      goals: number;
+      assists: number;
+      yellow_cards: number;
+      red_cards: number;
+      card_type: 'none' | 'yellow' | 'red_direct' | 'red_accumulated';
+    }
+  >();
+  [...homeLineups, ...awayLineups].forEach((p) =>
+    playerStatsById.set(p.player_id, {
+      position: p.position,
+      goals: p.goals || 0,
+      assists: p.assists || 0,
+      yellow_cards: p.yellow_cards || 0,
+      red_cards: p.red_cards || 0,
+      card_type: p.card_type || 'none',
+    })
+  );
+
+  // 선발 선수 ID 목록 (participation_status가 'starting'인 선수)
+  const homeStartingPlayerIds = new Set(
+    homeLineups
+      .filter((p) => p.participation_status === 'starting')
+      .map((p) => p.player_id)
+  );
+  const awayStartingPlayerIds = new Set(
+    awayLineups
+      .filter((p) => p.participation_status === 'starting')
+      .map((p) => p.player_id)
+  );
+
+  // 패스맵 데이터 중 선발 선수만 필터링 + 기록 정보 매핑
+  const homePassMapPlayers = homePassMapPlayersRaw
+    .filter((p) => homeStartingPlayerIds.has(p.player_id))
+    .map((p) => {
+      const stats = playerStatsById.get(p.player_id);
+      return {
+        ...p,
+        position: stats?.position || 'MF',
+        goals: stats?.goals || 0,
+        assists: stats?.assists || 0,
+        yellow_cards: stats?.yellow_cards || 0,
+        red_cards: stats?.red_cards || 0,
+        card_type: stats?.card_type || 'none',
+      };
+    });
+  const awayPassMapPlayers = awayPassMapPlayersRaw
+    .filter((p) => awayStartingPlayerIds.has(p.player_id))
+    .map((p) => {
+      const stats = playerStatsById.get(p.player_id);
+      return {
+        ...p,
+        position: stats?.position || 'MF',
+        goals: stats?.goals || 0,
+        assists: stats?.assists || 0,
+        yellow_cards: stats?.yellow_cards || 0,
+        red_cards: stats?.red_cards || 0,
+        card_type: stats?.card_type || 'none',
+      };
+    });
+
+  // 교체 선수 데이터 준비 (피치 뷰용) + 기록 정보 매핑
+  const homeSubstitutes = homeLineups
+    .filter((p) => p.participation_status === 'substitute')
+    .map((p) => ({
+      player_id: p.player_id,
+      player_name: p.player_name,
+      jersey_number: p.jersey_number || 0,
+      profile_image_url: p.profile_image_url || null,
+      avg_x: 0,
+      avg_y: 10,
+      total_passes: 0,
+      success_passes: 0,
+      position: p.position,
+      participation_status: p.participation_status,
+      goals: p.goals || 0,
+      assists: p.assists || 0,
+      yellow_cards: p.yellow_cards || 0,
+      red_cards: p.red_cards || 0,
+      card_type: p.card_type || 'none',
+    }));
+  const awaySubstitutes = awayLineups
+    .filter((p) => p.participation_status === 'substitute')
+    .map((p) => ({
+      player_id: p.player_id,
+      player_name: p.player_name,
+      jersey_number: p.jersey_number || 0,
+      profile_image_url: p.profile_image_url || null,
+      avg_x: 0,
+      avg_y: 10,
+      total_passes: 0,
+      success_passes: 0,
+      position: p.position,
+      participation_status: p.participation_status,
+      goals: p.goals || 0,
+      assists: p.assists || 0,
+      yellow_cards: p.yellow_cards || 0,
+      red_cards: p.red_cards || 0,
+      card_type: p.card_type || 'none',
+    }));
+
+  // Determine if we should show pitch view (pass map data with player positions exists)
+  const hasPassMapData =
+    homePassMapPlayersRaw.length > 0 && awayPassMapPlayersRaw.length > 0;
+  const hasDetailedStats = !actualEmpty; // 상세 기록이 있는 경우 (실제 라인업 데이터가 있음)
+  const showPitchView = hasPassMapData && hasDetailedStats;
 
   // Calculate number of assists per player
   const assistsByPlayer = assists.reduce(
@@ -255,6 +383,25 @@ function TeamLineupsSectionInner({
         {homeLineups.length === 0 && awayLineups.length === 0 && (
           <LineupsEmpty className={className} />
         )}
+
+        {/* FotMob-style Pitch View - shown when pass map data and detailed stats exist */}
+        {showPitchView &&
+          (homeLineups.length > 0 || awayLineups.length > 0) && (
+            <LineupPitchView
+              homePlayers={homePassMapPlayers}
+              awayPlayers={awayPassMapPlayers}
+              homeSubstitutes={homeSubstitutes}
+              awaySubstitutes={awaySubstitutes}
+              homeTeamName={match.home_team?.team_name || '홈팀'}
+              awayTeamName={match.away_team?.team_name || '원정팀'}
+              homeTeamLogo={match.home_team?.logo}
+              awayTeamLogo={match.away_team?.logo}
+              homeTeamPrimaryColor={homeTeamPrimaryColor}
+              homeTeamSecondaryColor={homeTeamSecondaryColor}
+              awayTeamPrimaryColor={awayTeamPrimaryColor}
+              awayTeamSecondaryColor={awayTeamSecondaryColor}
+            />
+          )}
 
         {(homeLineups.length > 0 || awayLineups.length > 0) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
