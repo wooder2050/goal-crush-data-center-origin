@@ -72,6 +72,9 @@ export async function GET(
           ? {
               team_id: m.home_team.team_id,
               team_name: m.home_team.team_name,
+              logo:
+                (m.home_team as unknown as { logo?: string | null }).logo ??
+                null,
               primary_color:
                 (m.home_team as unknown as { primary_color?: string | null })
                   .primary_color ?? null,
@@ -84,6 +87,9 @@ export async function GET(
           ? {
               team_id: m.away_team.team_id,
               team_name: m.away_team.team_name,
+              logo:
+                (m.away_team as unknown as { logo?: string | null }).logo ??
+                null,
               primary_color:
                 (m.away_team as unknown as { primary_color?: string | null })
                   .primary_color ?? null,

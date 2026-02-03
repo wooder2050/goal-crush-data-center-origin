@@ -1,6 +1,8 @@
 'use client';
 
 import { format } from 'date-fns';
+import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
 
 import { Card } from '@/components/ui/card';
@@ -14,8 +16,6 @@ const simplify = (name?: string | null) =>
     .replace(/\bFC\b/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
-
-// removed softBg (not needed after switching to solid primary background)
 
 export default function HeadToHeadList({ matchId }: { matchId: number }) {
   const { data } = useGoalSuspenseQuery(getHeadToHeadListByMatchIdPrisma, [
@@ -36,12 +36,12 @@ export default function HeadToHeadList({ matchId }: { matchId: number }) {
       if (hs > as) winner = 'home';
       else if (hs < as) winner = 'away';
     }
-    return { winner, usePenalty } as const;
+    return { winner, usePenalty, homeScore: hs, awayScore: as } as const;
   };
 
   return (
     <Card className="p-3 sm:p-4">
-      <div className="mb-2">
+      <div className="mb-3">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-700 font-semibold">
             최근 맞대결 전체
@@ -51,134 +51,105 @@ export default function HeadToHeadList({ matchId }: { matchId: number }) {
           현재 경기 이전 기준
         </div>
       </div>
-      <ul className="divide-y divide-gray-100">
+
+      <div className="space-y-2">
         {data.items.map((m) => {
-          const dateStr = format(new Date(m.match_date), 'yy.MM.dd');
+          const dateStr = format(new Date(m.match_date), 'yyyy.MM.dd');
           const seasonStr = shortenSeasonName(m.season?.season_name ?? '');
           const tourLabel = m.group_stage
             ? '조별리그'
             : m.tournament_stage
               ? '토너먼트'
               : '';
-          const center = m.penalty
-            ? `${m.score.home ?? '-'}:${m.score.away ?? '-'} (P ${m.penalty.home ?? '-'}:${m.penalty.away ?? '-'})`
-            : `${m.score.home ?? '-'}:${m.score.away ?? '-'}`;
-          const { winner } = getResult(m);
-          const homeCanColor = Boolean(
-            m.home?.primary_color && m.home?.secondary_color
-          );
-          const awayCanColor = Boolean(
-            m.away?.primary_color && m.away?.secondary_color
-          );
-          const homeStyle: React.CSSProperties =
-            winner === 'home' && homeCanColor
-              ? {
-                  color: m.home!.secondary_color!,
-                  fontWeight: 700,
-                }
-              : { color: winner === 'away' ? '#9CA3AF' : '#374151' };
-          const awayStyle: React.CSSProperties =
-            winner === 'away' && awayCanColor
-              ? {
-                  color: m.away!.secondary_color!,
-                  fontWeight: 700,
-                }
-              : { color: winner === 'home' ? '#9CA3AF' : '#374151' };
-          const homePill: React.CSSProperties =
-            winner === 'home' && homeCanColor
-              ? {
-                  backgroundColor: m.home!.primary_color!,
-                  border: '1px solid',
-                  borderColor: m.home!.secondary_color!,
-                  borderRadius: 9999,
-                  padding: '0 6px',
-                }
-              : {};
-          const awayPill: React.CSSProperties =
-            winner === 'away' && awayCanColor
-              ? {
-                  backgroundColor: m.away!.primary_color!,
-                  border: '1px solid',
-                  borderColor: m.away!.secondary_color!,
-                  borderRadius: 9999,
-                  padding: '0 6px',
-                }
-              : {};
-          const homeDot =
-            winner === 'home' ? (
-              <span
-                className="inline-block w-1.5 h-1.5 rounded-full mr-1 align-middle"
-                style={{
-                  backgroundColor: m.home?.secondary_color ?? '#111827',
-                }}
-              />
-            ) : null;
-          const awayDot =
-            winner === 'away' ? (
-              <span
-                className="inline-block w-1.5 h-1.5 rounded-full mr-1 align-middle"
-                style={{
-                  backgroundColor: m.away?.secondary_color ?? '#111827',
-                }}
-              />
-            ) : null;
+          const { winner, homeScore, awayScore } = getResult(m);
+
           return (
-            <li key={m.match_id} className="py-1 sm:py-2.5 text-xs sm:text-sm">
-              {/* Mobile layout - single line */}
-              <div className="p-1 sm:hidden flex items-center gap-1 text-xs">
-                <div className="hidden">{dateStr}</div>
-                <span className="hidden">•</span>
-                <div className="min-w-0 flex-1 truncate text-center">
-                  <span className="inline-block truncate">
-                    <span style={{ ...homeStyle, ...homePill }}>
-                      {homeDot}
-                      {simplify(m.home?.team_name)}
-                    </span>{' '}
-                    <span className="text-gray-400">vs</span>{' '}
-                    <span style={{ ...awayStyle, ...awayPill }}>
-                      {awayDot}
-                      {simplify(m.away?.team_name)}
-                    </span>
-                    <span className="text-gray-400"> (</span>
-                    <span className="text-gray-600">{center}</span>
-                    <span className="text-gray-400">)</span>
+            <Link
+              key={m.match_id}
+              href={`/matches/${m.match_id}`}
+              className="block"
+            >
+              <div className="bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-colors">
+                {/* 경기 정보 헤더 */}
+                <div className="px-3 py-1.5 text-[10px] sm:text-[11px] text-gray-500 flex items-center justify-between border-b border-gray-100">
+                  <span>{dateStr}</span>
+                  <span>
+                    {seasonStr}
+                    {tourLabel ? ` · ${tourLabel}` : ''}
                   </span>
                 </div>
-                <span className="shrink-0 text-gray-300">•</span>
-                <div className="shrink-0 text-[11px] text-gray-500 truncate max-w-[35%] text-right">
-                  {seasonStr}
-                  {tourLabel ? ` • ${tourLabel}` : ''}
-                </div>
-              </div>
 
-              {/* Desktop / tablet layout */}
-              <div className="hidden sm:grid grid-cols-[1.4fr_120px_1.8fr] items-center gap-3">
-                <div className="text-gray-500">
-                  <div>{dateStr}</div>
-                  <div className="truncate">
-                    {seasonStr}
-                    {tourLabel ? ` • ${tourLabel}` : ''}
+                {/* 경기 결과 */}
+                <div className="flex items-center justify-between px-2 sm:px-3 py-2 sm:py-3">
+                  {/* 홈팀 */}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {m.home?.logo ? (
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 relative flex-shrink-0 rounded-full overflow-hidden">
+                        <Image
+                          src={m.home.logo}
+                          alt={m.home?.team_name || ''}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-200 flex-shrink-0" />
+                    )}
+                    <span
+                      className={`text-xs sm:text-sm truncate ${winner === 'home' ? 'font-bold text-gray-900' : winner === 'away' ? 'text-gray-400' : 'text-gray-700'}`}
+                    >
+                      {simplify(m.home?.team_name)}
+                    </span>
+                  </div>
+
+                  {/* 스코어 */}
+                  <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4">
+                    <span
+                      className={`text-base sm:text-lg font-bold ${winner === 'home' ? 'text-gray-900' : winner === 'away' ? 'text-gray-400' : 'text-gray-700'}`}
+                    >
+                      {homeScore ?? '-'}
+                    </span>
+                    <span className="text-gray-300 text-sm">-</span>
+                    <span
+                      className={`text-base sm:text-lg font-bold ${winner === 'away' ? 'text-gray-900' : winner === 'home' ? 'text-gray-400' : 'text-gray-700'}`}
+                    >
+                      {awayScore ?? '-'}
+                    </span>
+                    {m.penalty &&
+                      m.penalty.home !== null &&
+                      m.penalty.away !== null && (
+                        <span className="text-[10px] sm:text-xs text-gray-400 ml-1">
+                          (P {m.penalty.home}:{m.penalty.away})
+                        </span>
+                      )}
+                  </div>
+
+                  {/* 원정팀 */}
+                  <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                    <span
+                      className={`text-xs sm:text-sm truncate ${winner === 'away' ? 'font-bold text-gray-900' : winner === 'home' ? 'text-gray-400' : 'text-gray-700'}`}
+                    >
+                      {simplify(m.away?.team_name)}
+                    </span>
+                    {m.away?.logo ? (
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 relative flex-shrink-0 rounded-full overflow-hidden">
+                        <Image
+                          src={m.away.logo}
+                          alt={m.away?.team_name || ''}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-200 flex-shrink-0" />
+                    )}
                   </div>
                 </div>
-                <div className="text-center font-medium truncate">{center}</div>
-                <div className="text-right truncate">
-                  <span className="block truncate">
-                    <span style={{ ...homeStyle, ...homePill }}>
-                      {homeDot}
-                      {simplify(m.home?.team_name)}
-                    </span>{' '}
-                    <span className="text-gray-400">vs</span>{' '}
-                    <span style={{ ...awayStyle, ...awayPill }}>
-                      {awayDot}
-                      {simplify(m.away?.team_name)}
-                    </span>
-                  </span>
-                </div>
               </div>
-            </li>
+            </Link>
           );
         })}
-      </ul>
+      </div>
     </Card>
   );
 }
