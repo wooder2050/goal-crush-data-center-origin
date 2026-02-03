@@ -125,12 +125,14 @@ export const getHeadToHeadListByMatchIdPrisma = async (
     home: {
       team_id: number;
       team_name: string;
+      logo: string | null;
       primary_color: string | null;
       secondary_color: string | null;
     } | null;
     away: {
       team_id: number;
       team_name: string;
+      logo: string | null;
       primary_color: string | null;
       secondary_color: string | null;
     } | null;
