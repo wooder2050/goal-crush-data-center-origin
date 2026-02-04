@@ -72,6 +72,7 @@ export const metadata: Metadata = {
   },
   other: {
     'google-adsense-account': 'ca-pub-6439388251426570',
+    'naver-site-verification': 'a955c718677355e614dd456531f4ecd98fbd1294',
     'msapplication-TileColor': '#000000',
     'theme-color': '#000000',
   },
