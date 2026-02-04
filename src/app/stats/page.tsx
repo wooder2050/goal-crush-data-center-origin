@@ -22,7 +22,28 @@ import {
 
 export const metadata: Metadata = {
   title: '통계',
-  description: '선수 통계 및 랭킹 - 골때리는 그녀들',
+  description:
+    '골 때리는 그녀들 득점 순위, 골키퍼 랭킹, 팀 순위, 맞대결 전적 등 다양한 통계를 확인하세요.',
+  keywords: [
+    '골때녀 통계',
+    '골때녀 순위',
+    '골때녀 득점 순위',
+    '골때녀 랭킹',
+    '골때리는 그녀들 통계',
+  ],
+  alternates: { canonical: '/stats' },
+  openGraph: {
+    title: '통계 | 골때녀 데이터 센터',
+    description:
+      '골 때리는 그녀들 득점 순위, 골키퍼 랭킹, 팀 순위, 맞대결 전적 등 다양한 통계를 확인하세요.',
+    url: 'https://www.gtndatacenter.com/stats',
+  },
+  twitter: {
+    card: 'summary',
+    title: '통계 | 골때녀 데이터 센터',
+    description:
+      '골 때리는 그녀들 득점 순위, 골키퍼 랭킹, 팀 순위, 맞대결 전적 등 다양한 통계를 확인하세요.',
+  },
 };
 
 export default function StatsPage() {

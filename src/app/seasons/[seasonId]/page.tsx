@@ -53,6 +53,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: `https://www.gtndatacenter.com/seasons/${seasonId}`,
     },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
   };
 }
 

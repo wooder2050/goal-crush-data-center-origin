@@ -38,15 +38,6 @@ export function WebsiteJsonLd() {
       name: '골 때리는 그녀들 데이터 센터',
       url: 'https://www.gtndatacenter.com',
     },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate:
-          'https://www.gtndatacenter.com/search?q={search_term_string}',
-      },
-      'query-input': 'required name=search_term_string',
-    },
   };
 
   return <JsonLd data={data} />;
@@ -62,16 +53,10 @@ export function OrganizationJsonLd() {
     logo: 'https://www.gtndatacenter.com/icon.png',
     description:
       '골 때리는 그녀들 경기/선수/팀 데이터를 구조화하여 빠르게 탐색할 수 있는 데이터 아카이브',
-    sameAs: [
-      'https://twitter.com/goalcrushdata',
-      'https://facebook.com/goalcrushdata',
-      'https://instagram.com/goalcrushdata',
-    ],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',
-      email: 'contact@goal-crush-data-center.com',
-      availableLanguage: ['Korean', 'English'],
+      availableLanguage: ['Korean'],
     },
   };
 
