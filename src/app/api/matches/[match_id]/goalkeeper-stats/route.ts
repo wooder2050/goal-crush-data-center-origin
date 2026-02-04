@@ -79,15 +79,15 @@ export async function GET(
     });
 
     // 시즌별 팀 이름 매핑 생성 (홈/어웨이 팀 + 선수 팀 통합 조회)
-    const allTeamIds = [
-      ...new Set(
+    const allTeamIds = Array.from(
+      new Set(
         [
           match.home_team_id,
           match.away_team_id,
           ...playerMatchStats.map((s) => s.team_id),
-        ].filter(Boolean)
-      ),
-    ] as number[];
+        ].filter((id): id is number => id !== null)
+      )
+    );
 
     const teamSeasonNames =
       match.season_id && allTeamIds.length > 0

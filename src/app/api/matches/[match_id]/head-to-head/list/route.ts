@@ -54,16 +54,20 @@ export async function GET(
     });
 
     // 시즌별 팀 이름 조회
-    const seasonIds = [
-      ...new Set(h2hMatches.map((m) => m.season_id).filter(Boolean)),
-    ] as number[];
-    const teamIds = [
-      ...new Set(
-        h2hMatches.flatMap((m) =>
-          [m.home_team_id, m.away_team_id].filter(Boolean)
-        )
-      ),
-    ] as number[];
+    const seasonIds = Array.from(
+      new Set(
+        h2hMatches
+          .map((m) => m.season_id)
+          .filter((id): id is number => id !== null)
+      )
+    );
+    const teamIds = Array.from(
+      new Set(
+        h2hMatches
+          .flatMap((m) => [m.home_team_id, m.away_team_id])
+          .filter((id): id is number => id !== null)
+      )
+    );
 
     const teamSeasonNames = await prisma.teamSeasonName.findMany({
       where: {
