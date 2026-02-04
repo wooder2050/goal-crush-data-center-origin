@@ -123,6 +123,40 @@ export async function GET(request: NextRequest) {
       substitutions.map((s) => `${s.match_id}-${s.player_in_id}`)
     );
 
+    // 시즌별 팀 이름 조회
+    const seasonIds = Array.from(
+      new Set(
+        playerMatchStats
+          .map((m) => m.match?.season_id)
+          .filter((id): id is number => id != null)
+      )
+    );
+    const teamIds = Array.from(
+      new Set(
+        playerMatchStats
+          .map((s) => s.team?.team_id)
+          .filter((id): id is number => id != null)
+      )
+    );
+
+    const teamSeasonNames = await prisma.teamSeasonName.findMany({
+      where: {
+        season_id: { in: seasonIds },
+        team_id: { in: teamIds },
+      },
+      select: {
+        team_id: true,
+        season_id: true,
+        team_name: true,
+      },
+    });
+
+    // Map: "seasonId-teamId" -> team_name
+    const teamSeasonNameMap = new Map<string, string>();
+    teamSeasonNames.forEach((tsn) => {
+      teamSeasonNameMap.set(`${tsn.season_id}-${tsn.team_id}`, tsn.team_name);
+    });
+
     // 골키퍼로 출전한 기록만 필터링
     let goalkeeperStats = playerMatchStats.filter((stat) =>
       isGoalkeeperAppearance(stat.position, stat.goals_conceded)
@@ -218,7 +252,15 @@ export async function GET(request: NextRequest) {
       }
 
       if (stat.team?.team_name) {
-        playerStats.teams.add(stat.team.team_name);
+        // 시즌별 팀 이름 적용
+        const seasonId = stat.match?.season_id;
+        const teamId = stat.team.team_id;
+        const seasonTeamName =
+          seasonId && teamId
+            ? (teamSeasonNameMap.get(`${seasonId}-${teamId}`) ??
+              stat.team.team_name)
+            : stat.team.team_name;
+        playerStats.teams.add(seasonTeamName);
       }
 
       if (stat.team?.logo) {

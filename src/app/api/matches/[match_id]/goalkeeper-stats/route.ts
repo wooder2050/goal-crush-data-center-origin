@@ -78,6 +78,43 @@ export async function GET(
       },
     });
 
+    // 시즌별 팀 이름 매핑 생성 (홈/어웨이 팀 + 선수 팀 통합 조회)
+    const allTeamIds = Array.from(
+      new Set(
+        [
+          match.home_team_id,
+          match.away_team_id,
+          ...playerMatchStats.map((s) => s.team_id),
+        ].filter((id): id is number => id !== null)
+      )
+    );
+
+    const teamSeasonNames =
+      match.season_id && allTeamIds.length > 0
+        ? await prisma.teamSeasonName.findMany({
+            where: {
+              season_id: match.season_id,
+              team_id: { in: allTeamIds },
+            },
+            select: {
+              team_id: true,
+              team_name: true,
+            },
+          })
+        : [];
+    const teamNameMap = new Map<number, string>();
+    teamSeasonNames.forEach((tsn) => {
+      teamNameMap.set(tsn.team_id, tsn.team_name);
+    });
+
+    // 홈/어웨이 팀 이름 (시즌별)
+    const homeTeamName = match.home_team_id
+      ? (teamNameMap.get(match.home_team_id) ?? match.home_team?.team_name)
+      : match.home_team?.team_name;
+    const awayTeamName = match.away_team_id
+      ? (teamNameMap.get(match.away_team_id) ?? match.away_team?.team_name)
+      : match.away_team?.team_name;
+
     // 골키퍼로 출전한 선수들만 필터링
     const goalkeeperStats = playerMatchStats
       .filter((stat) =>
@@ -85,13 +122,17 @@ export async function GET(
       )
       .map((stat) => {
         const isHome = stat.team?.team_id === match.home_team_id;
+        // 시즌별 팀 이름 적용
+        const seasonTeamName = stat.team?.team_id
+          ? teamNameMap.get(stat.team.team_id)
+          : undefined;
 
         return {
           player_id: stat.player?.player_id,
           player_name: stat.player?.name,
           player_image: stat.player?.profile_image_url,
           team_id: stat.team?.team_id,
-          team_name: stat.team?.team_name,
+          team_name: seasonTeamName ?? stat.team?.team_name,
           team_logo: stat.team?.logo,
           is_home: isHome,
           position: stat.position,
@@ -132,8 +173,18 @@ export async function GET(
       match_id: matchId,
       match_info: {
         match_date: match.match_date?.toISOString() || null,
-        home_team: match.home_team,
-        away_team: match.away_team,
+        home_team: match.home_team
+          ? {
+              ...match.home_team,
+              team_name: homeTeamName ?? match.home_team.team_name,
+            }
+          : null,
+        away_team: match.away_team
+          ? {
+              ...match.away_team,
+              team_name: awayTeamName ?? match.away_team.team_name,
+            }
+          : null,
         season: match.season,
         home_score: match.home_score,
         away_score: match.away_score,

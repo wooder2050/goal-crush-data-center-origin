@@ -84,6 +84,56 @@ export async function GET(
       isGoalkeeperAppearance(stat.position, stat.goals_conceded)
     );
 
+    // 시즌별 팀 이름 조회
+    const seasonIds = Array.from(
+      new Set(
+        goalkeeperMatches
+          .map((m) => m.match?.season_id)
+          .filter((id): id is number => id != null)
+      )
+    );
+    const teamIds = Array.from(
+      new Set(
+        goalkeeperMatches
+          .flatMap((m) => [
+            m.team?.team_id,
+            m.match?.home_team?.team_id,
+            m.match?.away_team?.team_id,
+          ])
+          .filter((id): id is number => id != null)
+      )
+    );
+
+    const teamSeasonNames = await prisma.teamSeasonName.findMany({
+      where: {
+        season_id: { in: seasonIds },
+        team_id: { in: teamIds },
+      },
+      select: {
+        team_id: true,
+        season_id: true,
+        team_name: true,
+      },
+    });
+
+    // Map: "seasonId-teamId" -> team_name
+    const teamSeasonNameMap = new Map<string, string>();
+    teamSeasonNames.forEach((tsn) => {
+      teamSeasonNameMap.set(`${tsn.season_id}-${tsn.team_id}`, tsn.team_name);
+    });
+
+    // 팀 이름 조회 헬퍼 함수
+    const getSeasonTeamName = (
+      seasonId: number | null | undefined,
+      teamId: number | null | undefined,
+      fallbackName: string | null | undefined
+    ) => {
+      if (seasonId && teamId) {
+        return teamSeasonNameMap.get(`${seasonId}-${teamId}`) ?? fallbackName;
+      }
+      return fallbackName;
+    };
+
     // 시즌별 통계 집계
     const seasonStatsMap = new Map();
 
@@ -116,13 +166,36 @@ export async function GET(
       const isHome = stat.team?.team_id === stat.match?.home_team_id;
       const opponent = isHome ? stat.match?.away_team : stat.match?.home_team;
 
+      // 시즌별 팀 이름 적용
+      const teamWithSeasonName = stat.team
+        ? {
+            ...stat.team,
+            team_name: getSeasonTeamName(
+              seasonId,
+              stat.team.team_id,
+              stat.team.team_name
+            ),
+          }
+        : stat.team;
+
+      const opponentWithSeasonName = opponent
+        ? {
+            ...opponent,
+            team_name: getSeasonTeamName(
+              seasonId,
+              opponent.team_id,
+              opponent.team_name
+            ),
+          }
+        : opponent;
+
       seasonStats.matches.push({
         match_id: stat.match?.match_id,
         match_date: stat.match?.match_date?.toISOString() || null,
         goals_conceded: stat.goals_conceded || 0,
         position: stat.position,
-        team: stat.team,
-        opponent,
+        team: teamWithSeasonName,
+        opponent: opponentWithSeasonName,
         home_score: stat.match?.home_score,
         away_score: stat.match?.away_score,
         is_home: isHome,
@@ -181,12 +254,20 @@ export async function GET(
     const recentMatches = goalkeeperMatches.slice(0, 10).map((stat) => {
       const isHome = stat.team?.team_id === stat.match?.home_team_id;
       const opponent = isHome ? stat.match?.away_team : stat.match?.home_team;
+      const seasonId = stat.match?.season_id;
+
+      // 시즌별 팀 이름 적용
+      const opponentName = getSeasonTeamName(
+        seasonId,
+        opponent?.team_id,
+        opponent?.team_name
+      );
 
       return {
         match_id: stat.match?.match_id,
         match_date: stat.match?.match_date?.toISOString() || null,
         season_name: stat.match?.season?.season_name,
-        opponent_name: opponent?.team_name || null,
+        opponent_name: opponentName || null,
         opponent_logo: opponent?.logo || null,
         goals_conceded: stat.goals_conceded || 0,
         is_clean_sheet: (stat.goals_conceded || 0) === 0,

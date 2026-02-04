@@ -53,9 +53,56 @@ export async function GET(
       orderBy: [{ match_date: 'desc' }],
     });
 
+    // 시즌별 팀 이름 조회
+    const seasonIds = Array.from(
+      new Set(
+        h2hMatches
+          .map((m) => m.season_id)
+          .filter((id): id is number => id !== null)
+      )
+    );
+    const teamIds = Array.from(
+      new Set(
+        h2hMatches
+          .flatMap((m) => [m.home_team_id, m.away_team_id])
+          .filter((id): id is number => id !== null)
+      )
+    );
+
+    const teamSeasonNames = await prisma.teamSeasonName.findMany({
+      where: {
+        season_id: { in: seasonIds },
+        team_id: { in: teamIds },
+      },
+      select: {
+        team_id: true,
+        season_id: true,
+        team_name: true,
+      },
+    });
+
+    // Map: "seasonId-teamId" -> team_name
+    const teamSeasonNameMap = new Map<string, string>();
+    teamSeasonNames.forEach((tsn) => {
+      teamSeasonNameMap.set(`${tsn.season_id}-${tsn.team_id}`, tsn.team_name);
+    });
+
     const items = h2hMatches.map((m) => {
       const usePenalty =
         m.penalty_home_score !== null && m.penalty_away_score !== null;
+
+      // 시즌별 팀 이름 가져오기 (없으면 기본 팀 이름 사용)
+      const homeTeamName =
+        m.season_id && m.home_team_id
+          ? (teamSeasonNameMap.get(`${m.season_id}-${m.home_team_id}`) ??
+            m.home_team?.team_name)
+          : m.home_team?.team_name;
+      const awayTeamName =
+        m.season_id && m.away_team_id
+          ? (teamSeasonNameMap.get(`${m.season_id}-${m.away_team_id}`) ??
+            m.away_team?.team_name)
+          : m.away_team?.team_name;
+
       return {
         match_id: m.match_id,
         match_date: m.match_date,
@@ -71,7 +118,7 @@ export async function GET(
         home: m.home_team
           ? {
               team_id: m.home_team.team_id,
-              team_name: m.home_team.team_name,
+              team_name: homeTeamName ?? m.home_team.team_name,
               logo:
                 (m.home_team as unknown as { logo?: string | null }).logo ??
                 null,
@@ -86,7 +133,7 @@ export async function GET(
         away: m.away_team
           ? {
               team_id: m.away_team.team_id,
-              team_name: m.away_team.team_name,
+              team_name: awayTeamName ?? m.away_team.team_name,
               logo:
                 (m.away_team as unknown as { logo?: string | null }).logo ??
                 null,

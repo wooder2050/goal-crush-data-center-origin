@@ -428,6 +428,7 @@ export const getCoachHeadToHeadListByMatchIdPrisma = async (
       secondary_color: string | null;
       coach_id: number | null;
       coach_name: string | null;
+      coach_image: string | null;
     };
     away: {
       team_id: number | null;
@@ -436,15 +437,20 @@ export const getCoachHeadToHeadListByMatchIdPrisma = async (
       secondary_color: string | null;
       coach_id: number | null;
       coach_name: string | null;
+      coach_image: string | null;
     };
     score: { home: number | null; away: number | null };
     penalty: { home: number | null; away: number | null } | null;
+    group_stage: boolean | null;
+    tournament_stage: string | null;
   }>;
   current: {
     home_coach_id: number | null;
     away_coach_id: number | null;
     home_coach_name: string | null;
     away_coach_name: string | null;
+    home_coach_image: string | null;
+    away_coach_image: string | null;
   };
 }> => {
   const response = await fetch(

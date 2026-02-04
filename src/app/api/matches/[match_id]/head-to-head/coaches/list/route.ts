@@ -23,8 +23,12 @@ export async function GET(
         away_team_id: true,
         home_coach_id: true,
         away_coach_id: true,
-        home_coach: { select: { coach_id: true, name: true } },
-        away_coach: { select: { coach_id: true, name: true } },
+        home_coach: {
+          select: { coach_id: true, name: true, profile_image_url: true },
+        },
+        away_coach: {
+          select: { coach_id: true, name: true, profile_image_url: true },
+        },
       },
     });
 
@@ -33,6 +37,8 @@ export async function GET(
     let awayCoachId = match?.away_coach_id;
     let homeCoachName = match?.home_coach?.name;
     let awayCoachName = match?.away_coach?.name;
+    let homeCoachImage = match?.home_coach?.profile_image_url;
+    let awayCoachImage = match?.away_coach?.profile_image_url;
 
     if (!homeCoachId || !awayCoachId) {
       const matchCoaches = await prisma.matchCoach.findMany({
@@ -65,6 +71,8 @@ export async function GET(
         awayCoachId = awayCoach.coach_id;
         homeCoachName = homeCoach.coach.name;
         awayCoachName = awayCoach.coach.name;
+        homeCoachImage = homeCoach.coach.profile_image_url;
+        awayCoachImage = awayCoach.coach.profile_image_url;
       }
     }
 
@@ -107,9 +115,55 @@ export async function GET(
       },
       orderBy: [{ match_date: 'desc' }],
     });
+
+    // 시즌별 팀 이름 조회
+    const seasonIds = Array.from(
+      new Set(
+        rows.map((m) => m.season_id).filter((id): id is number => id !== null)
+      )
+    );
+    const teamIds = Array.from(
+      new Set(
+        rows
+          .flatMap((m) => [m.home_team_id, m.away_team_id])
+          .filter((id): id is number => id !== null)
+      )
+    );
+
+    const teamSeasonNames = await prisma.teamSeasonName.findMany({
+      where: {
+        season_id: { in: seasonIds },
+        team_id: { in: teamIds },
+      },
+      select: {
+        team_id: true,
+        season_id: true,
+        team_name: true,
+      },
+    });
+
+    // Map: "seasonId-teamId" -> team_name
+    const teamSeasonNameMap = new Map<string, string>();
+    teamSeasonNames.forEach((tsn) => {
+      teamSeasonNameMap.set(`${tsn.season_id}-${tsn.team_id}`, tsn.team_name);
+    });
+
     const items = rows.map((m) => {
       const usePenalty =
         m.penalty_home_score !== null && m.penalty_away_score !== null;
+
+      // 시즌별 팀 이름 가져오기 (없으면 기본 팀 이름 사용)
+      const homeTeamName =
+        m.season_id && m.home_team_id
+          ? (teamSeasonNameMap.get(`${m.season_id}-${m.home_team_id}`) ??
+            m.home_team?.team_name)
+          : m.home_team?.team_name;
+      const awayTeamName =
+        m.season_id && m.away_team_id
+          ? (teamSeasonNameMap.get(`${m.season_id}-${m.away_team_id}`) ??
+            m.away_team?.team_name)
+          : m.away_team?.team_name;
+
       return {
         match_id: m.match_id,
         match_date: m.match_date,
@@ -122,24 +176,28 @@ export async function GET(
           : null,
         home: {
           team_id: m.home_team?.team_id ?? null,
-          team_name: m.home_team?.team_name ?? null,
+          team_name: homeTeamName ?? null,
           primary_color: m.home_team?.primary_color ?? null,
           secondary_color: m.home_team?.secondary_color ?? null,
           coach_id: m.home_coach?.coach_id ?? null,
           coach_name: m.home_coach?.name ?? null,
+          coach_image: m.home_coach?.profile_image_url ?? null,
         },
         away: {
           team_id: m.away_team?.team_id ?? null,
-          team_name: m.away_team?.team_name ?? null,
+          team_name: awayTeamName ?? null,
           primary_color: m.away_team?.primary_color ?? null,
           secondary_color: m.away_team?.secondary_color ?? null,
           coach_id: m.away_coach?.coach_id ?? null,
           coach_name: m.away_coach?.name ?? null,
+          coach_image: m.away_coach?.profile_image_url ?? null,
         },
         score: { home: m.home_score, away: m.away_score },
         penalty: usePenalty
           ? { home: m.penalty_home_score, away: m.penalty_away_score }
           : null,
+        group_stage: m.group_stage,
+        tournament_stage: m.tournament_stage,
       };
     });
     return NextResponse.json({
@@ -150,6 +208,8 @@ export async function GET(
         away_coach_id: awayCoachId,
         home_coach_name: homeCoachName,
         away_coach_name: awayCoachName,
+        home_coach_image: homeCoachImage ?? null,
+        away_coach_image: awayCoachImage ?? null,
       },
     });
   } catch (error) {
