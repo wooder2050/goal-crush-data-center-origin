@@ -74,6 +74,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           ]
         : undefined,
     },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+      images: player.profile_image_url ? [player.profile_image_url] : undefined,
+    },
   };
 }
 
