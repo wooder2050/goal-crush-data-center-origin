@@ -25,7 +25,7 @@ export default function HeadToHeadList({ matchId }: { matchId: number }) {
 
   if (!data || data.items.length === 0) return null;
 
-  const getResult = (m: (typeof data.items)[number]) => {
+  const getWinner = (m: (typeof data.items)[number]) => {
     const usePenalty = Boolean(
       m.penalty && m.penalty.home !== null && m.penalty.away !== null
     );
@@ -36,7 +36,7 @@ export default function HeadToHeadList({ matchId }: { matchId: number }) {
       if (hs > as) winner = 'home';
       else if (hs < as) winner = 'away';
     }
-    return { winner, usePenalty, homeScore: hs, awayScore: as } as const;
+    return winner;
   };
 
   return (
@@ -61,7 +61,7 @@ export default function HeadToHeadList({ matchId }: { matchId: number }) {
             : m.tournament_stage
               ? '토너먼트'
               : '';
-          const { winner, homeScore, awayScore } = getResult(m);
+          const winner = getWinner(m);
 
           return (
             <Link
@@ -103,22 +103,24 @@ export default function HeadToHeadList({ matchId }: { matchId: number }) {
                   </div>
 
                   {/* 스코어 */}
-                  <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4">
-                    <span
-                      className={`text-base sm:text-lg font-bold ${winner === 'home' ? 'text-gray-900' : winner === 'away' ? 'text-gray-400' : 'text-gray-700'}`}
-                    >
-                      {homeScore ?? '-'}
-                    </span>
-                    <span className="text-gray-300 text-sm">-</span>
-                    <span
-                      className={`text-base sm:text-lg font-bold ${winner === 'away' ? 'text-gray-900' : winner === 'home' ? 'text-gray-400' : 'text-gray-700'}`}
-                    >
-                      {awayScore ?? '-'}
-                    </span>
+                  <div className="flex flex-col items-center px-2 sm:px-4">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <span
+                        className={`text-base sm:text-lg font-bold ${winner === 'home' ? 'text-gray-900' : winner === 'away' ? 'text-gray-400' : 'text-gray-700'}`}
+                      >
+                        {m.score.home ?? '-'}
+                      </span>
+                      <span className="text-gray-300 text-sm">-</span>
+                      <span
+                        className={`text-base sm:text-lg font-bold ${winner === 'away' ? 'text-gray-900' : winner === 'home' ? 'text-gray-400' : 'text-gray-700'}`}
+                      >
+                        {m.score.away ?? '-'}
+                      </span>
+                    </div>
                     {m.penalty &&
                       m.penalty.home !== null &&
                       m.penalty.away !== null && (
-                        <span className="text-[10px] sm:text-xs text-gray-400 ml-1">
+                        <span className="text-[10px] sm:text-xs text-gray-400">
                           (P {m.penalty.home}:{m.penalty.away})
                         </span>
                       )}
