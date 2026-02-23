@@ -79,3 +79,6 @@ CLAUDE.md
 
 # MCP configuration
 .mcp.json
+
+# Google Cloud service account keys
+gtndatacenter-*.json

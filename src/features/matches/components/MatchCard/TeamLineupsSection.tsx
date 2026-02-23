@@ -229,34 +229,66 @@ function TeamLineupsSectionInner({
   );
 
   // 패스맵 데이터 중 선발 선수만 필터링 + 기록 정보 매핑
-  const homePassMapPlayers = homePassMapPlayersRaw
-    .filter((p) => homeStartingPlayerIds.has(p.player_id))
-    .map((p) => {
-      const stats = playerStatsById.get(p.player_id);
-      return {
-        ...p,
-        position: stats?.position || 'MF',
-        goals: stats?.goals || 0,
-        assists: stats?.assists || 0,
-        yellow_cards: stats?.yellow_cards || 0,
-        red_cards: stats?.red_cards || 0,
-        card_type: stats?.card_type || 'none',
-      };
-    });
-  const awayPassMapPlayers = awayPassMapPlayersRaw
-    .filter((p) => awayStartingPlayerIds.has(p.player_id))
-    .map((p) => {
-      const stats = playerStatsById.get(p.player_id);
-      return {
-        ...p,
-        position: stats?.position || 'MF',
-        goals: stats?.goals || 0,
-        assists: stats?.assists || 0,
-        yellow_cards: stats?.yellow_cards || 0,
-        red_cards: stats?.red_cards || 0,
-        card_type: stats?.card_type || 'none',
-      };
-    });
+  // + 패스맵 데이터가 없는 선발 선수도 포함 (액션 기록이 없는 선수 대응)
+  const buildPassMapPlayers = (
+    passMapPlayersRaw: typeof homePassMapPlayersRaw,
+    startingPlayerIds: Set<number>,
+    lineupPlayers: LineupPlayer[]
+  ) => {
+    const passMapPlayerIds = new Set(passMapPlayersRaw.map((p) => p.player_id));
+
+    const fromPassMap = passMapPlayersRaw
+      .filter((p) => startingPlayerIds.has(p.player_id))
+      .map((p) => {
+        const stats = playerStatsById.get(p.player_id);
+        return {
+          ...p,
+          position: stats?.position || 'MF',
+          goals: stats?.goals || 0,
+          assists: stats?.assists || 0,
+          yellow_cards: stats?.yellow_cards || 0,
+          red_cards: stats?.red_cards || 0,
+          card_type: stats?.card_type || ('none' as const),
+        };
+      });
+
+    // 패스맵 데이터에 없는 선발 선수 추가 (avg_x/avg_y=0으로 설정, 포지션 기반 배치)
+    const missingStarters = lineupPlayers
+      .filter(
+        (p) =>
+          p.participation_status === 'starting' &&
+          !passMapPlayerIds.has(p.player_id)
+      )
+      .map((p) => ({
+        player_id: p.player_id,
+        player_name: p.player_name,
+        jersey_number: p.jersey_number || 0,
+        profile_image_url: p.profile_image_url || null,
+        avg_x: 0,
+        avg_y: 0,
+        total_passes: 0,
+        success_passes: 0,
+        position: p.position || 'MF',
+        goals: p.goals || 0,
+        assists: p.assists || 0,
+        yellow_cards: p.yellow_cards || 0,
+        red_cards: p.red_cards || 0,
+        card_type: p.card_type || ('none' as const),
+      }));
+
+    return [...fromPassMap, ...missingStarters];
+  };
+
+  const homePassMapPlayers = buildPassMapPlayers(
+    homePassMapPlayersRaw,
+    homeStartingPlayerIds,
+    homeLineups
+  );
+  const awayPassMapPlayers = buildPassMapPlayers(
+    awayPassMapPlayersRaw,
+    awayStartingPlayerIds,
+    awayLineups
+  );
 
   // 교체 선수 데이터 준비 (피치 뷰용) + 기록 정보 매핑
   const homeSubstitutes = homeLineups
