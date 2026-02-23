@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description:
     '골크러쉬 데이터센터 개인정보처리방침 - 사용자 개인정보 보호 정책',
   alternates: { canonical: '/privacy' },
+  robots: { index: false, follow: true },
 };
 
 export default function Page() {
