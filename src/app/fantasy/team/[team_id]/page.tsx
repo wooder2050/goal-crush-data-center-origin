@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { prisma } from '@/lib/prisma';
@@ -8,6 +9,49 @@ import TeamDetailClient from './TeamDetailClient';
 interface PageProps {
   params: {
     team_id: string;
+  };
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const teamId = parseInt(params.team_id);
+
+  if (isNaN(teamId)) {
+    return { title: '판타지 팀' };
+  }
+
+  const fantasyTeam = await prisma.fantasyTeam.findUnique({
+    where: { fantasy_team_id: teamId },
+    include: {
+      user: { select: { korean_nickname: true, display_name: true } },
+    },
+  });
+
+  if (!fantasyTeam) {
+    return { title: '판타지 팀' };
+  }
+
+  const ownerName =
+    fantasyTeam.user.display_name || fantasyTeam.user.korean_nickname;
+  const teamName = fantasyTeam.team_name || `${ownerName}의 팀`;
+  const title = `${teamName} - 판타지 팀`;
+  const description = `${ownerName}님의 판타지 팀 '${teamName}'의 선수 구성과 포인트를 확인하세요.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/fantasy/team/${teamId}` },
+    openGraph: {
+      title: `${title} | 골때녀 데이터 센터`,
+      description,
+      url: `https://www.gtndatacenter.com/fantasy/team/${teamId}`,
+    },
+    twitter: {
+      card: 'summary',
+      title: `${title} | 골때녀 데이터 센터`,
+      description,
+    },
   };
 }
 

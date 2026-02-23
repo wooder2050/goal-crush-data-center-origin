@@ -1,4 +1,5 @@
 import { Share2, Trophy, Users } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -14,6 +15,41 @@ interface PageProps {
   };
   searchParams: {
     page?: string;
+  };
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const fantasySeasonId = parseInt(params.season_id);
+
+  if (isNaN(fantasySeasonId)) {
+    return { title: '판타지 랭킹' };
+  }
+
+  const fantasySeason = await prisma.fantasySeason.findUnique({
+    where: { fantasy_season_id: fantasySeasonId },
+    include: { season: { select: { season_name: true } } },
+  });
+
+  const seasonName = fantasySeason?.season?.season_name || '';
+  const title = seasonName ? `${seasonName} 판타지 랭킹` : '판타지 랭킹';
+  const description = `골 때리는 그녀들 ${seasonName} 판타지 리그 랭킹을 확인하세요.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/fantasy/${fantasySeasonId}/rankings` },
+    openGraph: {
+      title: `${title} | 골때녀 데이터 센터`,
+      description,
+      url: `https://www.gtndatacenter.com/fantasy/${fantasySeasonId}/rankings`,
+    },
+    twitter: {
+      card: 'summary',
+      title: `${title} | 골때녀 데이터 센터`,
+      description,
+    },
   };
 }
 
