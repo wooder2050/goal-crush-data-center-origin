@@ -1,15 +1,13 @@
 'use client';
 
-import { Trophy, Users, Zap } from 'lucide-react';
+import { Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
-import FantasyTeamsSkeleton from '@/components/skeletons/FantasyTeamsSkeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Container } from '@/components/ui/container';
+import { Card, CardContent } from '@/components/ui/card';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import { AuthenticatedUser } from '@/types/user';
 
@@ -240,47 +238,7 @@ const FantasyTeamsInner = ({ user }: { user: AuthenticatedUser | null }) => {
   const totalTeams = unifiedSeason?._count.fantasy_teams || 0;
 
   return (
-    <Container className="py-8">
-      {/* 헤더 */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">판타지 축구</h1>
-        <p className="text-gray-600">
-          5명의 선수를 선택하여 실제 경기 성과로 점수를 획득하고 다른 팬들과
-          경쟁하세요!
-        </p>
-      </div>
-
-      {/* 게임 규칙 안내 */}
-      <Card className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-blue-900">
-            <Zap className="w-5 h-5" />
-            <span>게임 방법</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <h4 className="font-semibold text-blue-900 mb-2">팀 편성</h4>
-              <ul className="space-y-1 text-blue-800">
-                <li>• 5명의 선수를 선택하세요</li>
-                <li>• 같은 팀에서 최대 2명까지</li>
-                <li>• 언제든지 팀 수정 가능</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-blue-900 mb-2">점수 획득</h4>
-              <ul className="space-y-1 text-blue-800">
-                <li>• 골: +4점, 어시스트: +2점</li>
-                <li>• 출전: +2점, 선발: +1점 추가</li>
-                <li>• 무실점(수비진): +3점</li>
-                <li>• 옐로카드: -1점, 레드카드: -2점</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
+    <>
       {/* 참여 현황 */}
       <div className="flex items-center gap-2 mb-6 text-gray-600">
         <Users className="w-5 h-5" />
@@ -295,9 +253,33 @@ const FantasyTeamsInner = ({ user }: { user: AuthenticatedUser | null }) => {
       ) : (
         <GuestSection />
       )}
-    </Container>
+    </>
   );
 };
+
+// 참여 현황 + 유저 팀 영역의 스켈레톤
+const FantasyDynamicSkeleton = () => (
+  <div>
+    <div className="flex items-center gap-2 mb-6">
+      <div className="h-5 w-5 bg-gray-200 rounded animate-pulse" />
+      <div className="h-5 w-40 bg-gray-200 rounded animate-pulse" />
+    </div>
+    <Card className="mb-8 border-2 border-gray-200">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <div className="h-7 w-32 bg-gray-200 rounded animate-pulse mb-2" />
+            <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="h-10 w-28 bg-gray-200 rounded animate-pulse" />
+            <div className="h-10 w-28 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);
 
 export default function FantasyTeams({
   user,
@@ -305,10 +287,8 @@ export default function FantasyTeams({
   user: AuthenticatedUser | null;
 }) {
   return (
-    <GoalWrapper>
-      <Suspense fallback={<FantasyTeamsSkeleton />}>
-        <FantasyTeamsInner user={user} />
-      </Suspense>
+    <GoalWrapper fallback={<FantasyDynamicSkeleton />}>
+      <FantasyTeamsInner user={user} />
     </GoalWrapper>
   );
 }
