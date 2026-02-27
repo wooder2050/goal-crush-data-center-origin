@@ -726,3 +726,37 @@ export const getMatchActionsPrisma = async (
   }
   return response.json();
 };
+
+// ============== Match Player Ratings ==============
+
+export interface PlayerMatchRating {
+  player_id: number;
+  team_id: number;
+  player_name: string;
+  jersey_number: number | null;
+  profile_image_url: string | null;
+  team_name: string;
+  position: string;
+  goals: number;
+  assists: number;
+  yellow_cards: number;
+  red_cards: number;
+  rating: number;
+  breakdown: Record<string, number>;
+}
+
+export interface MatchRatingsResponse {
+  match_id: number;
+  ratings: PlayerMatchRating[];
+}
+
+// Get auto-calculated match player ratings
+export const getMatchRatingsPrisma = async (
+  matchId: number
+): Promise<MatchRatingsResponse> => {
+  const response = await fetch(`/api/matches/${matchId}/ratings`);
+  if (!response.ok) {
+    return { match_id: matchId, ratings: [] };
+  }
+  return response.json();
+};
