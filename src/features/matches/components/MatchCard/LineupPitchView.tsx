@@ -37,6 +37,7 @@ interface LineupPitchViewProps {
   awayTeamSecondaryColor?: string;
   homeBestPlayerId?: number | null;
   awayBestPlayerId?: number | null;
+  playerRatings?: Map<number, number>;
 }
 
 // 포지션별 X 위치 (가로형 피치)
@@ -89,6 +90,7 @@ function LineupPitchView({
   awayTeamSecondaryColor = '#FFFFFF',
   homeBestPlayerId,
   awayBestPlayerId,
+  playerRatings,
 }: LineupPitchViewProps) {
   // SVG viewBox 크기 (가로형 + 교체선수 영역)
   const SVG_WIDTH = 100;
@@ -274,16 +276,74 @@ function LineupPitchView({
           {/* 골, 어시스트, 카드 아이콘 (프로필 이미지 오른쪽 하단) */}
           {renderPlayerStats(player, x, y, imageSize)}
 
-          {/* MVP 아이콘 (프로필 이미지 왼쪽 상단) */}
-          {isBestPlayer &&
-            (() => {
-              const radius = imageSize / 2;
-              const iconX = x - radius * 0.9;
-              const iconY = y - radius * 0.9;
+          {/* 평점 배지 (프로필 이미지 오른쪽 상단) - 평점이 있으면 표시, 없으면 MVP 아이콘 */}
+          {(() => {
+            const rating = playerRatings?.get(player.player_id);
+            const radius = imageSize / 2;
+            const badgeX = x + radius * 0.9;
+            const badgeY = y - radius * 0.9;
+
+            if (rating && rating > 0) {
+              // FotMob 스타일 평점 배지 색상
+              const bgColor =
+                rating >= 9.0
+                  ? '#14A0FF'
+                  : rating >= 7.0
+                    ? '#33C771'
+                    : '#FF963F';
+              const textColor = '#ffffff';
+              const badgeWidth = isBestPlayer
+                ? imageSize < 7
+                  ? 6.5
+                  : 9
+                : imageSize < 7
+                  ? 5
+                  : 7;
+              const badgeHeight = imageSize < 7 ? 2.8 : 3.5;
+              const fontSize = imageSize < 7 ? '2' : '2.5';
+              const starScale = imageSize < 7 ? 0.15 : 0.2;
+              const starOffsetX = imageSize < 7 ? 1.2 : 1.6;
+
+              return (
+                <g>
+                  <rect
+                    x={badgeX - badgeWidth / 2}
+                    y={badgeY - badgeHeight / 2}
+                    width={badgeWidth}
+                    height={badgeHeight}
+                    rx={badgeHeight / 2}
+                    fill={bgColor}
+                  />
+                  <text
+                    x={isBestPlayer ? badgeX - starOffsetX / 2 : badgeX}
+                    y={badgeY + (imageSize < 7 ? 0.8 : 1)}
+                    fill={textColor}
+                    fontSize={fontSize}
+                    textAnchor="middle"
+                    fontWeight="bold"
+                  >
+                    {rating.toFixed(1)}
+                  </text>
+                  {isBestPlayer && (
+                    <g
+                      transform={`translate(${badgeX + starOffsetX}, ${badgeY - badgeHeight * 0.25}) scale(${starScale})`}
+                    >
+                      <path
+                        d="M4.633.453a.5.5 0 01.95 0l.908 2.81a.5.5 0 00.475.345h2.953a.5.5 0 01.294.904L7.824 6.26a.5.5 0 00-.181.559l.908 2.81a.5.5 0 01-.769.559l-2.389-1.748a.5.5 0 00-.588 0L2.416 10.19a.5.5 0 01-.77-.559l.909-2.81a.5.5 0 00-.182-.56L.984 4.513a.5.5 0 01.294-.904h2.953a.5.5 0 00.475-.345L4.633.453z"
+                        fill={textColor}
+                      />
+                    </g>
+                  )}
+                </g>
+              );
+            }
+
+            if (isBestPlayer) {
+              // MVP 아이콘 (평점이 없을 때만)
               const scale = imageSize < 7 ? 0.12 : 0.16;
               return (
                 <g
-                  transform={`translate(${iconX - 1}, ${iconY - 1}) scale(${scale})`}
+                  transform={`translate(${badgeX - 1}, ${badgeY - 1}) scale(${scale})`}
                 >
                   <svg
                     width="20"
@@ -312,7 +372,10 @@ function LineupPitchView({
                   </svg>
                 </g>
               );
-            })()}
+            }
+
+            return null;
+          })()}
 
           {/* 등번호 + 선수 이름 (이미지 아래) */}
           <text

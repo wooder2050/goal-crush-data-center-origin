@@ -15,8 +15,10 @@ import {
   getMatchGoalsPrisma,
   getMatchLineupsPrisma,
   getMatchPassMapPrisma,
+  getMatchRatingsPrisma,
   getPredictedMatchLineupsPrisma,
   getSeasonPlayersPrisma,
+  type MatchRatingsResponse,
   type TeamPassNetworkData,
 } from '../../api-prisma';
 import { getPositionColor, getPositionText } from '../../lib/matchUtils';
@@ -179,6 +181,19 @@ function TeamLineupsSectionInner({
   const { data: passMapData } = useGoalSuspenseQuery(getMatchPassMapPrisma, [
     match.match_id,
   ]) as { data: TeamPassNetworkData[] | undefined };
+
+  // Fetch match ratings (for pitch view - displayed on player images)
+  const { data: ratingsData } = useGoalSuspenseQuery(getMatchRatingsPrisma, [
+    match.match_id,
+  ]) as { data: MatchRatingsResponse | undefined };
+
+  // Build player_id -> rating map
+  const playerRatings = new Map<number, number>();
+  if (ratingsData?.ratings) {
+    for (const r of ratingsData.ratings) {
+      playerRatings.set(r.player_id, r.rating);
+    }
+  }
 
   const homeTeamKey = `${match.match_id}_${match.home_team_id}`;
   const awayTeamKey = `${match.match_id}_${match.away_team_id}`;
@@ -377,13 +392,46 @@ function TeamLineupsSectionInner({
   const homeLineupWithStats = addStatsToLineup(homeLineups);
   const awayLineupWithStats = addStatsToLineup(awayLineups);
 
-  // 베스트 플레이어 계산 (골 > 어시스트 > 출전시간 순)
+  // 베스트 플레이어 계산 (평점 우선 > 골 > 어시스트 > 무실점 GK)
   const selectBestPlayer = (
     players: LineupPlayer[],
-    concededGoals: number
+    concededGoals: number,
+    teamPlayerRatings: Map<number, number>
   ): number | null => {
     if (players.length === 0) return null;
 
+    // 평점 데이터가 있으면 팀 내 최고 평점 선수를 베스트 플레이어로 선정
+    // tie-break: 평점 > 골 > 어시스트
+    if (teamPlayerRatings.size > 0) {
+      let bestId: number | null = null;
+      let bestRating = 0;
+      let bestGoals = 0;
+      let bestAssists = 0;
+      for (const p of players) {
+        const rating = teamPlayerRatings.get(p.player_id);
+        if (rating == null || rating <= 0) continue;
+        const goals = Math.max(
+          0,
+          (p.goals || 0) - (ownGoalsByPlayer[p.player_id] || 0)
+        );
+        const assists = assistsByPlayer[p.player_id] || 0;
+        if (
+          rating > bestRating ||
+          (rating === bestRating && goals > bestGoals) ||
+          (rating === bestRating &&
+            goals === bestGoals &&
+            assists > bestAssists)
+        ) {
+          bestRating = rating;
+          bestGoals = goals;
+          bestAssists = assists;
+          bestId = p.player_id;
+        }
+      }
+      if (bestId != null) return bestId;
+    }
+
+    // 평점이 없는 경기: 기존 로직 (골 > 어시스트 > 무실점 GK)
     const getRegularGoals = (p: LineupPlayer): number =>
       Math.max(0, (p.goals || 0) - (ownGoalsByPlayer[p.player_id] || 0));
     const getAssists = (p: LineupPlayer): number =>
@@ -419,8 +467,16 @@ function TeamLineupsSectionInner({
 
   const homeConcededGoals = match.away_score || 0;
   const awayConcededGoals = match.home_score || 0;
-  const homeBestPlayerId = selectBestPlayer(homeLineups, homeConcededGoals);
-  const awayBestPlayerId = selectBestPlayer(awayLineups, awayConcededGoals);
+  const homeBestPlayerId = selectBestPlayer(
+    homeLineups,
+    homeConcededGoals,
+    playerRatings
+  );
+  const awayBestPlayerId = selectBestPlayer(
+    awayLineups,
+    awayConcededGoals,
+    playerRatings
+  );
 
   // Resolve team colors (with defaults)
   const homeTeamPrimaryColor = match.home_team?.primary_color || '#000000';
@@ -479,6 +535,7 @@ function TeamLineupsSectionInner({
               awayTeamSecondaryColor={awayTeamSecondaryColor}
               homeBestPlayerId={homeBestPlayerId}
               awayBestPlayerId={awayBestPlayerId}
+              playerRatings={playerRatings}
             />
           )}
 

@@ -38,6 +38,7 @@ import MatchGoalkeeperStatsSection from './MatchGoalkeeperStatsSection';
 import MatchGoalkeeperStatsSectionSkeleton from './MatchGoalkeeperStatsSectionSkeleton';
 import MatchHeader from './MatchHeader';
 import MatchMediaLinks from './MatchMediaLinks';
+import MatchPlayerRatingsSection from './MatchPlayerRatingsSection';
 import MatchScoreHeader from './MatchScoreHeader';
 import PenaltyShootoutSection from './PenaltyShootoutSection';
 import PenaltyShootoutSectionSkeleton from './PenaltyShootoutSectionSkeleton';
@@ -752,6 +753,26 @@ function DetailMatchCardInner({
             )}
           </div>
         </div>
+
+        {/* Player ratings for completed matches with detailed stats */}
+        {match.home_score != null &&
+          match.away_score != null &&
+          match.home_team_id != null &&
+          match.away_team_id != null && (
+            <div className="mt-4">
+              <GoalWrapper fallback={null}>
+                <MatchPlayerRatingsSection
+                  matchId={match.match_id}
+                  homeTeamId={match.home_team_id}
+                  awayTeamId={match.away_team_id}
+                  homeTeamName={match.home_team?.team_name || '홈팀'}
+                  awayTeamName={match.away_team?.team_name || '원정팀'}
+                  homeTeamLogo={match.home_team?.logo}
+                  awayTeamLogo={match.away_team?.logo}
+                />
+              </GoalWrapper>
+            </div>
+          )}
 
         {/* Player stats for completed matches - Full width */}
         {match.home_score != null &&

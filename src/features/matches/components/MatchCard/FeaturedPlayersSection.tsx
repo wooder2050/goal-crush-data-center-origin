@@ -13,6 +13,8 @@ import {
   getKeyPlayersByMatchIdPrisma,
   getMatchGoalsPrisma,
   getMatchLineupsPrisma,
+  getMatchRatingsPrisma,
+  type MatchRatingsResponse,
 } from '../../api-prisma';
 
 interface Props {
@@ -49,6 +51,7 @@ interface SelectedPlayer {
   jersey_number: number | null;
   profile_image_url: string | null;
   position: string | null;
+  rating: number | null;
 }
 
 // FullImage 컴포넌트를 외부로 분리 및 React.memo 적용
@@ -91,6 +94,11 @@ export default function FeaturedPlayersSection({ match }: Props) {
   const { data: goals = [] } = useGoalSuspenseQuery(getMatchGoalsPrisma, [
     match.match_id,
   ]);
+
+  // 평점 데이터 조회 (평점이 있는 경기에서는 최고 평점 선수를 베스트로 선정)
+  const { data: ratingsData } = useGoalSuspenseQuery(getMatchRatingsPrisma, [
+    match.match_id,
+  ]) as { data: MatchRatingsResponse | undefined };
 
   const homeKey = `${match.match_id}_${match.home_team_id}`;
   const awayKey = `${match.match_id}_${match.away_team_id}`;
@@ -141,6 +149,7 @@ export default function FeaturedPlayersSection({ match }: Props) {
           jersey_number: player.jersey_number,
           profile_image_url: player.profile_image_url,
           position: player.position,
+          rating: null,
         };
       };
 
@@ -149,10 +158,40 @@ export default function FeaturedPlayersSection({ match }: Props) {
 
     const selectBest = (
       arr: LineupRow[],
-      concededGoals: number
+      concededGoals: number,
+      teamId: number | null
     ): SelectedPlayer | null => {
       if (!Array.isArray(arr) || arr.length === 0) return null;
 
+      // 평점 데이터가 있으면 해당 팀의 최고 평점 선수를 베스트로 선정
+      if (
+        ratingsData?.ratings &&
+        ratingsData.ratings.length > 0 &&
+        teamId != null
+      ) {
+        const teamRatings = ratingsData.ratings
+          .filter((r) => r.team_id === teamId)
+          .sort((a, b) => {
+            if (b.rating !== a.rating) return b.rating - a.rating;
+            if (b.goals !== a.goals) return b.goals - a.goals;
+            return b.assists - a.assists;
+          });
+        if (teamRatings.length > 0) {
+          const best = teamRatings[0];
+          return {
+            player_id: best.player_id,
+            name: best.player_name,
+            goals: best.goals,
+            assists: best.assists,
+            jersey_number: best.jersey_number ?? null,
+            profile_image_url: best.profile_image_url ?? null,
+            position: best.position ?? null,
+            rating: best.rating,
+          };
+        }
+      }
+
+      // 평점이 없는 경기: 기존 로직 (골 > 어시스트 > 출전시간 > 무실점 GK)
       const getGoals = (x: LineupRow): number => {
         const totalGoals = x.goals ?? 0;
         const ownGoals = ownGoalsByPlayer[x.player_id] ?? 0;
@@ -183,6 +222,7 @@ export default function FeaturedPlayersSection({ match }: Props) {
               jersey_number: p.jersey_number ?? null,
               profile_image_url: p.profile_image_url ?? null,
               position: p.position ?? null,
+              rating: null,
             }
           : null;
       }
@@ -207,6 +247,7 @@ export default function FeaturedPlayersSection({ match }: Props) {
                 jersey_number: gk.jersey_number ?? null,
                 profile_image_url: gk.profile_image_url ?? null,
                 position: gk.position ?? 'Goalkeeper',
+                rating: null,
               }
             : null;
         }
@@ -220,8 +261,16 @@ export default function FeaturedPlayersSection({ match }: Props) {
     const concededAway =
       typeof match.home_score === 'number' ? match.home_score : 0;
 
-    const home = selectBest(getLineupRows(lineups?.[homeKey]), concededHome);
-    const away = selectBest(getLineupRows(lineups?.[awayKey]), concededAway);
+    const home = selectBest(
+      getLineupRows(lineups?.[homeKey]),
+      concededHome,
+      match.home_team_id
+    );
+    const away = selectBest(
+      getLineupRows(lineups?.[awayKey]),
+      concededAway,
+      match.away_team_id
+    );
 
     return [home, away] as const;
   }, [
@@ -232,7 +281,10 @@ export default function FeaturedPlayersSection({ match }: Props) {
     awayKey,
     match.away_score,
     match.home_score,
+    match.home_team_id,
+    match.away_team_id,
     ownGoalsByPlayer,
+    ratingsData,
   ]);
 
   if (!homePick && !awayPick) return null;
@@ -267,6 +319,32 @@ export default function FeaturedPlayersSection({ match }: Props) {
                   {homePick.jersey_number && (
                     <span className="text-[11px] text-gray-500">
                       #{homePick.jersey_number}
+                    </span>
+                  )}
+                  {homePick.rating != null && (
+                    <span
+                      className="inline-flex items-center gap-0.5 rounded-xl px-1.5 py-0.5 text-xs font-bold text-white flex-shrink-0"
+                      style={{
+                        backgroundColor:
+                          homePick.rating >= 9.0
+                            ? '#14A0FF'
+                            : homePick.rating >= 7.0
+                              ? '#33C771'
+                              : '#FF963F',
+                      }}
+                    >
+                      {homePick.rating.toFixed(1)}
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 13 13"
+                        className="inline-block"
+                      >
+                        <path
+                          d="M4.633.453a.5.5 0 01.95 0l.908 2.81a.5.5 0 00.475.345h2.953a.5.5 0 01.294.904L7.824 6.26a.5.5 0 00-.181.559l.908 2.81a.5.5 0 01-.769.559l-2.389-1.748a.5.5 0 00-.588 0L2.416 10.19a.5.5 0 01-.77-.559l.909-2.81a.5.5 0 00-.182-.56L.984 4.513a.5.5 0 01.294-.904h2.953a.5.5 0 00.475-.345L4.633.453z"
+                          fill="currentColor"
+                        />
+                      </svg>
                     </span>
                   )}
                 </div>
@@ -312,6 +390,32 @@ export default function FeaturedPlayersSection({ match }: Props) {
                   {awayPick.jersey_number && (
                     <span className="text-[11px] text-gray-500">
                       #{awayPick.jersey_number}
+                    </span>
+                  )}
+                  {awayPick.rating != null && (
+                    <span
+                      className="inline-flex items-center gap-0.5 rounded-xl px-1.5 py-0.5 text-xs font-bold text-white flex-shrink-0"
+                      style={{
+                        backgroundColor:
+                          awayPick.rating >= 9.0
+                            ? '#14A0FF'
+                            : awayPick.rating >= 7.0
+                              ? '#33C771'
+                              : '#FF963F',
+                      }}
+                    >
+                      {awayPick.rating.toFixed(1)}
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 13 13"
+                        className="inline-block"
+                      >
+                        <path
+                          d="M4.633.453a.5.5 0 01.95 0l.908 2.81a.5.5 0 00.475.345h2.953a.5.5 0 01.294.904L7.824 6.26a.5.5 0 00-.181.559l.908 2.81a.5.5 0 01-.769.559l-2.389-1.748a.5.5 0 00-.588 0L2.416 10.19a.5.5 0 01-.77-.559l.909-2.81a.5.5 0 00-.182-.56L.984 4.513a.5.5 0 01.294-.904h2.953a.5.5 0 00.475-.345L4.633.453z"
+                          fill="currentColor"
+                        />
+                      </svg>
                     </span>
                   )}
                 </div>

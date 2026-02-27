@@ -8,6 +8,7 @@ import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 
 import {
   getMatchDetailedStatsPrisma,
+  getMatchRatingsPrisma,
   MatchDetailedStats,
 } from '../../api-prisma';
 
@@ -484,6 +485,17 @@ function TeamComparisonStats({
   );
 }
 
+// FotMob 스타일 평점 색상
+function getRatingBgColor(rating: number): string {
+  if (rating >= 9.0) return 'bg-[#14A0FF]';
+  if (rating >= 7.0) return 'bg-[#33C771]';
+  return 'bg-[#FF963F]';
+}
+
+function getRatingTextColor(): string {
+  return 'text-white';
+}
+
 // 단일 팀 통계 테이블 (공유 카테고리용)
 function SingleTeamStatsTable({
   players,
@@ -494,6 +506,8 @@ function SingleTeamStatsTable({
   globalMinValues,
   teamPrimaryColor = '#000000',
   teamSecondaryColor = '#FFFFFF',
+  playerRatings,
+  bestPlayerId,
 }: {
   players: MatchDetailedStats[];
   teamName: string;
@@ -503,6 +517,8 @@ function SingleTeamStatsTable({
   globalMinValues?: Record<string, number>;
   teamPrimaryColor?: string;
   teamSecondaryColor?: string;
+  playerRatings?: Map<number, number>;
+  bestPlayerId?: number | null;
 }) {
   // 골키퍼 카테고리인 경우 골키퍼 통계가 있는 선수만 필터링
   // 필드 플레이어 카테고리는 모든 선수 표시 (골키퍼 포함)
@@ -548,6 +564,10 @@ function SingleTeamStatsTable({
       values.length > 0 ? Math.min(...values) : Infinity;
   }
 
+  // 득점/점유 카테고리일 때만 평점 컬럼 표시 (평점 데이터가 있는 경우)
+  const showRatingColumn =
+    category.name === '득점/점유' && playerRatings && playerRatings.size > 0;
+
   return (
     <Card className="h-full">
       <CardContent className="px-0 py-4">
@@ -574,6 +594,11 @@ function SingleTeamStatsTable({
                 <th className="px-3 py-2 text-left font-medium text-gray-700">
                   선수
                 </th>
+                {showRatingColumn && (
+                  <th className="px-2 py-2 text-center font-medium text-gray-700 whitespace-nowrap">
+                    평점
+                  </th>
+                )}
                 {category.stats.map((stat) => (
                   <th
                     key={stat.key}
@@ -585,143 +610,173 @@ function SingleTeamStatsTable({
               </tr>
             </thead>
             <tbody>
-              {filteredPlayers.map((player) => (
-                <tr
-                  key={player.player_id}
-                  className="border-t border-gray-200 hover:bg-gray-50"
-                >
-                  <td className="px-2 sm:px-3 py-2">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      {player.player.profile_image_url ? (
-                        <span className="relative h-6 w-6 overflow-hidden rounded-full flex-shrink-0 hidden sm:block">
-                          <Image
-                            src={player.player.profile_image_url}
-                            alt="선수 이미지"
-                            fill
-                            sizes="24px"
-                            className="object-cover"
-                          />
-                        </span>
-                      ) : (
-                        <span className="hidden sm:inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-[10px] text-gray-700 flex-shrink-0">
-                          {(player.player.name ?? '-').charAt(0)}
-                        </span>
-                      )}
-                      <span className="text-gray-400 text-xs hidden sm:inline">
-                        {player.player.jersey_number ?? '-'}
-                      </span>
-                      <span className="text-xs sm:text-sm font-medium truncate max-w-[60px] sm:max-w-[80px]">
-                        {player.player.name}
-                      </span>
-                    </div>
-                  </td>
-                  {category.stats.map((stat) => {
-                    const rawValue =
-                      player[stat.key as keyof MatchDetailedStats];
-                    const value =
-                      typeof rawValue === 'number' ||
-                      typeof rawValue === 'string'
-                        ? rawValue
-                        : 0;
-                    const numericValue = typeof value === 'number' ? value : 0;
-
-                    // 점유 시간은 MM:SS 형식으로 표시
-                    let displayValue: string | number;
-                    if (stat.key === 'possession_time') {
-                      displayValue = formatPossessionTime(numericValue);
-                    } else if (
-                      stat.suffix === '%' &&
-                      typeof value === 'number'
-                    ) {
-                      displayValue = value.toFixed(1);
-                    } else {
-                      displayValue = value;
-                    }
-
-                    // 성공률 항목의 최소 시도 횟수 조건 확인
-                    let meetsMinRequirement = true;
-                    if (stat.key === 'pass_accuracy') {
-                      meetsMinRequirement = player.passes >= 7;
-                    } else if (stat.key === 'shot_accuracy') {
-                      meetsMinRequirement = player.shots >= 3;
-                    }
-
-                    // lowerIsBetter인 경우 최소값이 best, 아닌 경우 최대값이 best
-                    const isLowerBetter = stat.lowerIsBetter === true;
-
-                    // 양팀 통틀어 best인 경우 (금색 강조)
-                    let isGlobalBest = false;
-                    if (meetsMinRequirement) {
-                      if (isLowerBetter) {
-                        // 실점 등: 최소값이 best (값이 존재해야 함)
-                        isGlobalBest =
-                          globalMinValues !== undefined &&
-                          numericValue === globalMinValues[stat.key];
-                      } else {
-                        // 일반: 최대값이 best
-                        isGlobalBest =
-                          globalMaxValues !== undefined &&
-                          numericValue > 0 &&
-                          numericValue === globalMaxValues[stat.key];
-                      }
-                    }
-
-                    // 팀 내 best인 경우 (파란색 강조)
-                    let isTeamBest = false;
-                    if (!isGlobalBest && meetsMinRequirement) {
-                      if (isLowerBetter) {
-                        isTeamBest = numericValue === teamMinValues[stat.key];
-                      } else {
-                        isTeamBest =
-                          numericValue > 0 &&
-                          numericValue === teamMaxValues[stat.key];
-                      }
-                    }
-                    return (
-                      <td
-                        key={stat.key}
-                        className="px-2 py-2 text-center tabular-nums"
-                      >
-                        {isGlobalBest ? (
-                          <span
-                            className="inline-flex items-center justify-center min-w-[2rem] px-1.5 py-0.5 text-xs font-bold rounded-full"
-                            style={{
-                              backgroundColor: teamPrimaryColor,
-                              color: teamSecondaryColor,
-                            }}
-                          >
-                            {displayValue}
-                            {stat.suffix && value !== 0 ? stat.suffix : ''}
-                          </span>
-                        ) : isTeamBest ? (
-                          <span
-                            className="inline-flex items-center justify-center min-w-[2rem] px-1.5 py-0.5 text-xs font-semibold rounded-full"
-                            style={
-                              isLightColor(teamPrimaryColor)
-                                ? {
-                                    backgroundColor: `${teamPrimaryColor}50`,
-                                    color: `${teamSecondaryColor}90`,
-                                  }
-                                : {
-                                    backgroundColor: `${teamPrimaryColor}20`,
-                                    color: teamPrimaryColor,
-                                  }
-                            }
-                          >
-                            {displayValue}
-                            {stat.suffix && value !== 0 ? stat.suffix : ''}
+              {filteredPlayers.map((player) => {
+                const rating = playerRatings?.get(player.player_id);
+                return (
+                  <tr
+                    key={player.player_id}
+                    className="border-t border-gray-200 hover:bg-gray-50"
+                  >
+                    <td className="px-2 sm:px-3 py-2">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        {player.player.profile_image_url ? (
+                          <span className="relative h-6 w-6 overflow-hidden rounded-full flex-shrink-0 hidden sm:block">
+                            <Image
+                              src={player.player.profile_image_url}
+                              alt="선수 이미지"
+                              fill
+                              sizes="24px"
+                              className="object-cover"
+                            />
                           </span>
                         ) : (
-                          <>
-                            {displayValue}
-                            {stat.suffix && value !== 0 ? stat.suffix : ''}
-                          </>
+                          <span className="hidden sm:inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-[10px] text-gray-700 flex-shrink-0">
+                            {(player.player.name ?? '-').charAt(0)}
+                          </span>
+                        )}
+                        <span className="text-gray-400 text-xs hidden sm:inline">
+                          {player.player.jersey_number ?? '-'}
+                        </span>
+                        <span className="text-xs sm:text-sm font-medium truncate max-w-[60px] sm:max-w-[80px]">
+                          {player.player.name}
+                        </span>
+                      </div>
+                    </td>
+                    {showRatingColumn && (
+                      <td className="px-2 py-2 text-center">
+                        {rating && rating > 0 ? (
+                          <span
+                            className={`inline-flex items-center justify-center gap-0.5 rounded-xl px-2.5 py-0.5 text-[11px] font-bold ${getRatingBgColor(rating)} ${getRatingTextColor()}`}
+                          >
+                            {rating.toFixed(1)}
+                            {player.player_id === bestPlayerId && (
+                              <svg
+                                width="9"
+                                height="9"
+                                viewBox="0 0 13 13"
+                                className="inline-block"
+                              >
+                                <path
+                                  d="M4.633.453a.5.5 0 01.95 0l.908 2.81a.5.5 0 00.475.345h2.953a.5.5 0 01.294.904L7.824 6.26a.5.5 0 00-.181.559l.908 2.81a.5.5 0 01-.769.559l-2.389-1.748a.5.5 0 00-.588 0L2.416 10.19a.5.5 0 01-.77-.559l.909-2.81a.5.5 0 00-.182-.56L.984 4.513a.5.5 0 01.294-.904h2.953a.5.5 0 00.475-.345L4.633.453z"
+                                  fill="currentColor"
+                                />
+                              </svg>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
                         )}
                       </td>
-                    );
-                  })}
-                </tr>
-              ))}
+                    )}
+                    {category.stats.map((stat) => {
+                      const rawValue =
+                        player[stat.key as keyof MatchDetailedStats];
+                      const value =
+                        typeof rawValue === 'number' ||
+                        typeof rawValue === 'string'
+                          ? rawValue
+                          : 0;
+                      const numericValue =
+                        typeof value === 'number' ? value : 0;
+
+                      // 점유 시간은 MM:SS 형식으로 표시
+                      let displayValue: string | number;
+                      if (stat.key === 'possession_time') {
+                        displayValue = formatPossessionTime(numericValue);
+                      } else if (
+                        stat.suffix === '%' &&
+                        typeof value === 'number'
+                      ) {
+                        displayValue = value.toFixed(1);
+                      } else {
+                        displayValue = value;
+                      }
+
+                      // 성공률 항목의 최소 시도 횟수 조건 확인
+                      let meetsMinRequirement = true;
+                      if (stat.key === 'pass_accuracy') {
+                        meetsMinRequirement = player.passes >= 7;
+                      } else if (stat.key === 'shot_accuracy') {
+                        meetsMinRequirement = player.shots >= 3;
+                      }
+
+                      // lowerIsBetter인 경우 최소값이 best, 아닌 경우 최대값이 best
+                      const isLowerBetter = stat.lowerIsBetter === true;
+
+                      // 양팀 통틀어 best인 경우 (금색 강조)
+                      let isGlobalBest = false;
+                      if (meetsMinRequirement) {
+                        if (isLowerBetter) {
+                          // 실점 등: 최소값이 best (값이 존재해야 함)
+                          isGlobalBest =
+                            globalMinValues !== undefined &&
+                            numericValue === globalMinValues[stat.key];
+                        } else {
+                          // 일반: 최대값이 best
+                          isGlobalBest =
+                            globalMaxValues !== undefined &&
+                            numericValue > 0 &&
+                            numericValue === globalMaxValues[stat.key];
+                        }
+                      }
+
+                      // 팀 내 best인 경우 (파란색 강조)
+                      let isTeamBest = false;
+                      if (!isGlobalBest && meetsMinRequirement) {
+                        if (isLowerBetter) {
+                          isTeamBest = numericValue === teamMinValues[stat.key];
+                        } else {
+                          isTeamBest =
+                            numericValue > 0 &&
+                            numericValue === teamMaxValues[stat.key];
+                        }
+                      }
+                      return (
+                        <td
+                          key={stat.key}
+                          className="px-2 py-2 text-center tabular-nums"
+                        >
+                          {isGlobalBest ? (
+                            <span
+                              className="inline-flex items-center justify-center min-w-[2rem] px-1.5 py-0.5 text-xs font-bold rounded-full"
+                              style={{
+                                backgroundColor: teamPrimaryColor,
+                                color: teamSecondaryColor,
+                              }}
+                            >
+                              {displayValue}
+                              {stat.suffix && value !== 0 ? stat.suffix : ''}
+                            </span>
+                          ) : isTeamBest ? (
+                            <span
+                              className="inline-flex items-center justify-center min-w-[2rem] px-1.5 py-0.5 text-xs font-semibold rounded-full"
+                              style={
+                                isLightColor(teamPrimaryColor)
+                                  ? {
+                                      backgroundColor: `${teamPrimaryColor}50`,
+                                      color: `${teamSecondaryColor}90`,
+                                    }
+                                  : {
+                                      backgroundColor: `${teamPrimaryColor}20`,
+                                      color: teamPrimaryColor,
+                                    }
+                              }
+                            >
+                              {displayValue}
+                              {stat.suffix && value !== 0 ? stat.suffix : ''}
+                            </span>
+                          ) : (
+                            <>
+                              {displayValue}
+                              {stat.suffix && value !== 0 ? stat.suffix : ''}
+                            </>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -742,6 +797,7 @@ function SideBySidePlayerStats({
   homeTeamSecondaryColor = '#FFFFFF',
   awayTeamPrimaryColor = '#6B7280',
   awayTeamSecondaryColor = '#FFFFFF',
+  playerRatings,
 }: {
   homeStats: MatchDetailedStats[];
   awayStats: MatchDetailedStats[];
@@ -753,9 +809,38 @@ function SideBySidePlayerStats({
   homeTeamSecondaryColor?: string;
   awayTeamPrimaryColor?: string;
   awayTeamSecondaryColor?: string;
+  playerRatings?: Map<number, number>;
 }) {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const category = FIELD_PLAYER_CATEGORIES[selectedCategory];
+
+  // 각 팀별 베스트 플레이어 찾기 (tie-break: 평점 > 골 > 어시스트)
+  const pickBestPlayer = (players: MatchDetailedStats[]): number | null => {
+    if (!playerRatings || playerRatings.size === 0) return null;
+    let bestId: number | null = null;
+    let bestRating = 0;
+    let bestGoals = 0;
+    let bestAssists = 0;
+    for (const player of players) {
+      const rating = playerRatings.get(player.player_id) ?? 0;
+      if (rating <= 0) continue;
+      if (
+        rating > bestRating ||
+        (rating === bestRating && player.goals > bestGoals) ||
+        (rating === bestRating &&
+          player.goals === bestGoals &&
+          player.assists > bestAssists)
+      ) {
+        bestRating = rating;
+        bestGoals = player.goals;
+        bestAssists = player.assists;
+        bestId = player.player_id;
+      }
+    }
+    return bestId;
+  };
+  const homeBestPlayerId = pickBestPlayer(homeStats);
+  const awayBestPlayerId = pickBestPlayer(awayStats);
 
   // 모든 선수 (필드 플레이어 + 골키퍼)
   const allPlayers = [...homeStats, ...awayStats];
@@ -829,6 +914,8 @@ function SideBySidePlayerStats({
               globalMaxValues={globalMaxValues}
               teamPrimaryColor={homeTeamPrimaryColor}
               teamSecondaryColor={homeTeamSecondaryColor}
+              playerRatings={playerRatings}
+              bestPlayerId={homeBestPlayerId}
             />
           )}
           {awayStats.length > 0 && (
@@ -840,6 +927,8 @@ function SideBySidePlayerStats({
               globalMaxValues={globalMaxValues}
               teamPrimaryColor={awayTeamPrimaryColor}
               teamSecondaryColor={awayTeamSecondaryColor}
+              playerRatings={playerRatings}
+              bestPlayerId={awayBestPlayerId}
             />
           )}
         </div>
@@ -1133,6 +1222,21 @@ export default function MatchDetailedStatsSection({
     matchId,
   ]);
 
+  // 평점 데이터 조회 (선수별 통계 테이블에 평점 컬럼 표시용)
+  const { data: ratingsData } = useGoalSuspenseQuery(getMatchRatingsPrisma, [
+    matchId,
+  ]);
+
+  // 평점 Map 생성 (player_id -> rating)
+  const playerRatings = new Map<number, number>();
+  if (ratingsData?.ratings) {
+    for (const r of ratingsData.ratings) {
+      if (r.rating > 0) {
+        playerRatings.set(r.player_id, r.rating);
+      }
+    }
+  }
+
   // 상세 통계가 없으면 렌더링하지 않음
   if (!stats || stats.length === 0) {
     return null;
@@ -1206,6 +1310,7 @@ export default function MatchDetailedStatsSection({
           homeTeamSecondaryColor={finalHomeTeamSecondaryColor}
           awayTeamPrimaryColor={finalAwayTeamPrimaryColor}
           awayTeamSecondaryColor={finalAwayTeamSecondaryColor}
+          playerRatings={playerRatings}
         />
       </div>
     );
