@@ -56,6 +56,7 @@ export default function DetailedStatsRecordPage() {
 
   // 저장 상태
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingRatings, setIsGeneratingRatings] = useState(false);
 
   // 핸들러 함수들
   const handleBackClick = () => router.push('/admin/matches/record');
@@ -72,6 +73,38 @@ export default function DetailedStatsRecordPage() {
       alert('상세 통계 저장에 실패했습니다.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // 평점 생성
+  const handleGenerateRatings = async () => {
+    setIsGeneratingRatings(true);
+    try {
+      const res = await fetch(`/api/admin/matches/${matchId}/ratings`, {
+        method: 'POST',
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error ?? `서버 오류 (${res.status})`);
+      }
+
+      const data = await res.json();
+
+      if (data.ratings && data.ratings.length > 0) {
+        alert(
+          `평점 생성 완료! ${data.ratings.length}명의 선수 평점이 저장되었습니다.`
+        );
+      } else {
+        alert(
+          '평점을 생성할 수 없습니다. 상세 통계 데이터를 먼저 저장해주세요.'
+        );
+      }
+    } catch (error) {
+      console.error('Failed to generate ratings:', error);
+      alert('평점 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingRatings(false);
     }
   };
 
@@ -182,6 +215,27 @@ export default function DetailedStatsRecordPage() {
                 onClick={() => router.push(`/admin/matches/record/${matchId}`)}
               >
                 라인업 등록하러 가기
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {/* 평점 생성 */}
+        {!isLoadingStats && detailedStats.length > 0 && (
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">경기 평점 생성</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  상세 통계 데이터를 기반으로 선수별 경기 평점을 자동 계산하여
+                  저장합니다.
+                </p>
+              </div>
+              <Button
+                onClick={handleGenerateRatings}
+                disabled={isGeneratingRatings}
+              >
+                {isGeneratingRatings ? '평점 생성 중...' : '평점 생성'}
               </Button>
             </div>
           </Card>
