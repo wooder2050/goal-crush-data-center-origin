@@ -72,8 +72,6 @@ model User {
   user_points            UserPoint[]
 
   @@index([korean_nickname], map: "idx_users_korean_nickname")
-  @@index([is_active], map: "idx_users_is_active")
-  @@index([created_at], map: "idx_users_created_at")
   @@map("users")
 }
 
@@ -153,6 +151,7 @@ model TeamSeason {
   team           Team?     @relation(fields: [team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([team_id, season_id])
+  @@index([season_id], map: "idx_team_seasons_season_id")
   @@map("team_seasons")
 }
 
@@ -171,6 +170,7 @@ model PlayerTeamHistory {
 
   @@unique([player_id, season_id], map: "unique_player_season")
   @@index([season_id], map: "idx_player_team_history_season")
+  @@index([team_id], map: "idx_player_team_history_team")
   @@map("player_team_history")
 }
 
@@ -218,6 +218,8 @@ model Match {
   player_match_ratings        PlayerMatchRating[]
 
   @@index([away_coach_id], map: "idx_matches_away_coach")
+  @@index([away_team_id], map: "idx_matches_away_team")
+  @@index([home_team_id], map: "idx_matches_home_team")
   @@index([match_date], map: "idx_matches_date")
   @@index([home_coach_id], map: "idx_matches_home_coach")
   @@index([season_id], map: "idx_matches_season")
@@ -248,6 +250,7 @@ model PlayerMatchStats {
   @@unique([player_id, match_id], map: "uq_player_match_stats_player_match")
   @@index([match_id], map: "idx_player_match_stats_match")
   @@index([position], map: "idx_player_match_stats_position")
+  @@index([team_id], map: "idx_player_match_stats_team")
   @@index([match_id], map: "idx_player_stats_match")
   @@index([player_id], map: "idx_player_stats_player")
   @@map("player_match_stats")
@@ -315,6 +318,7 @@ model Substitution {
 
   @@index([match_id], map: "idx_substitutions_match_id")
   @@index([player_in_id], map: "idx_substitutions_player_in_id")
+  @@index([player_out_id], map: "idx_substitutions_player_out_id")
   @@index([team_id], map: "idx_substitutions_team_id")
   @@map("substitutions")
 }
@@ -335,6 +339,7 @@ model PenaltyShootoutDetail {
   team              Team      @relation(fields: [team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([match_id, team_id, kicker_order])
+  @@index([goalkeeper_id], map: "idx_penalty_details_goalkeeper")
   @@index([kicker_id], map: "idx_penalty_details_kicker")
   @@index([match_id], map: "idx_penalty_details_match")
   @@index([team_id], map: "idx_penalty_details_team")
@@ -360,6 +365,8 @@ model PlayerSeasonStats {
   team           Team?     @relation(fields: [team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([player_id, season_id, team_id])
+  @@index([season_id], map: "idx_player_season_stats_season")
+  @@index([team_id], map: "idx_player_season_stats_team")
   @@map("player_season_stats")
 }
 
@@ -380,6 +387,7 @@ model TeamSeasonStats {
   team           Team?     @relation(fields: [team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([team_id, season_id])
+  @@index([season_id], map: "idx_team_season_stats_season_id")
   @@map("team_season_stats")
 }
 
@@ -405,6 +413,7 @@ model Standing {
   @@unique([season_id, team_id])
   @@index([position], map: "idx_standings_position")
   @@index([season_id], map: "idx_standings_season")
+  @@index([team_id], map: "idx_standings_team")
   @@map("standings")
 }
 
@@ -421,6 +430,7 @@ model PlayerPosition {
   season             Season?   @relation(fields: [season_id], references: [season_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([player_id, position, season_id, start_date], map: "unique_player_position_period")
+  @@index([season_id], map: "idx_player_positions_season_id")
   @@map("player_positions")
 }
 
@@ -436,6 +446,7 @@ model TeamSeasonName {
   team       Team      @relation(fields: [team_id], references: [team_id], onDelete: Cascade)
 
   @@unique([team_id, season_id])
+  @@index([season_id], map: "idx_team_season_names_season_id")
   @@map("team_season_names")
 }
 
@@ -463,7 +474,6 @@ model GroupLeagueStanding {
 
   @@unique([season_id, group_stage, team_id], map: "unique_season_group_team")
   @@index([season_id, group_stage, position], map: "idx_group_standings_position")
-  @@index([season_id, group_stage], map: "idx_group_standings_season_group")
   @@index([team_id], map: "idx_group_standings_team")
   @@map("group_league_standings")
 }
@@ -523,7 +533,6 @@ model MatchCoach {
   @@unique([match_id, team_id, role], map: "uniq_match_coaches_match_team_role")
   @@index([coach_id], map: "idx_match_coaches_coach_id")
   @@index([match_id], map: "idx_match_coaches_match_id")
-  @@index([role], map: "idx_match_coaches_role")
   @@index([team_id], map: "idx_match_coaches_team_id")
   @@map("match_coaches")
 }
@@ -539,6 +548,7 @@ model team_current_head_coach {
   teams             Team     @relation(fields: [team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([coach_id, team_id], map: "team_current_head_coach_pk")
+  @@index([team_id], map: "idx_team_current_head_coach_team_id")
 }
 
 model H2hPairStats {
@@ -574,7 +584,6 @@ model MatchSupport {
   @@index([match_id], map: "idx_match_supports_match_id")
   @@index([team_id], map: "idx_match_supports_team_id")
   @@index([user_id], map: "idx_match_supports_user_id")
-  @@index([created_at], map: "idx_match_supports_created_at")
   @@map("match_supports")
 }
 
@@ -603,6 +612,8 @@ model CommunityPost {
   viewRecords    PostViewRecord[]
 
   @@index([category], map: "idx_community_posts_category")
+  @@index([match_id], map: "idx_community_posts_match_id")
+  @@index([season_id], map: "idx_community_posts_season_id")
   @@index([team_id], map: "idx_community_posts_team_id")
   @@index([created_at], map: "idx_community_posts_created_at")
   @@index([user_id], map: "idx_community_posts_user_id")
@@ -623,8 +634,6 @@ model PostViewRecord {
   @@unique([post_id, session_id])
   @@unique([post_id, user_id])
   @@index([post_id], map: "idx_post_view_records_post_id")
-  @@index([user_id], map: "idx_post_view_records_user_id")
-  @@index([session_id], map: "idx_post_view_records_session_id")
   @@index([viewed_at], map: "idx_post_view_records_viewed_at")
   @@map("post_view_records")
 }
@@ -645,9 +654,9 @@ model PostComment {
   post              CommunityPost @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
   user              User          @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
+  @@index([parent_comment_id], map: "idx_post_comments_parent_id")
   @@index([post_id], map: "idx_post_comments_post_id")
   @@index([user_id], map: "idx_post_comments_user_id")
-  @@index([created_at], map: "idx_post_comments_created_at")
   @@map("post_comments")
 }
 
@@ -674,6 +683,7 @@ model CommentLike {
   user       User        @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([comment_id, user_id])
+  @@index([user_id], map: "idx_comment_likes_user_id")
   @@map("comment_likes")
 }
 
@@ -691,8 +701,10 @@ model MvpVote {
   user       User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([season_id, user_id, vote_type, match_id])
+  @@index([match_id], map: "idx_mvp_votes_match_id")
   @@index([season_id], map: "idx_mvp_votes_season_id")
   @@index([player_id], map: "idx_mvp_votes_player_id")
+  @@index([user_id], map: "idx_mvp_votes_user_id")
   @@map("mvp_votes")
 }
 
@@ -715,6 +727,7 @@ model MatchPrediction {
 
   @@unique([match_id, user_id])
   @@index([match_id], map: "idx_match_predictions_match_id")
+  @@index([predicted_mvp_id], map: "idx_match_predictions_mvp_id")
   @@index([user_id], map: "idx_match_predictions_user_id")
   @@map("match_predictions")
 }
@@ -730,7 +743,6 @@ model UserPoint {
   user          User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id], map: "idx_user_points_user_id")
-  @@index([created_at], map: "idx_user_points_created_at")
   @@map("user_points")
 }
 
@@ -765,6 +777,7 @@ model CommunityEvent {
   creator              User?                @relation("EventCreator", fields: [created_by], references: [user_id])
   participations       EventParticipation[]
 
+  @@index([created_by], map: "idx_community_events_created_by")
   @@map("community_events")
 }
 
@@ -780,6 +793,7 @@ model EventParticipation {
   user             User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([event_id, user_id])
+  @@index([user_id], map: "idx_event_participations_user_id")
   @@map("event_participations")
 }
 
@@ -796,7 +810,6 @@ model UserNotification {
   user              User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id], map: "idx_user_notifications_user_id")
-  @@index([is_read], map: "idx_user_notifications_is_read")
   @@map("user_notifications")
 }
 
@@ -845,11 +858,8 @@ model PlayerAbilityRating {
   reviews           RatingReview[]
 
   @@unique([player_id, user_id, season_id])
-  @@index([player_id])
   @@index([user_id])
   @@index([season_id])
-  @@index([overall_rating])
-  @@index([created_at])
   @@map("player_ability_ratings")
 }
 
@@ -864,9 +874,6 @@ model RatingReview {
   user        User                @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([rating_id, user_id, review_type])
-  @@index([rating_id])
-  @@index([user_id])
-  @@index([review_type])
   @@map("rating_reviews")
 }
 
@@ -908,7 +915,7 @@ model PlayerAbilityAggregate {
   season                Season?  @relation(fields: [season_id], references: [season_id])
 
   @@unique([player_id, season_id])
-  @@index([avg_overall_rating])
+  @@index([season_id], map: "idx_player_ability_aggregates_season_id")
   @@map("player_ability_aggregates")
 }
 
@@ -930,7 +937,6 @@ model FantasySeason {
 
   @@unique([season_id, year, month])
   @@index([year, month])
-  @@index([is_active])
   @@map("fantasy_seasons")
 }
 
@@ -949,7 +955,6 @@ model FantasyTeam {
 
   @@unique([user_id, fantasy_season_id])
   @@index([fantasy_season_id])
-  @@index([total_points])
   @@map("fantasy_teams")
 }
 
@@ -968,8 +973,6 @@ model FantasyPlayerSelection {
 
   @@unique([fantasy_team_id, player_id])
   @@unique([fantasy_team_id, selection_order])
-  @@index([fantasy_team_id])
-  @@index([player_id])
   @@map("fantasy_player_selections")
 }
 
@@ -995,7 +998,6 @@ model FantasyMatchPerformance {
 
   @@unique([selection_id, match_id])
   @@index([match_id])
-  @@index([player_id])
   @@map("fantasy_match_performances")
 }
 
@@ -1011,8 +1013,7 @@ model FantasyRanking {
   user              User          @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([fantasy_season_id, user_id])
-  @@index([fantasy_season_id, rank_position])
-  @@index([fantasy_season_id, total_points])
+  @@index([user_id], map: "idx_fantasy_rankings_user_id")
   @@map("fantasy_rankings")
 }
 
@@ -1031,6 +1032,7 @@ model FantasyAIRecommendation {
 
   @@unique([fantasy_season_id, player_id])
   @@index([fantasy_season_id, recommendation_score])
+  @@index([player_id], map: "idx_fantasy_ai_recommendations_player_id")
   @@map("fantasy_ai_recommendations")
 }
 
@@ -1182,7 +1184,6 @@ model MatchPeriod {
   match Match @relation(fields: [match_id], references: [match_id], onDelete: Cascade)
 
   @@unique([match_id, period_number])
-  @@index([match_id])
   @@map("match_periods")
 }
 
@@ -1204,5 +1205,6 @@ model PlayerMatchRating {
   @@unique([match_id, player_id])
   @@index([match_id])
   @@index([player_id])
+  @@index([team_id])
   @@map("player_match_ratings")
 }
