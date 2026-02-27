@@ -433,12 +433,12 @@ function LineupPitchView({
     const iconSize = imageSize < 7 ? 2.2 : 2.8;
     const radius = imageSize / 2;
 
-    // 아이콘 위치 계산 (프로필 이미지 가장자리 - 0.75)
+    // 아이콘 위치 계산 (평점 배지가 오른쪽 상단이므로, 왼쪽과 하단에 배치)
     const positions = [
-      { x: centerX + radius * 0.75, y: centerY + radius * 0.75 }, // 오른쪽 하단
-      { x: centerX + radius * 0.75, y: centerY - radius * 0.75 }, // 오른쪽 상단
       { x: centerX - radius * 0.75, y: centerY + radius * 0.75 }, // 왼쪽 하단
+      { x: centerX + radius * 0.75, y: centerY + radius * 0.75 }, // 오른쪽 하단
       { x: centerX - radius * 0.75, y: centerY - radius * 0.75 }, // 왼쪽 상단
+      { x: centerX + radius * 0.75, y: centerY - radius * 0.75 }, // 오른쪽 상단 (4번째로 밀림)
     ];
 
     // 교체 선수는 더 작은 스케일 적용

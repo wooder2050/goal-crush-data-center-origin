@@ -87,7 +87,7 @@ function PlayerRatingRow({
       </div>
 
       {/* 골/어시스트/카드 아이콘 */}
-      <div className="flex items-center gap-0.5 flex-shrink-0">
+      <div className="flex items-center gap-0.5 overflow-hidden">
         {player.goals > 0 &&
           Array.from({ length: player.goals }).map((_, i) => (
             <span key={`g${i}`} className="text-[10px]">
