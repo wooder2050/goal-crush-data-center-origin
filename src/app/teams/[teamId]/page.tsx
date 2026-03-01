@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
+import { getInitialTeamDetailData } from '@/features/teams/server';
 import { prisma } from '@/lib/prisma';
 
 import TeamDetailPageContent from './TeamDetailPageContent';
@@ -10,11 +12,17 @@ interface Props {
   params: Promise<{ teamId: string }>;
 }
 
+function parseTeamId(raw: string): number | null {
+  if (!/^\d+$/.test(raw)) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { teamId } = await params;
-  const id = parseInt(teamId, 10);
+  const id = parseTeamId(teamId);
 
-  if (isNaN(id)) {
+  if (id === null) {
     return {
       title: '팀을 찾을 수 없습니다',
     };
@@ -75,5 +83,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { teamId } = await params;
-  return <TeamDetailPageContent teamId={teamId} />;
+  const id = parseTeamId(teamId);
+
+  if (id === null) {
+    notFound();
+  }
+
+  const initialData = await getInitialTeamDetailData(id);
+
+  if (!initialData) {
+    notFound();
+  }
+
+  return <TeamDetailPageContent teamId={teamId} initialData={initialData} />;
 }
