@@ -21,9 +21,9 @@ import {
 } from '@/components/ui';
 
 export const metadata: Metadata = {
-  title: '통계',
+  title: '골때녀 통계 - 득점·골키퍼·팀·맞대결',
   description:
-    '골 때리는 그녀들 득점 순위, 골키퍼 랭킹, 팀 순위, 맞대결 전적 등 다양한 통계를 확인하세요.',
+    '골 때리는 그녀들 종합 통계! 득점 순위, 골키퍼 랭킹, 팀 성적, 맞대결 전적, 선발 승률까지 한곳에서 확인하세요.',
   keywords: [
     '골때녀 통계',
     '골때녀 순위',
@@ -33,16 +33,16 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: '/stats' },
   openGraph: {
-    title: '통계 | 골때녀 데이터 센터',
+    title: '골때녀 통계 - 득점·골키퍼·팀·맞대결 | 골때녀 데이터 센터',
     description:
-      '골 때리는 그녀들 득점 순위, 골키퍼 랭킹, 팀 순위, 맞대결 전적 등 다양한 통계를 확인하세요.',
+      '골 때리는 그녀들 종합 통계! 득점 순위, 골키퍼 랭킹, 팀 성적, 맞대결 전적, 선발 승률까지 한곳에서 확인하세요.',
     url: 'https://www.gtndatacenter.com/stats',
   },
   twitter: {
     card: 'summary',
-    title: '통계 | 골때녀 데이터 센터',
+    title: '골때녀 통계 - 득점·골키퍼·팀·맞대결 | 골때녀 데이터 센터',
     description:
-      '골 때리는 그녀들 득점 순위, 골키퍼 랭킹, 팀 순위, 맞대결 전적 등 다양한 통계를 확인하세요.',
+      '골 때리는 그녀들 종합 통계! 득점 순위, 골키퍼 랭킹, 팀 성적, 맞대결 전적, 선발 승률까지 한곳에서 확인하세요.',
   },
 };
 
