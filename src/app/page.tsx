@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
-import { HomePage } from '@/features/home';
+import { HomePageDashboard } from '@/features/home';
+import { getHomePageData } from '@/features/home/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 };
 
-export default function Page() {
-  return <HomePage />;
+export default async function Page() {
+  const initialData = await getHomePageData();
+  return <HomePageDashboard initialData={initialData} />;
 }

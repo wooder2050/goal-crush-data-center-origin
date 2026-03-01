@@ -16,6 +16,7 @@ function parseSeasonId(raw: string): number | null {
 
 interface Props {
   params: Promise<{ seasonId: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -69,8 +70,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function Page({ params }: Props) {
+export default async function Page({ params, searchParams }: Props) {
   const { seasonId } = await params;
+  const { tab } = await searchParams;
   const id = parseSeasonId(seasonId);
 
   if (id === null) notFound();
@@ -79,5 +81,11 @@ export default async function Page({ params }: Props) {
 
   if (!initialData) notFound();
 
-  return <SeasonDetailContent seasonId={seasonId} initialData={initialData} />;
+  return (
+    <SeasonDetailContent
+      seasonId={seasonId}
+      initialData={initialData}
+      initialTab={tab}
+    />
+  );
 }

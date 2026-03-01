@@ -21,9 +21,10 @@ import SeasonSummary from './SeasonSummary';
 interface Props {
   seasonId: number;
   title?: string;
+  initialTab?: string;
 }
 
-function GLeagueResultsInner({ seasonId, title }: Props) {
+function GLeagueResultsInner({ seasonId, title, initialTab }: Props) {
   const PAGE_SIZE = 6;
 
   const {
@@ -68,7 +69,10 @@ function GLeagueResultsInner({ seasonId, title }: Props) {
         </div>
       )}
 
-      <Tabs defaultValue="matches" className="space-y-6 sm:space-y-8">
+      <Tabs
+        defaultValue={initialTab || 'matches'}
+        className="space-y-6 sm:space-y-8"
+      >
         <TabsList className="grid w-full grid-cols-3 gap-1 sm:gap-2">
           <TabsTrigger value="matches" className="text-xs sm:text-sm">
             경기 결과
