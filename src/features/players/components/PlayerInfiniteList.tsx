@@ -6,6 +6,7 @@ import { ScrollTrigger } from '@/common/ScrollTrigger';
 import {
   getPlayersPagePrisma,
   type PlayersPageItem,
+  type PlayersPageResponse,
 } from '@/features/players/api-prisma';
 import PlayersListBody from '@/features/players/components/PlayersListBody';
 import SkeletonCard from '@/features/players/components/SkeletonCard';
@@ -18,6 +19,7 @@ export default function PlayerInfiniteList({
   order,
   position,
   onTotalChange,
+  initialPlayersPage,
 }: {
   teamId: number | null;
   seasonId?: number | null;
@@ -25,9 +27,19 @@ export default function PlayerInfiniteList({
   order?: 'apps' | 'goals';
   position?: string;
   onTotalChange?: (n: number) => void;
+  initialPlayersPage?: PlayersPageResponse;
 }) {
   const PAGE_SIZE = 10;
   const debouncedKeyword = useDebounced(keyword ?? '', 250);
+
+  // initialData는 기본 필터 상태(필터 없음, order=apps)일 때만 사용
+  const isDefaultFilter =
+    !teamId &&
+    !seasonId &&
+    !debouncedKeyword &&
+    (!order || order === 'apps') &&
+    !position;
+
   const {
     data: infiniteData,
     fetchNextPage,
@@ -47,7 +59,18 @@ export default function PlayerInfiniteList({
         position,
       },
     ],
-    { initialPageParam: 1, getNextPageParam: (last) => last.nextPage }
+    {
+      initialPageParam: 1,
+      getNextPageParam: (last) => last.nextPage,
+      ...(isDefaultFilter && initialPlayersPage
+        ? {
+            initialData: {
+              pages: [initialPlayersPage],
+              pageParams: [1],
+            },
+          }
+        : {}),
+    }
   );
 
   const typedData = infiniteData;

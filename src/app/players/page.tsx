@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { PlayersPage } from '@/features/players';
+import { getInitialPlayersData } from '@/features/players/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <PlayersPage />;
+export default async function Page() {
+  const initialData = await getInitialPlayersData();
+  return <PlayersPage initialData={initialData} />;
 }
