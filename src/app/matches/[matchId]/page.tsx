@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
+import { getInitialMatchDetailData } from '@/features/matches/server';
 import { prisma } from '@/lib/prisma';
 
 import MatchDetailPageContent from './MatchDetailPageContent';
@@ -10,11 +12,17 @@ interface Props {
   params: Promise<{ matchId: string }>;
 }
 
+function parseMatchId(raw: string): number | null {
+  if (!/^\d+$/.test(raw)) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { matchId } = await params;
-  const id = parseInt(matchId, 10);
+  const id = parseMatchId(matchId);
 
-  if (isNaN(id)) {
+  if (id == null) {
     return {
       title: '경기를 찾을 수 없습니다',
     };
@@ -100,5 +108,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { matchId } = await params;
-  return <MatchDetailPageContent matchId={matchId} />;
+  const id = parseMatchId(matchId);
+  if (id == null) notFound();
+
+  const initialData = await getInitialMatchDetailData(id);
+  if (!initialData) notFound();
+
+  return <MatchDetailPageContent matchId={matchId} initialData={initialData} />;
 }

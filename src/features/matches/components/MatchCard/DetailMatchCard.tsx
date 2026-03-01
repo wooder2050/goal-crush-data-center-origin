@@ -5,7 +5,8 @@ import React, { useState } from 'react';
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Card, CardContent } from '@/components/ui/card';
 import { PassMap } from '@/features/event-actions/components/PassMap';
-import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { useGoalQuery, useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import type { MatchWithTeams } from '@/lib/types';
 
 import {
   getMatchActionsPrisma,
@@ -49,6 +50,7 @@ import TeamLineupsSection from './TeamLineupsSection';
 interface DetailMatchCardProps {
   matchId: number;
   className?: string;
+  initialMatch?: MatchWithTeams;
 }
 
 // 피치 크기
@@ -634,8 +636,11 @@ function GoalkeeperStatsSectionIfNoDetailedStats({
 function DetailMatchCardInner({
   matchId,
   className = '',
+  initialMatch,
 }: DetailMatchCardProps) {
-  const { data: match } = useGoalSuspenseQuery(getMatchByIdPrisma, [matchId]);
+  const { data: match } = useGoalQuery(getMatchByIdPrisma, [matchId], {
+    initialData: initialMatch,
+  });
 
   if (!match) {
     return (
@@ -833,7 +838,18 @@ function DetailMatchCardInner({
 const DetailMatchCard: React.FC<DetailMatchCardProps> = ({
   matchId,
   className = '',
+  initialMatch,
 }) => {
+  if (initialMatch) {
+    return (
+      <DetailMatchCardInner
+        matchId={matchId}
+        className={className}
+        initialMatch={initialMatch}
+      />
+    );
+  }
+
   return (
     <GoalWrapper fallback={<DetailMatchCardSkeleton className={className} />}>
       <DetailMatchCardInner matchId={matchId} className={className} />

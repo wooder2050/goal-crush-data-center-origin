@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { GoalWrapper } from '@/common/GoalWrapper';
 import {
   Button,
   Card,
@@ -592,39 +591,5 @@ function WinRatePageContentInner() {
 }
 
 export default function StarterWinRatePageContent() {
-  return (
-    <GoalWrapper fallback={<StarterWinRatePageContentSkeleton />}>
-      <WinRatePageContentInner />
-    </GoalWrapper>
-  );
-}
-
-function StarterWinRatePageContentSkeleton() {
-  return (
-    <div className="min-h-screen bg-white">
-      <Section padding="sm">
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="h-8 w-48 bg-gray-200 rounded mx-auto mb-4 animate-pulse" />
-          <div className="h-6 w-64 bg-gray-200 rounded mx-auto animate-pulse" />
-        </div>
-        <Card className="mb-6">
-          <CardContent className="px-4 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="h-10 bg-gray-200 rounded animate-pulse"
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-16 bg-gray-200 rounded animate-pulse" />
-          ))}
-        </div>
-      </Section>
-    </div>
-  );
+  return <WinRatePageContentInner />;
 }

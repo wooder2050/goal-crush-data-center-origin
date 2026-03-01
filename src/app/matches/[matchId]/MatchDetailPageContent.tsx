@@ -4,13 +4,16 @@ import React from 'react';
 
 import { Section } from '@/components/ui';
 import DetailMatchCard from '@/features/matches/components/MatchCard/DetailMatchCard';
+import type { InitialMatchDetailData } from '@/features/matches/server';
 
 interface MatchDetailPageContentProps {
   matchId: string;
+  initialData: InitialMatchDetailData;
 }
 
 export default function MatchDetailPageContent({
   matchId,
+  initialData,
 }: MatchDetailPageContentProps) {
   const id = Number(matchId);
 
@@ -27,7 +30,7 @@ export default function MatchDetailPageContent({
               </div>
             </div>
           ) : (
-            <DetailMatchCard matchId={id} />
+            <DetailMatchCard matchId={id} initialMatch={initialData.match} />
           )}
         </div>
       </Section>

@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { GoalWrapper } from '@/common/GoalWrapper';
 import {
   Button,
   Card,
@@ -20,7 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui';
 import InfiniteSeasonSelect from '@/features/stats/components/InfiniteSeasonSelect';
-import PenaltyShootoutPageContentSkeleton from '@/features/stats/components/PenaltyShootoutPageContentSkeleton';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 
 interface KickerRanking {
@@ -814,9 +812,5 @@ function PenaltyShootoutPageContentInner() {
 }
 
 export default function PenaltyShootoutPageContent() {
-  return (
-    <GoalWrapper fallback={<PenaltyShootoutPageContentSkeleton />}>
-      <PenaltyShootoutPageContentInner />
-    </GoalWrapper>
-  );
+  return <PenaltyShootoutPageContentInner />;
 }

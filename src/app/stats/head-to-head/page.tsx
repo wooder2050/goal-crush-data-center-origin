@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
 
 import HeadToHeadPageContent from '@/features/stats/components/HeadToHeadPageContent';
+import { getInitialHeadToHeadData } from '@/features/stats/server';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: '팀 맞대결 통계',
@@ -28,6 +31,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HeadToHeadStatsPage() {
-  return <HeadToHeadPageContent />;
+export default async function HeadToHeadStatsPage() {
+  const initialData = await getInitialHeadToHeadData();
+  return <HeadToHeadPageContent initialTeams={initialData.teams} />;
 }

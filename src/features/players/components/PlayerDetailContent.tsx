@@ -34,8 +34,10 @@ type TeamHistoryItem = {
 
 export default function PlayerDetailContent({
   playerId,
+  initialPlayer,
 }: {
   playerId: number;
+  initialPlayer?: NonNullable<PlayerData>;
 }) {
   const handleRatePlayer = useCallback(() => {
     window.location.href = `/players/${playerId}/rate`;
@@ -46,7 +48,7 @@ export default function PlayerDetailContent({
   }, [playerId]);
 
   return (
-    <PlayerDataProvider playerId={playerId}>
+    <PlayerDataProvider playerId={playerId} initialData={initialPlayer}>
       {(player) => (
         <PlayerSummaryProvider playerId={playerId}>
           {(summary) => (

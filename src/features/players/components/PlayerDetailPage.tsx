@@ -3,11 +3,14 @@
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Card, CardContent, Grid, Section } from '@/components/ui';
 import PlayerDetailContent from '@/features/players/components/PlayerDetailContent';
+import type { Player } from '@/lib/types';
 
 export default function PlayerDetailPage({
   playerId,
+  initialPlayer,
 }: {
   playerId: number | null;
+  initialPlayer?: Player;
 }) {
   const isPending = playerId == null;
 
@@ -71,6 +74,11 @@ export default function PlayerDetailPage({
       </div>
       {isPending ? (
         Skeleton
+      ) : initialPlayer ? (
+        <PlayerDetailContent
+          playerId={playerId!}
+          initialPlayer={initialPlayer}
+        />
       ) : (
         <GoalWrapper fallback={Skeleton}>
           <PlayerDetailContent playerId={playerId!} />

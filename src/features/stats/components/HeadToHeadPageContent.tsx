@@ -4,7 +4,6 @@ import { Calendar, Swords, Target, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 
-import { GoalWrapper } from '@/common/GoalWrapper';
 import {
   Card,
   CardContent,
@@ -17,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui';
-import { useGoalQuery, useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { useGoalQuery } from '@/hooks/useGoalQuery';
 
 interface HeadToHeadMatch {
   match_id: number;
@@ -101,12 +100,17 @@ async function getAllTeams(): Promise<TeamOption[]> {
   return result.data || [];
 }
 
-function HeadToHeadPageContentInner() {
+function HeadToHeadPageContentInner({
+  initialTeams,
+}: {
+  initialTeams?: TeamOption[];
+}) {
   const [team1Id, setTeam1Id] = useState<number | undefined>();
   const [team2Id, setTeam2Id] = useState<number | undefined>();
 
-  const { data: teamsData } = useGoalSuspenseQuery(getAllTeams, [], {
+  const { data: teamsData } = useGoalQuery(getAllTeams, [], {
     staleTime: 10 * 60 * 1000, // 10분
+    initialData: initialTeams,
   });
 
   const { data, isLoading, error } = useGoalQuery(
@@ -118,7 +122,7 @@ function HeadToHeadPageContentInner() {
     }
   );
 
-  const teams = teamsData;
+  const teams = teamsData ?? [];
   const availableTeams1 = teams.filter((t) => t.team_id !== team2Id);
   const availableTeams2 = teams.filter((t) => t.team_id !== team1Id);
 
@@ -555,51 +559,10 @@ function HeadToHeadPageContentInner() {
   );
 }
 
-function HeadToHeadSkeleton() {
-  return (
-    <div className="min-h-screen bg-white">
-      <Section padding="sm">
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mx-auto mb-3"></div>
-          <div className="h-5 w-64 bg-gray-200 rounded animate-pulse mx-auto"></div>
-        </div>
-
-        {/* 팀 선택 스켈레톤 */}
-        <Card className="mb-6">
-          <CardContent className="px-4 sm:px-6 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-              <div>
-                <div className="h-4 w-8 bg-gray-200 rounded animate-pulse mb-2"></div>
-                <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
-              </div>
-              <div>
-                <div className="h-4 w-8 bg-gray-200 rounded animate-pulse mb-2"></div>
-                <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
-              </div>
-            </div>
-            <div className="flex justify-center mt-4">
-              <div className="h-8 w-12 bg-gray-200 rounded animate-pulse"></div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 메인 컨텐츠 스켈레톤 */}
-        <Card>
-          <CardContent className="px-6 py-12 text-center">
-            <div className="w-16 h-16 bg-gray-200 rounded animate-pulse mx-auto mb-4"></div>
-            <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mx-auto mb-2"></div>
-            <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mx-auto"></div>
-          </CardContent>
-        </Card>
-      </Section>
-    </div>
-  );
-}
-
-export default function HeadToHeadPageContent() {
-  return (
-    <GoalWrapper fallback={<HeadToHeadSkeleton />}>
-      <HeadToHeadPageContentInner />
-    </GoalWrapper>
-  );
+export default function HeadToHeadPageContent({
+  initialTeams,
+}: {
+  initialTeams?: TeamOption[];
+}) {
+  return <HeadToHeadPageContentInner initialTeams={initialTeams} />;
 }
