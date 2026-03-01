@@ -72,17 +72,26 @@ export default function MatchesWidget({
 }
 
 function CompletedMatchRow({ match }: { match: HomeMatch }) {
+  const hasPenalty =
+    match.penalty_home_score != null && match.penalty_away_score != null;
+  const tied =
+    match.home_score != null &&
+    match.away_score != null &&
+    match.home_score === match.away_score;
   const homeWin =
     match.home_score != null &&
     match.away_score != null &&
-    match.home_score > match.away_score;
+    (match.home_score > match.away_score ||
+      (tied &&
+        hasPenalty &&
+        match.penalty_home_score! > match.penalty_away_score!));
   const awayWin =
     match.home_score != null &&
     match.away_score != null &&
-    match.away_score > match.home_score;
-
-  const hasPenalty =
-    match.penalty_home_score != null && match.penalty_away_score != null;
+    (match.away_score > match.home_score ||
+      (tied &&
+        hasPenalty &&
+        match.penalty_away_score! > match.penalty_home_score!));
 
   return (
     <Link

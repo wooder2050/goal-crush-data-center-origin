@@ -11,7 +11,13 @@ export const metadata: Metadata = {
   },
   description:
     '골 때리는 그녀들의 모든 경기 결과, 선수 기록, 팀 순위를 한눈에! 시즌별 순위표, 득점 순위, 맞대결 기록까지 확인하세요.',
-  alternates: { canonical: '/' },
+  alternates: {
+    canonical: '/',
+    languages: {
+      ko: '/',
+      en: '/en',
+    },
+  },
 };
 
 export default async function Page() {
