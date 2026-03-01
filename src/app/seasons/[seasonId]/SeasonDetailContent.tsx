@@ -26,10 +26,12 @@ const categoryToComponent = {
 interface SeasonDetailContentProps {
   seasonId: string;
   initialData: InitialSeasonDetailData;
+  initialTab?: string;
 }
 
 export default function SeasonDetailContent({
   initialData,
+  initialTab,
 }: SeasonDetailContentProps) {
   const season = initialData.season;
 
@@ -43,7 +45,11 @@ export default function SeasonDetailContent({
         <GoalWrapper fallback={<UpcomingMatchesSkeleton items={1} />}>
           <UpcomingMatches seasonId={season.season_id} limit={10} />
         </GoalWrapper>
-        <Component seasonId={season.season_id} title={season.season_name} />
+        <Component
+          seasonId={season.season_id}
+          title={season.season_name}
+          initialTab={initialTab}
+        />
       </div>
     </Section>
   );

@@ -111,6 +111,33 @@ export const getTopAssistsPrisma = async (
   return response.json();
 };
 
+// ========== Player Match Ratings ==========
+
+export interface TopRatedPlayerRow {
+  player_id: number;
+  player_name: string | null;
+  player_image: string | null;
+  team_id: number | null;
+  team_name: string | null;
+  team_logo: string | null;
+  avg_rating: number;
+  matches_rated: number;
+}
+
+// Get top rated players by season
+export const getTopRatingsPrisma = async (
+  seasonId: number,
+  limit: number = 10
+): Promise<TopRatedPlayerRow[]> => {
+  const response = await fetch(
+    `/api/stats/player-match/top-ratings?season_id=${seasonId}&limit=${limit}`
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to fetch top ratings: ${response.statusText}`);
+  }
+  return response.json();
+};
+
 // ========== Team Season Statistics ==========
 
 // Get team season statistics by season

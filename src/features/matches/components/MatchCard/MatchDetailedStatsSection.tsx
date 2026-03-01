@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { Card, CardContent } from '@/components/ui';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { getRatingBgColor, getRatingTextColor } from '@/lib/utils';
 
 import {
   getMatchDetailedStatsPrisma,
@@ -483,17 +484,6 @@ function TeamComparisonStats({
       </CardContent>
     </Card>
   );
-}
-
-// FotMob 스타일 평점 색상
-function getRatingBgColor(rating: number): string {
-  if (rating >= 9.0) return 'bg-[#14A0FF]';
-  if (rating >= 7.0) return 'bg-[#33C771]';
-  return 'bg-[#FF963F]';
-}
-
-function getRatingTextColor(): string {
-  return 'text-white';
 }
 
 // 단일 팀 통계 테이블 (공유 카테고리용)

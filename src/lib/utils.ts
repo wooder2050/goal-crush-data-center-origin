@@ -33,3 +33,15 @@ export function inferLeague(
   }
   return 'other';
 }
+
+// FotMob 스타일 평점 배경 색상
+export function getRatingBgColor(rating: number): string {
+  if (rating >= 9.0) return 'bg-[#14A0FF]';
+  if (rating >= 7.0) return 'bg-[#33C771]';
+  return 'bg-[#FF963F]';
+}
+
+// FotMob 스타일 평점 텍스트 색상
+export function getRatingTextColor(): string {
+  return 'text-white';
+}

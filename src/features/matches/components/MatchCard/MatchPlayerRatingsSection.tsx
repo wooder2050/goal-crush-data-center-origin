@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { Card, CardContent } from '@/components/ui';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { getRatingBgColor, getRatingTextColor } from '@/lib/utils';
 
 import {
   getMatchRatingsPrisma,
@@ -20,18 +21,6 @@ interface Props {
   awayTeamName: string;
   homeTeamLogo?: string | null;
   awayTeamLogo?: string | null;
-}
-
-// FotMob 스타일 평점 색상
-function getRatingBgColor(rating: number): string {
-  if (rating >= 9.0) return 'bg-[#14A0FF]';
-  if (rating >= 7.0) return 'bg-[#33C771]';
-  return 'bg-[#FF963F]';
-}
-
-// FotMob 스타일: 모든 평점에 흰색 텍스트
-function getRatingTextColor(): string {
-  return 'text-white';
 }
 
 function PlayerRatingRow({

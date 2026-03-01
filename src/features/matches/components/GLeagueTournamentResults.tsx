@@ -26,6 +26,7 @@ interface GLeagueTournamentResultsProps {
   seasonId?: number;
   title?: string;
   className?: string;
+  initialTab?: string;
 }
 
 type GroupFilter = 'all' | 'A' | 'B';
@@ -36,6 +37,7 @@ function GLeagueTournamentResultsInner({
   seasonId: seasonIdProp,
   title,
   className = '',
+  initialTab,
 }: GLeagueTournamentResultsProps) {
   const [selectedTournament, setSelectedTournament] =
     useState<TournamentStage>('all');
@@ -125,7 +127,10 @@ function GLeagueTournamentResultsInner({
         </p>
       </div>
 
-      <Tabs defaultValue="matches" className="space-y-6 sm:space-y-8">
+      <Tabs
+        defaultValue={initialTab || 'matches'}
+        className="space-y-6 sm:space-y-8"
+      >
         <TabsList className="grid w-full grid-cols-12 gap-1 sm:gap-2">
           <TabsTrigger
             value="matches"
