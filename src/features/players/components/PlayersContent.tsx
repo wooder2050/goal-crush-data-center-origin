@@ -10,11 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import type { PlayersPageResponse } from '@/features/players/api-prisma';
 import PlayerInfiniteList from '@/features/players/components/PlayerInfiniteList';
 import TeamOptionItem from '@/features/players/components/TeamOptionItem';
 import { getAllSeasonsPrisma } from '@/features/seasons/api-prisma';
 import { getTeamsPrisma } from '@/features/teams/api-prisma';
-import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { useGoalQuery } from '@/hooks/useGoalQuery';
 import type { Team } from '@/lib/types';
 
 // Category (position) options
@@ -30,20 +31,42 @@ type PositionValue = (typeof POSITION_OPTIONS)[number]['value'];
 type OrderValue = 'apps' | 'goals';
 
 export default function PlayersContent({
+  initialTeams,
+  initialSeasons,
+  initialPlayersPage,
   onTotalChange,
   controlledKeyword,
   onApplyControlledKeyword,
   hideInternalSearch,
   stickyHeaderSlot,
 }: {
+  initialTeams?: Array<{
+    team_id: number;
+    team_name: string;
+    logo: string | null;
+  }>;
+  initialSeasons?: Array<{
+    season_id: number;
+    season_name: string;
+    year: number;
+  }>;
+  initialPlayersPage?: PlayersPageResponse;
   onTotalChange?: (n: number) => void;
   controlledKeyword?: string;
   onApplyControlledKeyword?: () => void;
   hideInternalSearch?: boolean;
   stickyHeaderSlot?: React.ReactNode;
 }) {
-  const { data: teams = [] } = useGoalSuspenseQuery(getTeamsPrisma, []);
-  const { data: seasons = [] } = useGoalSuspenseQuery(getAllSeasonsPrisma, []);
+  const { data: teams = [] } = useGoalQuery(getTeamsPrisma, [], {
+    initialData: initialTeams as
+      | Awaited<ReturnType<typeof getTeamsPrisma>>
+      | undefined,
+  });
+  const { data: seasons = [] } = useGoalQuery(getAllSeasonsPrisma, [], {
+    initialData: initialSeasons as
+      | Awaited<ReturnType<typeof getAllSeasonsPrisma>>
+      | undefined,
+  });
   const [keyword, setKeyword] = useState('');
   const [keywordInput, setKeywordInput] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -371,6 +394,7 @@ export default function PlayersContent({
         teamId={teamId}
         seasonId={seasonId}
         onTotalChange={onTotalChange}
+        initialPlayersPage={initialPlayersPage}
       />
     </>
   );
