@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { SeasonsPage } from '@/features/seasons';
+import { getInitialSeasonsPageData } from '@/features/seasons/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <SeasonsPage />;
+export default async function Page() {
+  const initialData = await getInitialSeasonsPageData();
+  return <SeasonsPage initialData={initialData} />;
 }

@@ -1,10 +1,18 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
+import { getInitialSeasonDetailData } from '@/features/seasons/server';
 import { prisma } from '@/lib/prisma';
 
 import SeasonDetailContent from './SeasonDetailContent';
 
 export const dynamic = 'force-dynamic';
+
+function parseSeasonId(raw: string): number | null {
+  if (!/^\d+$/.test(raw)) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
 
 interface Props {
   params: Promise<{ seasonId: string }>;
@@ -12,9 +20,9 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { seasonId } = await params;
-  const id = parseInt(seasonId, 10);
+  const id = parseSeasonId(seasonId);
 
-  if (isNaN(id)) {
+  if (id === null) {
     return {
       title: '시즌을 찾을 수 없습니다',
     };
@@ -63,5 +71,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { seasonId } = await params;
-  return <SeasonDetailContent seasonId={seasonId} />;
+  const id = parseSeasonId(seasonId);
+
+  if (id === null) notFound();
+
+  const initialData = await getInitialSeasonDetailData(id);
+
+  if (!initialData) notFound();
+
+  return <SeasonDetailContent seasonId={seasonId} initialData={initialData} />;
 }
