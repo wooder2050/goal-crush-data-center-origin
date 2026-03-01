@@ -1,34 +1,7 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getAuthUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Database } from '@/lib/types/database';
-
-// Supabase 서버 클라이언트 생성 (Vercel 배포 안정성을 위한 직접 구현)
-function createClient() {
-  const cookieStore = cookies();
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Server Component에서 호출된 경우 무시
-          }
-        },
-      },
-    }
-  );
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -38,11 +11,10 @@ export async function POST(
   { params }: { params: { postId: string } }
 ) {
   try {
-    const supabase = createClient();
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await getAuthUser();
 
     if (authError || !user) {
       return NextResponse.json(
@@ -160,10 +132,9 @@ export async function GET(
   { params }: { params: { postId: string } }
 ) {
   try {
-    const supabase = createClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await getAuthUser();
 
     const postId = parseInt(params.postId);
 

@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { cookies, headers } from 'next/headers';
 
 import { prisma } from './prisma';
 import { Database } from './types/database';
@@ -32,15 +33,54 @@ function createClient() {
 }
 
 /**
+ * Authorization 헤더에서 Bearer 토큰 추출
+ */
+function getBearerToken(): string | null {
+  try {
+    const headerStore = headers();
+    const auth = headerStore.get('authorization');
+    if (!auth) return null;
+    // RFC 7235: auth-scheme은 대소문자 비민감
+    const match = auth.match(/^bearer\s+(.+)$/i);
+    if (match) {
+      return match[1];
+    }
+  } catch {
+    // 정적 빌드 시 headers() 호출 불가 - 무시
+  }
+  return null;
+}
+
+/**
+ * Bearer 토큰 또는 쿠키 기반으로 Supabase 사용자 가져오기
+ * 모바일 앱은 Bearer 토큰, 웹은 쿠키를 사용
+ */
+export async function getAuthUser() {
+  const bearerToken = getBearerToken();
+
+  if (bearerToken) {
+    // Bearer 토큰이 있으면 직접 검증
+    const supabase = createSupabaseClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    return supabase.auth.getUser(bearerToken);
+  }
+
+  // 쿠키 기반 인증 (기존 웹 방식)
+  const supabase = createClient();
+  return supabase.auth.getUser();
+}
+
+/**
  * 현재 사용자가 관리자인지 확인 (서버 컴포넌트용)
  */
 export async function checkAdminAuth(): Promise<boolean> {
   try {
-    const supabase = createClient();
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser();
+    } = await getAuthUser();
 
     if (error || !user) {
       return false;
@@ -68,11 +108,10 @@ export async function checkAdminAuth(): Promise<boolean> {
  * API 라우트에서 관리자 권한 확인
  */
 export async function requireAdminAuth() {
-  const supabase = createClient();
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser();
+  } = await getAuthUser();
 
   if (error || !user) {
     throw new Error('인증이 필요합니다');
@@ -106,11 +145,10 @@ export async function requireAdminAuth() {
  */
 export async function getCurrentUser() {
   try {
-    const supabase = createClient();
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser();
+    } = await getAuthUser();
 
     if (error || !user) {
       return null;

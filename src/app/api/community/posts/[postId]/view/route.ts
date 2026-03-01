@@ -1,34 +1,7 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getAuthUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Database } from '@/lib/types/database';
-
-// Supabase 서버 클라이언트 생성
-function createClient() {
-  const cookieStore = cookies();
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Server Component에서 호출된 경우 무시
-          }
-        },
-      },
-    }
-  );
-}
 
 // POST /api/community/posts/[postId]/view - 게시글 조회 추적
 export async function POST(
@@ -59,11 +32,10 @@ export async function POST(
     }
 
     // 사용자 인증 상태 확인
-    const supabase = createClient();
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await getAuthUser();
 
     // 클라이언트 정보 추출
     const forwarded = request.headers.get('x-forwarded-for');

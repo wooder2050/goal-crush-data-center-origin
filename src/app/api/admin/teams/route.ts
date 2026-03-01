@@ -1,8 +1,7 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // 팀 생성 스키마
@@ -26,60 +25,11 @@ const createTeamSchema = z.object({
   logo: z.string().url().optional(),
 });
 
-// 관리자 권한 확인 함수
-async function checkAdminAccess() {
-  const cookieStore = cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  );
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  // 사용자 프로필에서 관리자 권한 확인
-  const { data: profile } = await supabase
-    .from('users')
-    .select('is_admin')
-    .eq('user_id', user.id)
-    .single();
-
-  if (!profile?.is_admin) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
-  return null; // 권한 확인 통과
-}
-
 // POST - 팀 생성
 export async function POST(request: NextRequest) {
   try {
     // 관리자 권한 확인
-    const authError = await checkAdminAccess();
-    if (authError) return authError;
+    await requireAdminAuth();
 
     const body = await request.json();
 
@@ -114,6 +64,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(team, { status: 201 });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('팀 생성 중 오류:', error);
 
     if (error instanceof z.ZodError) {
