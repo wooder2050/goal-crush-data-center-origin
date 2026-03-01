@@ -1,14 +1,21 @@
 'use client';
 
-import { GoalWrapper } from '@/common/GoalWrapper';
 import { Section } from '@/components/ui';
 import { getTeamsPrisma } from '@/features/teams/api-prisma';
 import TeamGrid from '@/features/teams/components/TeamGrid';
-import TeamsPageSkeleton from '@/features/teams/components/TeamsPageSkeleton';
-import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import type { InitialTeamsData } from '@/features/teams/server';
+import { useGoalQuery } from '@/hooks/useGoalQuery';
 
-function TeamsPageClientInner() {
-  const { data: teams = [] } = useGoalSuspenseQuery(getTeamsPrisma, []);
+export default function TeamsPageClient({
+  initialData,
+}: {
+  initialData: InitialTeamsData;
+}) {
+  const { data: teams = [] } = useGoalQuery(getTeamsPrisma, [], {
+    initialData: initialData.teams as Awaited<
+      ReturnType<typeof getTeamsPrisma>
+    >,
+  });
 
   return (
     <Section padding="sm" className="pt-2 sm:pt-3">
@@ -24,13 +31,5 @@ function TeamsPageClientInner() {
         <TeamGrid teams={teams} />
       </div>
     </Section>
-  );
-}
-
-export default function TeamsPageClient() {
-  return (
-    <GoalWrapper fallback={<TeamsPageSkeleton items={10} />}>
-      <TeamsPageClientInner />
-    </GoalWrapper>
   );
 }

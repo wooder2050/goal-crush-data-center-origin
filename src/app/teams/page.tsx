@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import { getInitialTeamsData } from '@/features/teams/server';
+
 import TeamsPageClient from './TeamsPageClient';
 
 export const dynamic = 'force-dynamic';
@@ -23,6 +25,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function TeamsPage() {
-  return <TeamsPageClient />;
+export default async function TeamsPage() {
+  const initialData = await getInitialTeamsData();
+  return <TeamsPageClient initialData={initialData} />;
 }

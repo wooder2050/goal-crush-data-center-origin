@@ -4,18 +4,29 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { getTeamHighlightsPrisma } from '@/features/teams/api-prisma';
-import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import type { TeamHighlights } from '@/features/teams/server';
+import { useGoalQuery } from '@/hooks/useGoalQuery';
 import type { Team } from '@/lib/types';
 import { shortenSeasonName } from '@/lib/utils';
 
 interface TeamHeaderProps {
   team: Team;
+  initialHighlights?: TeamHighlights;
 }
 
-export default function TeamHeader({ team }: TeamHeaderProps) {
-  const { data: highlights } = useGoalSuspenseQuery(getTeamHighlightsPrisma, [
-    team.team_id!,
-  ]);
+export default function TeamHeader({
+  team,
+  initialHighlights,
+}: TeamHeaderProps) {
+  const { data: highlights } = useGoalQuery(
+    getTeamHighlightsPrisma,
+    [team.team_id!],
+    {
+      initialData: initialHighlights as
+        | Awaited<ReturnType<typeof getTeamHighlightsPrisma>>
+        | undefined,
+    }
+  );
 
   return (
     <div className="flex flex-col gap-3">
