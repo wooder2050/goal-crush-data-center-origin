@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { GoalWrapper } from '@/common/GoalWrapper';
 import {
   Button,
   Card,
@@ -20,7 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui';
 import InfiniteSeasonSelect from '@/features/stats/components/InfiniteSeasonSelect';
-import TeamRankingsPageContentSkeleton from '@/features/stats/components/TeamRankingsPageContentSkeleton';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { shortenSeasonName } from '@/lib/utils';
 
@@ -544,9 +542,5 @@ function TeamRankingsPageContentInner() {
 }
 
 export default function TeamRankingsPageContent() {
-  return (
-    <GoalWrapper fallback={<TeamRankingsPageContentSkeleton />}>
-      <TeamRankingsPageContentInner />
-    </GoalWrapper>
-  );
+  return <TeamRankingsPageContentInner />;
 }

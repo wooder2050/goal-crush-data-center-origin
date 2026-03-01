@@ -8,6 +8,43 @@ import {
   PLAYER_LIST_SELECT,
 } from '@/features/players/utils/mapPlayers';
 import { prisma } from '@/lib/prisma';
+import type { Player } from '@/lib/types';
+
+// ── /players/[playerId] detail ─────────────────────────
+
+export type InitialPlayerDetailData = {
+  player: Player;
+};
+
+/**
+ * Fetches a single player by ID for SSR (basic info only).
+ * PlayerSummary (complex aggregation) remains CSR.
+ */
+export async function getInitialPlayerDetailData(
+  playerId: number
+): Promise<InitialPlayerDetailData | null> {
+  const player = await prisma.player.findUnique({
+    where: { player_id: playerId },
+  });
+
+  if (!player) return null;
+
+  return {
+    player: {
+      player_id: player.player_id,
+      name: player.name,
+      birth_date: player.birth_date?.toISOString() ?? null,
+      nationality: player.nationality ?? null,
+      height_cm: player.height_cm ?? null,
+      profile_image_url: player.profile_image_url ?? null,
+      jersey_number: player.jersey_number ?? null,
+      created_at: player.created_at?.toISOString() ?? null,
+      updated_at: player.updated_at?.toISOString() ?? null,
+    },
+  };
+}
+
+// ── /players list ──────────────────────────────────────
 
 export type InitialPlayersData = {
   teams: Array<{

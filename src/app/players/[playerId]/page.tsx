@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
+import { getInitialPlayerDetailData } from '@/features/players/server';
 import { prisma } from '@/lib/prisma';
 
 import PlayerDetailContent from './PlayerDetailContent';
@@ -10,11 +12,17 @@ interface Props {
   params: Promise<{ playerId: string }>;
 }
 
+function parsePlayerId(raw: string): number | null {
+  if (!/^\d+$/.test(raw)) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { playerId } = await params;
-  const id = parseInt(playerId, 10);
+  const id = parsePlayerId(playerId);
 
-  if (isNaN(id)) {
+  if (id == null) {
     return {
       title: '선수를 찾을 수 없습니다',
     };
@@ -85,5 +93,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { playerId } = await params;
-  return <PlayerDetailContent playerId={playerId} />;
+  const id = parsePlayerId(playerId);
+  if (id == null) notFound();
+
+  const initialData = await getInitialPlayerDetailData(id);
+  if (!initialData) notFound();
+
+  return <PlayerDetailContent playerId={playerId} initialData={initialData} />;
 }
