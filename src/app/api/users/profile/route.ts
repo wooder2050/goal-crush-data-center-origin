@@ -1,35 +1,8 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 
+import { getAuthUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Database } from '@/lib/types/database';
-
-// Supabase 서버 클라이언트 생성 (Vercel 배포 안정성을 위한 직접 구현)
-function createClient() {
-  const cookieStore = cookies();
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Server Component에서 호출된 경우 무시
-          }
-        },
-      },
-    }
-  );
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -50,11 +23,10 @@ const nicknameSchema = z.object({
  */
 export async function GET() {
   try {
-    const supabase = createClient();
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser();
+    } = await getAuthUser();
 
     if (error || !user) {
       return Response.json({ error: '인증이 필요합니다' }, { status: 401 });
@@ -101,11 +73,10 @@ export async function GET() {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createClient();
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser();
+    } = await getAuthUser();
 
     if (error || !user) {
       return Response.json({ error: '인증이 필요합니다' }, { status: 401 });
@@ -177,11 +148,10 @@ export async function PUT(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser();
+    } = await getAuthUser();
 
     if (error || !user) {
       return Response.json({ error: '인증이 필요합니다' }, { status: 401 });

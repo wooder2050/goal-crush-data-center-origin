@@ -21,7 +21,6 @@ const nextConfig = {
   experimental: {
     missingSuspenseWithCSRBailout: false,
   },
-  // Clerk 관련 CORS 및 Referrer Policy 설정
   async headers() {
     return [
       {

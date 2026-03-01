@@ -1,44 +1,16 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+import { getAuthUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Database } from '@/lib/types/database';
 
 export const dynamic = 'force-dynamic';
-
-// Supabase 서버 클라이언트 생성 (Vercel 배포 안정성을 위한 직접 구현)
-function createClient() {
-  const cookieStore = cookies();
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Server Component에서 호출된 경우 무시
-          }
-        },
-      },
-    }
-  );
-}
 
 // GET /api/community/mvp-voting/current - 최신 리그 경기에서 이긴 팀의 MVP 선수들 조회
 export async function GET() {
   try {
-    const supabase = createClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await getAuthUser();
 
     // 가장 최근 시즌 찾기
     const currentSeason = await prisma.season.findFirst({

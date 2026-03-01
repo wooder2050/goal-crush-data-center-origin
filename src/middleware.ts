@@ -1,7 +1,58 @@
 import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
+// 허용된 CORS Origin 목록 (환경변수로 관리)
+const ALLOWED_ORIGINS = (
+  process.env.CORS_ALLOWED_ORIGINS || 'https://www.gtndatacenter.com'
+)
+  .split(',')
+  .map((o) => o.trim());
+
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  return ALLOWED_ORIGINS.includes(origin);
+}
+
+function setCorsHeaders(response: NextResponse, origin: string): NextResponse {
+  response.headers.set('Access-Control-Allow-Origin', origin);
+  response.headers.set(
+    'Access-Control-Allow-Methods',
+    'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+  );
+  response.headers.set(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization'
+  );
+  response.headers.set('Access-Control-Max-Age', '86400');
+  response.headers.set('Vary', 'Origin');
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const origin = request.headers.get('origin');
+
+  // API 경로의 CORS preflight 요청 처리
+  if (pathname.startsWith('/api/') && request.method === 'OPTIONS') {
+    if (origin && isAllowedOrigin(origin)) {
+      const response = new NextResponse(null, { status: 204 });
+      return setCorsHeaders(response, origin);
+    }
+    return new NextResponse(null, { status: 204 });
+  }
+
+  // API 경로에 Bearer 토큰이 있으면 쿠키 기반 세션 갱신을 건너뜀
+  if (
+    pathname.startsWith('/api/') &&
+    request.headers.get('authorization')?.match(/^bearer\s+/i)
+  ) {
+    const response = NextResponse.next({ request });
+    if (origin && isAllowedOrigin(origin)) {
+      setCorsHeaders(response, origin);
+    }
+    return response;
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -57,6 +108,11 @@ export async function middleware(request: NextRequest) {
   // 2. Copy over the cookies, like so: response.cookies.getAll().forEach(...)
   // 3. Change the response's status code if needed, like so: response.status = 200
   // 4. Set headers, if needed, like so: response.headers.set(...)
+
+  // API 경로에 CORS 헤더 추가
+  if (pathname.startsWith('/api/') && origin && isAllowedOrigin(origin)) {
+    setCorsHeaders(supabaseResponse, origin);
+  }
 
   return supabaseResponse;
 }
