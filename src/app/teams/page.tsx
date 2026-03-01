@@ -5,9 +5,22 @@ import TeamsPageClient from './TeamsPageClient';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: '팀',
-  description: '골 때리는 그녀들 팀 목록 및 스쿼드/성적',
+  title: '골때녀 전체 팀 목록·스쿼드·성적',
+  description:
+    '골 때리는 그녀들 전체 팀 정보를 확인하세요. 팀별 스쿼드, 시즌 성적, 승률, 득실점 통계를 제공합니다.',
   alternates: { canonical: '/teams' },
+  openGraph: {
+    title: '골때녀 전체 팀 목록·스쿼드·성적 | 골때녀 데이터 센터',
+    description:
+      '골 때리는 그녀들 전체 팀 정보를 확인하세요. 팀별 스쿼드, 시즌 성적, 승률, 득실점 통계를 제공합니다.',
+    url: 'https://www.gtndatacenter.com/teams',
+  },
+  twitter: {
+    card: 'summary',
+    title: '골때녀 전체 팀 목록·스쿼드·성적 | 골때녀 데이터 센터',
+    description:
+      '골 때리는 그녀들 전체 팀 정보를 확인하세요. 팀별 스쿼드, 시즌 성적, 승률, 득실점 통계를 제공합니다.',
+  },
 };
 
 export default function TeamsPage() {

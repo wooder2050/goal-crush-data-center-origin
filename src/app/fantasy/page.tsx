@@ -12,9 +12,9 @@ import FantasyTeams from '@/features/fantasy/components/FantasyTeams';
 import { getCurrentUser } from '@/lib/auth';
 
 export const metadata: Metadata = {
-  title: '판타지',
+  title: '골때녀 판타지 리그 - 나만의 드림팀',
   description:
-    '골 때리는 그녀들 판타지 리그에 참여하세요. 나만의 드림팀을 구성하고 다른 팬들과 순위를 겨뤄보세요.',
+    '골 때리는 그녀들 판타지 리그! 5명의 선수를 선택해 실제 경기 성과로 점수를 얻고 다른 팬들과 순위를 겨뤄보세요.',
   keywords: [
     '골때녀 판타지',
     '골때녀 판타지 리그',
@@ -23,16 +23,16 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: '/fantasy' },
   openGraph: {
-    title: '판타지 | 골때녀 데이터 센터',
+    title: '골때녀 판타지 리그 - 나만의 드림팀 | 골때녀 데이터 센터',
     description:
-      '골 때리는 그녀들 판타지 리그에 참여하세요. 나만의 드림팀을 구성하고 다른 팬들과 순위를 겨뤄보세요.',
+      '골 때리는 그녀들 판타지 리그! 5명의 선수를 선택해 실제 경기 성과로 점수를 얻고 다른 팬들과 순위를 겨뤄보세요.',
     url: 'https://www.gtndatacenter.com/fantasy',
   },
   twitter: {
     card: 'summary',
-    title: '판타지 | 골때녀 데이터 센터',
+    title: '골때녀 판타지 리그 - 나만의 드림팀 | 골때녀 데이터 센터',
     description:
-      '골 때리는 그녀들 판타지 리그에 참여하세요. 나만의 드림팀을 구성하고 다른 팬들과 순위를 겨뤄보세요.',
+      '골 때리는 그녀들 판타지 리그! 5명의 선수를 선택해 실제 경기 성과로 점수를 얻고 다른 팬들과 순위를 겨뤄보세요.',
   },
 };
 
