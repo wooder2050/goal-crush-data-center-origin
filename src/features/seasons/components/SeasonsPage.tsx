@@ -26,10 +26,15 @@ import {
   type SeasonWithStats,
 } from '@/features/seasons/api-prisma';
 import SeasonsPageSkeleton from '@/features/seasons/components/SeasonsPageSkeleton';
+import type { InitialSeasonsPageData } from '@/features/seasons/server';
 import { useGoalInfiniteQuery } from '@/hooks/useGoalQuery';
 import { shortenSeasonName } from '@/lib/utils';
 
-function SeasonsPageInner() {
+export default function SeasonsPage({
+  initialData,
+}: {
+  initialData?: InitialSeasonsPageData;
+}) {
   const PAGE_SIZE = 6;
 
   const {
@@ -41,7 +46,18 @@ function SeasonsPageInner() {
   } = useGoalInfiniteQuery<typeof getSeasonsPagePrisma, number>(
     getSeasonsPagePrisma,
     ({ pageParam }) => [pageParam, PAGE_SIZE],
-    { initialPageParam: 1, getNextPageParam: (last) => last.nextPage }
+    {
+      initialPageParam: 1,
+      getNextPageParam: (last) => last.nextPage,
+      ...(initialData?.seasonsPage
+        ? {
+            initialData: {
+              pages: [initialData.seasonsPage],
+              pageParams: [1],
+            },
+          }
+        : {}),
+    }
   );
 
   const typedData = infiniteData as typeof infiniteData;
@@ -251,13 +267,5 @@ function SeasonsPageInner() {
         )}
       </Section>
     </div>
-  );
-}
-
-export default function SeasonsPage() {
-  return (
-    <GoalWrapper fallback={<SeasonsPageSkeleton />}>
-      <SeasonsPageInner />
-    </GoalWrapper>
   );
 }
