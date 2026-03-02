@@ -92,7 +92,11 @@ export default function LineupsTab({
                         {lineup.jersey_number ?? '-'}
                       </td>
                       <td className="py-2 px-4">{lineup.player_name}</td>
-                      <td className="py-2 px-4">{lineup.position}</td>
+                      <td className="py-2 px-4">
+                        {lineup.secondary_position
+                          ? `${lineup.position} → ${lineup.secondary_position} (${lineup.position_change_minute ?? '?'}분)`
+                          : lineup.position}
+                      </td>
                       <td className="py-2 px-4">
                         <span className={getStatusBadgeClass(status)}>
                           {statusLabel}

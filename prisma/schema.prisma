@@ -238,8 +238,10 @@ model PlayerMatchStats {
   minutes_played Int?      @default(0)
   saves          Int?      @default(0)
   created_at     DateTime? @default(now()) @db.Timestamptz(6)
-  position       String?   @db.VarChar(50)
-  updated_at     DateTime? @default(now()) @db.Timestamptz(6)
+  position                String?   @db.VarChar(50)
+  secondary_position      String?   @db.VarChar(50)
+  position_change_minute  Int?
+  updated_at              DateTime? @default(now()) @db.Timestamptz(6)
   card_type      String?   @default("none") @db.VarChar(20)
   goals_conceded Int?      @default(0)
   goal_records   Goal[]    @relation("GoalsByPlayerMatch")

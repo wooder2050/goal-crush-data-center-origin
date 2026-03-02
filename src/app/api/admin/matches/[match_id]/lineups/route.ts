@@ -58,8 +58,15 @@ export async function POST(
     }
 
     const data = await request.json();
-    const { player_id, team_id, position, minutes_played, goals_conceded } =
-      data;
+    const {
+      player_id,
+      team_id,
+      position,
+      secondary_position,
+      position_change_minute,
+      minutes_played,
+      goals_conceded,
+    } = data;
 
     // 필수 필드 검증
     if (!player_id || !team_id || !position) {
@@ -68,6 +75,13 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    // secondary_position 유효성 검증
+    const VALID_POSITIONS = ['GK', 'DF', 'MF', 'FW'];
+    const sanitizedSecondaryPosition =
+      secondary_position && VALID_POSITIONS.includes(secondary_position)
+        ? secondary_position
+        : null;
 
     // 선수가 존재하는지 확인
     const player = await prisma.player.findUnique({
@@ -115,7 +129,15 @@ export async function POST(
         data: {
           team_id,
           position,
-          minutes_played: minutes_played || existingLineup.minutes_played || 0,
+          secondary_position:
+            secondary_position !== undefined
+              ? sanitizedSecondaryPosition
+              : existingLineup.secondary_position,
+          position_change_minute:
+            position_change_minute !== undefined
+              ? position_change_minute
+              : existingLineup.position_change_minute,
+          minutes_played: minutes_played ?? existingLineup.minutes_played ?? 0,
           goals_conceded:
             goals_conceded !== undefined
               ? goals_conceded
@@ -146,8 +168,10 @@ export async function POST(
           player_id,
           team_id,
           position,
-          minutes_played: minutes_played || 0,
-          goals_conceded: goals_conceded || null,
+          secondary_position: sanitizedSecondaryPosition,
+          position_change_minute: position_change_minute ?? null,
+          minutes_played: minutes_played ?? 0,
+          goals_conceded: goals_conceded ?? null,
         },
         include: {
           player: {

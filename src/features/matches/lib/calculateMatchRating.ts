@@ -3,6 +3,8 @@ import { getPositionText } from './matchUtils';
 export interface PlayerMatchRatingInput {
   // From player_match_stats
   position: string; // "GK" | "DF" | "MF" | "FW" or long-form
+  secondary_position: string | null;
+  position_change_minute: number | null; // 경기 시작부터의 분
   goals: number;
   assists: number;
   yellow_cards: number;
@@ -40,6 +42,26 @@ export interface MatchRatingResult {
 const BASE_RATING = 6.0;
 const MIN_RATING = 6.0;
 const MAX_RATING = 10.0;
+const DEFAULT_MATCH_MINUTES = 24; // 풋살 전반12분+후반12분
+
+function calcByPosition(
+  pos: string,
+  input: PlayerMatchRatingInput,
+  bd: Record<string, number>
+): number {
+  switch (pos) {
+    case 'FW':
+      return calcFW(input, bd);
+    case 'MF':
+      return calcMF(input, bd);
+    case 'DF':
+      return calcDF(input, bd);
+    case 'GK':
+      return calcGK(input, bd);
+    default:
+      return calcFW(input, bd);
+  }
+}
 
 export function calculateMatchRating(
   input: PlayerMatchRatingInput
@@ -50,25 +72,48 @@ export function calculateMatchRating(
     return { rating: 0, breakdown: {} };
   }
 
-  const pos = getPositionText(input.position);
-  const breakdown: Record<string, number> = {};
-  let bonus = 0;
+  const primaryPos = getPositionText(input.position);
+  const secondaryPos = input.secondary_position
+    ? getPositionText(input.secondary_position)
+    : null;
 
-  switch (pos) {
-    case 'FW':
-      bonus = calcFW(input, breakdown);
-      break;
-    case 'MF':
-      bonus = calcMF(input, breakdown);
-      break;
-    case 'DF':
-      bonus = calcDF(input, breakdown);
-      break;
-    case 'GK':
-      bonus = calcGK(input, breakdown);
-      break;
-    default:
-      bonus = calcFW(input, breakdown);
+  let bonus: number;
+  const breakdown: Record<string, number> = {};
+
+  if (
+    secondaryPos &&
+    secondaryPos !== primaryPos &&
+    input.position_change_minute != null &&
+    input.position_change_minute > 0
+  ) {
+    // 블렌딩 모드: 두 포지션의 시간 비율로 가중 평균
+    const totalMinutes = input.minutes_played ?? DEFAULT_MATCH_MINUTES;
+    const primaryMinutes = Math.min(input.position_change_minute, totalMinutes);
+    const secondaryMinutes = totalMinutes - primaryMinutes;
+    const primaryRatio = primaryMinutes / totalMinutes;
+    const secondaryRatio = secondaryMinutes / totalMinutes;
+
+    const bd1: Record<string, number> = {};
+    const bd2: Record<string, number> = {};
+    const primaryBonus = calcByPosition(primaryPos, input, bd1);
+    const secondaryBonus = calcByPosition(secondaryPos, input, bd2);
+
+    bonus = primaryBonus * primaryRatio + secondaryBonus * secondaryRatio;
+
+    // breakdown 합산 (비율 적용)
+    const allKeys = Array.from(
+      new Set([...Object.keys(bd1), ...Object.keys(bd2)])
+    );
+    for (let i = 0; i < allKeys.length; i++) {
+      const key = allKeys[i];
+      breakdown[key] =
+        (bd1[key] ?? 0) * primaryRatio + (bd2[key] ?? 0) * secondaryRatio;
+    }
+    breakdown._primary_position_ratio = primaryRatio;
+    breakdown._secondary_position_ratio = secondaryRatio;
+  } else {
+    // 단일 포지션 모드 (기존 로직)
+    bonus = calcByPosition(primaryPos, input, breakdown);
   }
 
   const rawScore = BASE_RATING + bonus;
@@ -224,8 +269,19 @@ function calcGK(
 ): number {
   let bonus = 0;
 
+  // GK도 골/어시스트 반영 (필드 플레이어 전환 시)
+  const regularGoals = Math.max(0, input.goals - input.penalty_goals);
+  bd.goals = regularGoals * 1.5;
+  bonus += bd.goals;
+
+  bd.penalty_goals = input.penalty_goals * 1.0;
+  bonus += bd.penalty_goals;
+
   bd.own_goals = input.own_goals * -1.0;
   bonus += bd.own_goals;
+
+  bd.assists = input.assists * 0.8;
+  bonus += bd.assists;
 
   bd.saves = input.saves * 0.2;
   bonus += bd.saves;

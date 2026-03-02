@@ -55,6 +55,8 @@ export default function AddLineupDialog({
       player_id: '',
       team_id: '',
       position: '',
+      secondary_position: '',
+      position_change_minute: '',
       jersey_number: '',
       goals_conceded: '',
       minutes_played: '24',
@@ -91,6 +93,13 @@ export default function AddLineupDialog({
         player_id: parseInt(values.player_id),
         team_id: parseInt(values.team_id),
         position: values.position,
+        secondary_position:
+          values.secondary_position && values.secondary_position !== 'none'
+            ? values.secondary_position
+            : null,
+        position_change_minute: values.position_change_minute
+          ? parseInt(values.position_change_minute)
+          : null,
         jersey_number: values.jersey_number
           ? parseInt(values.jersey_number)
           : null,
@@ -249,6 +258,57 @@ export default function AddLineupDialog({
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="secondary_position"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>변경 포지션 (선택사항)</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="경기 중 변경된 포지션" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">없음</SelectItem>
+                      <SelectItem value="GK">골키퍼 (GK)</SelectItem>
+                      <SelectItem value="DF">수비수 (DF)</SelectItem>
+                      <SelectItem value="MF">미드필더 (MF)</SelectItem>
+                      <SelectItem value="FW">공격수 (FW)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {form.watch('secondary_position') &&
+              form.watch('secondary_position') !== 'none' && (
+                <FormField
+                  control={form.control}
+                  name="position_change_minute"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>포지션 변경 시점 (경기 시작부터 분)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="30"
+                          placeholder="예: 10 (전반 10분에 변경)"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
             <FormField
               control={form.control}
