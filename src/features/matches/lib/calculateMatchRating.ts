@@ -7,6 +7,8 @@ export interface PlayerMatchRatingInput {
   assists: number;
   yellow_cards: number;
   red_cards: number;
+  penalty_goals: number;
+  own_goals: number;
   minutes_played: number | null; // null = unknown (still rated if detailed stats exist)
 
   // From player_match_detailed_stats
@@ -82,8 +84,16 @@ function calcFW(
 ): number {
   let bonus = 0;
 
-  bd.goals = input.goals * 1.5;
+  // goals는 자책골 미포함, PK골 포함 — PK골만 분리
+  const regularGoals = Math.max(0, input.goals - input.penalty_goals);
+  bd.goals = regularGoals * 1.5;
   bonus += bd.goals;
+
+  bd.penalty_goals = input.penalty_goals * 1.0;
+  bonus += bd.penalty_goals;
+
+  bd.own_goals = input.own_goals * -1.0;
+  bonus += bd.own_goals;
 
   bd.assists = input.assists * 0.8;
   bonus += bd.assists;
@@ -122,8 +132,16 @@ function calcMF(
 ): number {
   let bonus = 0;
 
-  bd.goals = input.goals * 1.3;
+  // goals는 자책골 미포함, PK골 포함 — PK골만 분리
+  const regularGoals = Math.max(0, input.goals - input.penalty_goals);
+  bd.goals = regularGoals * 1.3;
   bonus += bd.goals;
+
+  bd.penalty_goals = input.penalty_goals * 0.9;
+  bonus += bd.penalty_goals;
+
+  bd.own_goals = input.own_goals * -1.0;
+  bonus += bd.own_goals;
 
   bd.assists = input.assists * 1.0;
   bonus += bd.assists;
@@ -158,8 +176,16 @@ function calcDF(
 ): number {
   let bonus = 0;
 
-  bd.goals = input.goals * 1.5;
+  // goals는 자책골 미포함, PK골 포함 — PK골만 분리
+  const regularGoals = Math.max(0, input.goals - input.penalty_goals);
+  bd.goals = regularGoals * 1.5;
   bonus += bd.goals;
+
+  bd.penalty_goals = input.penalty_goals * 1.0;
+  bonus += bd.penalty_goals;
+
+  bd.own_goals = input.own_goals * -1.0;
+  bonus += bd.own_goals;
 
   bd.assists = input.assists * 0.8;
   bonus += bd.assists;
@@ -197,6 +223,9 @@ function calcGK(
   bd: Record<string, number>
 ): number {
   let bonus = 0;
+
+  bd.own_goals = input.own_goals * -1.0;
+  bonus += bd.own_goals;
 
   bd.saves = input.saves * 0.2;
   bonus += bd.saves;

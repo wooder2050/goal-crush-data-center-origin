@@ -123,6 +123,8 @@ export async function POST(
           assists: ds.assists ?? 0,
           yellow_cards: ds.yellow_cards ?? basic.yellow_cards,
           red_cards: ds.red_cards ?? basic.red_cards,
+          penalty_goals: ds.penalty_goals ?? 0,
+          own_goals: ds.own_goals ?? 0,
           minutes_played: basic.minutes_played,
           passes: ds.passes ?? 0,
           passes_completed: ds.passes_completed ?? 0,

@@ -643,6 +643,7 @@ export interface CreateDetailedStatsData {
   throw_ins?: number;
   corner_kicks?: number;
   penalty_goals?: number;
+  own_goals?: number;
   // 득점/카드 관련
   goals?: number;
   assists?: number;
@@ -690,6 +691,7 @@ export interface DetailedStats {
   throw_ins: number;
   corner_kicks: number;
   penalty_goals: number;
+  own_goals: number;
   // 득점/카드 관련
   goals: number;
   assists: number;

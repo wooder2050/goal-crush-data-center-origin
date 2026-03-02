@@ -54,6 +54,7 @@ interface PlayerStats {
   throw_ins: number;
   corner_kicks: number;
   penalty_goals: number;
+  own_goals: number;
 }
 
 interface DetailedStatsTabProps {
@@ -77,6 +78,7 @@ const STAT_GROUPS = [
       { key: 'yellow_cards', label: '옐로우카드' },
       { key: 'red_cards', label: '레드카드' },
       { key: 'fouls', label: '반칙' },
+      { key: 'own_goals', label: '자책골' },
     ],
   },
   {
@@ -159,6 +161,7 @@ function createInitialStats(lineup: PlayerLineup): PlayerStats {
     throw_ins: 0,
     corner_kicks: 0,
     penalty_goals: 0,
+    own_goals: 0,
   };
 }
 
@@ -196,6 +199,7 @@ function existingToPlayerStats(
     throw_ins: existing.throw_ins,
     corner_kicks: existing.corner_kicks,
     penalty_goals: existing.penalty_goals,
+    own_goals: existing.own_goals ?? 0,
   };
 }
 
@@ -391,6 +395,7 @@ export default function DetailedStatsTab({
         throw_ins: stats.throw_ins,
         corner_kicks: stats.corner_kicks,
         penalty_goals: stats.penalty_goals,
+        own_goals: stats.own_goals,
         player_name: stats.player_name,
         jersey_number: stats.jersey_number,
       });

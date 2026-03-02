@@ -84,6 +84,7 @@ export async function POST(
       throw_ins,
       corner_kicks,
       penalty_goals,
+      own_goals,
     } = data;
 
     // 필수 필드 검증
@@ -154,6 +155,7 @@ export async function POST(
       throw_ins: throw_ins ?? 0,
       corner_kicks: corner_kicks ?? 0,
       penalty_goals: penalty_goals ?? 0,
+      own_goals: own_goals ?? 0,
     };
 
     let detailedStats;
