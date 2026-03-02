@@ -143,8 +143,9 @@ export async function PATCH(
     return NextResponse.json(updatedMatch);
   } catch (error) {
     console.error('Failed to update match:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to update match' },
+      { error: 'Failed to update match', detail: message },
       { status: 500 }
     );
   }

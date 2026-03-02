@@ -19,6 +19,7 @@ export type ActionType =
   | 'KEEPER_CLAIM'
   | 'KEEPER_PUNCH'
   | 'KEEPER_THROW'
+  | 'PENALTY_KICK'
   | 'BAD_TOUCH'
   | 'CARD';
 
@@ -168,6 +169,7 @@ export const ACTION_REQUIRES_END_COORDINATE: Record<ActionType, boolean> = {
   KEEPER_CLAIM: false,
   KEEPER_PUNCH: true,
   KEEPER_THROW: true,
+  PENALTY_KICK: true,
   BAD_TOUCH: false,
   CARD: false,
 };
@@ -191,6 +193,7 @@ export const ACTION_POSSIBLE_RESULTS: Record<ActionType, ActionResult[]> = {
   KEEPER_CLAIM: ['SUCCESS', 'FAIL'],
   KEEPER_PUNCH: ['SUCCESS', 'FAIL'],
   KEEPER_THROW: ['SUCCESS', 'FAIL'],
+  PENALTY_KICK: ['GOAL', 'FAIL'],
   BAD_TOUCH: ['FAIL'],
   CARD: ['YELLOW_CARD', 'RED_CARD'],
 };

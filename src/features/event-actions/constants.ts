@@ -122,6 +122,12 @@ export const ACTION_TYPE_INFO: Record<
     icon: '🤾',
     category: 'keeper',
   },
+  PENALTY_KICK: {
+    label: '페널티킥',
+    shortLabel: 'PK',
+    icon: '🎯',
+    category: 'setpiece',
+  },
   BAD_TOUCH: {
     label: '볼 로스트',
     shortLabel: '로스트',
@@ -241,6 +247,7 @@ export const ACTION_CATEGORIES = {
       'CORNER_KICK',
       'FREE_KICK',
       'GOAL_KICK',
+      'PENALTY_KICK',
     ] as ActionType[],
   },
   keeper: {

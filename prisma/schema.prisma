@@ -530,7 +530,6 @@ model MatchCoach {
   team       Team      @relation(fields: [team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([match_id, team_id, role])
-  @@unique([match_id, team_id, role], map: "uniq_match_coaches_match_team_role")
   @@index([coach_id], map: "idx_match_coaches_coach_id")
   @@index([match_id], map: "idx_match_coaches_match_id")
   @@index([team_id], map: "idx_match_coaches_team_id")
@@ -1113,6 +1112,7 @@ enum ActionType {
   KEEPER_CLAIM   // 골키퍼 캐치
   KEEPER_PUNCH   // 골키퍼 펀칭
   KEEPER_THROW   // 골키퍼 던지기
+  PENALTY_KICK   // 경기 중 페널티킥
   BAD_TOUCH      // 볼 터치 실패
   CARD           // 경고/퇴장
 
