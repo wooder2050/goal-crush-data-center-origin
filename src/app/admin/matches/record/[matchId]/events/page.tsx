@@ -134,6 +134,7 @@ export default function EventRecordPage() {
       if (response.ok) {
         setIsSidesSwapped(newValue);
       } else {
+        console.error('진영 반전 저장 실패:', response.status);
         alert('진영 반전 설정 저장에 실패했습니다.');
       }
     } catch (error) {

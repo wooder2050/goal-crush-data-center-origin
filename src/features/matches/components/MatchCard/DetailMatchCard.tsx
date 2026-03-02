@@ -81,6 +81,7 @@ const ACTION_TYPE_COLORS: Record<string, string> = {
   KEEPER_THROW: '#0284c7', // 라이트블루 (스로와 동일)
   KEEPER_CLAIM: '#10b981', // 에메랄드 (캐치와 동일)
   KEEPER_PUNCH: '#f97316', // 오렌지 (펀칭과 동일)
+  PENALTY_KICK: '#dc2626', // 레드 (페널티킥)
   BAD_TOUCH: '#64748b', // 슬레이트 (볼로스트와 동일)
 };
 
@@ -108,6 +109,7 @@ const ACTION_TYPE_LABELS: Record<string, string> = {
   KEEPER_THROW: 'GK 스로',
   KEEPER_CLAIM: 'GK 캐치',
   KEEPER_PUNCH: 'GK 펀칭',
+  PENALTY_KICK: '페널티킥',
   BAD_TOUCH: '볼로스트',
 };
 
