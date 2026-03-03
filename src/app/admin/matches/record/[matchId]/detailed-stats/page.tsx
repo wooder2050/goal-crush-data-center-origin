@@ -57,6 +57,7 @@ export default function DetailedStatsRecordPage() {
   // 저장 상태
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingRatings, setIsGeneratingRatings] = useState(false);
+  const [isGeneratingXtRatings, setIsGeneratingXtRatings] = useState(false);
 
   // 핸들러 함수들
   const handleBackClick = () => router.push('/admin/matches/record');
@@ -105,6 +106,38 @@ export default function DetailedStatsRecordPage() {
       alert('평점 생성 중 오류가 발생했습니다.');
     } finally {
       setIsGeneratingRatings(false);
+    }
+  };
+
+  // xT 평점 생성
+  const handleGenerateXtRatings = async () => {
+    setIsGeneratingXtRatings(true);
+    try {
+      const res = await fetch(`/api/admin/matches/${matchId}/xt-ratings`, {
+        method: 'POST',
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error ?? `서버 오류 (${res.status})`);
+      }
+
+      const data = await res.json();
+
+      if (data.ratings && data.ratings.length > 0) {
+        alert(
+          `xT 평점 생성 완료! ${data.ratings.length}명의 선수 xT 평점이 저장되었습니다.`
+        );
+      } else {
+        alert(
+          'xT 평점을 생성할 수 없습니다. 이벤트 기록 데이터를 먼저 저장해주세요.'
+        );
+      }
+    } catch (error) {
+      console.error('Failed to generate xT ratings:', error);
+      alert('xT 평점 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratingXtRatings(false);
     }
   };
 
@@ -231,12 +264,23 @@ export default function DetailedStatsRecordPage() {
                   저장합니다.
                 </p>
               </div>
-              <Button
-                onClick={handleGenerateRatings}
-                disabled={isGeneratingRatings}
-              >
-                {isGeneratingRatings ? '평점 생성 중...' : '평점 생성'}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleGenerateRatings}
+                  disabled={isGeneratingRatings}
+                >
+                  {isGeneratingRatings ? '평점 생성 중...' : '평점 생성'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleGenerateXtRatings}
+                  disabled={isGeneratingXtRatings}
+                >
+                  {isGeneratingXtRatings
+                    ? 'xT 평점 생성 중...'
+                    : 'xT 평점 생성'}
+                </Button>
+              </div>
             </div>
           </Card>
         )}

@@ -125,6 +125,19 @@ export async function POST(
           : (match.home_score ?? 0);
         const isCleanSheet = teamConceded === 0;
 
+        // 승패 판정
+        let matchResult: 'win' | 'draw' | 'loss' | null = null;
+        if (match.home_score != null && match.away_score != null) {
+          if (match.home_score === match.away_score) {
+            matchResult = 'draw';
+          } else {
+            const teamWon = isHomeTeam
+              ? match.home_score > match.away_score
+              : match.away_score > match.home_score;
+            matchResult = teamWon ? 'win' : 'loss';
+          }
+        }
+
         const input: PlayerMatchRatingInput = {
           position: basic.position,
           secondary_position: basic.secondary_position,
@@ -152,6 +165,7 @@ export async function POST(
           dribbles: ds.dribbles ?? 0,
           fouls: ds.fouls ?? 0,
           isCleanSheet,
+          matchResult,
         };
 
         const result = calculateMatchRating(input);

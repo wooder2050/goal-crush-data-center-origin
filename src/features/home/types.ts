@@ -114,6 +114,7 @@ export interface HomePageData {
   topScorers: PlayerStatRow[];
   topAssists: PlayerStatRow[];
   topRatings: PlayerStatRow[];
+  topXtRatings: PlayerStatRow[];
   latestMatchGoals: LatestMatchGoals | null;
   seasonSummary: SeasonSummaryStats;
   careerTopScorers: CareerStatRow[];

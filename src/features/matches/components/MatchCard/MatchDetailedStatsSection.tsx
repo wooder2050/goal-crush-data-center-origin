@@ -10,6 +10,7 @@ import { getRatingBgColor, getRatingTextColor } from '@/lib/utils';
 import {
   getMatchDetailedStatsPrisma,
   getMatchRatingsPrisma,
+  getMatchXtRatingsPrisma,
   MatchDetailedStats,
 } from '../../api-prisma';
 
@@ -788,6 +789,9 @@ function SideBySidePlayerStats({
   awayTeamPrimaryColor = '#6B7280',
   awayTeamSecondaryColor = '#FFFFFF',
   playerRatings,
+  ratingType = 'stats',
+  onRatingTypeChange,
+  showRatingTabs = false,
 }: {
   homeStats: MatchDetailedStats[];
   awayStats: MatchDetailedStats[];
@@ -800,6 +804,9 @@ function SideBySidePlayerStats({
   awayTeamPrimaryColor?: string;
   awayTeamSecondaryColor?: string;
   playerRatings?: Map<number, number>;
+  ratingType?: 'stats' | 'xt';
+  onRatingTypeChange?: (type: 'stats' | 'xt') => void;
+  showRatingTabs?: boolean;
 }) {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const category = FIELD_PLAYER_CATEGORIES[selectedCategory];
@@ -874,7 +881,41 @@ function SideBySidePlayerStats({
     <div className="space-y-6">
       {/* 필드 플레이어 통계 */}
       <div className="space-y-4">
-        <h4 className="text-base font-medium text-gray-800">필드 플레이어</h4>
+        <div className="flex items-center justify-between">
+          <h4 className="text-base font-medium text-gray-800">필드 플레이어</h4>
+          {showRatingTabs && onRatingTypeChange && (
+            <div className="flex gap-1">
+              <button
+                onClick={() => onRatingTypeChange('stats')}
+                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  ratingType === 'stats'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                스탯 평점
+              </button>
+              <button
+                onClick={() => onRatingTypeChange('xt')}
+                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  ratingType === 'xt'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                xT 평점
+              </button>
+            </div>
+          )}
+        </div>
+
+        {showRatingTabs && (
+          <p className="text-[11px] text-gray-400 -mt-2">
+            {ratingType === 'stats'
+              ? '골, 어시스트, 패스 등 경기 스탯을 기반으로 산출한 평점입니다.'
+              : '패스, 드리블, 수비 등 볼 이동의 위협도(xT)를 기반으로 산출한 평점입니다.'}
+          </p>
+        )}
 
         {/* 공유 카테고리 필터 */}
         <div className="flex gap-1 overflow-x-auto pb-1">
@@ -1208,6 +1249,7 @@ export default function MatchDetailedStatsSection({
   awayTeamPrimaryColor = '#6B7280',
   awayTeamSecondaryColor = '#FFFFFF',
 }: MatchDetailedStatsSectionProps) {
+  const [ratingType, setRatingType] = useState<'stats' | 'xt'>('stats');
   const { data: stats } = useGoalSuspenseQuery(getMatchDetailedStatsPrisma, [
     matchId,
   ]);
@@ -1217,9 +1259,21 @@ export default function MatchDetailedStatsSection({
     matchId,
   ]);
 
-  // 평점 Map 생성 (player_id -> rating)
+  // xT 평점 데이터 조회
+  const { data: xtRatingsData } = useGoalSuspenseQuery(
+    getMatchXtRatingsPrisma,
+    [matchId]
+  );
+
+  // 평점 Map 생성 (player_id -> rating) - ratingType에 따라 전환
   const playerRatings = new Map<number, number>();
-  if (ratingsData?.ratings) {
+  if (ratingType === 'xt' && xtRatingsData?.ratings?.length) {
+    for (const r of xtRatingsData.ratings) {
+      if (r.xt_rating > 0) {
+        playerRatings.set(r.player_id, r.xt_rating);
+      }
+    }
+  } else if (ratingsData?.ratings) {
     for (const r of ratingsData.ratings) {
       if (r.rating > 0) {
         playerRatings.set(r.player_id, r.rating);
@@ -1281,6 +1335,12 @@ export default function MatchDetailedStatsSection({
     );
   }
 
+  const hasStatsRatings =
+    ratingsData?.ratings && ratingsData.ratings.length > 0;
+  const hasXtRatings =
+    xtRatingsData?.ratings && xtRatingsData.ratings.length > 0;
+  const showRatingTabs = !!(hasStatsRatings && hasXtRatings);
+
   // 선수별 통계만 표시 (양팀 나란히)
   if (variant === 'player-stats') {
     return (
@@ -1301,6 +1361,9 @@ export default function MatchDetailedStatsSection({
           awayTeamPrimaryColor={finalAwayTeamPrimaryColor}
           awayTeamSecondaryColor={finalAwayTeamSecondaryColor}
           playerRatings={playerRatings}
+          ratingType={ratingType}
+          onRatingTypeChange={setRatingType}
+          showRatingTabs={showRatingTabs}
         />
       </div>
     );

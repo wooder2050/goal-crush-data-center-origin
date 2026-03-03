@@ -45,6 +45,7 @@ export default function HomePageDashboard({
             topScorers={pageData.topScorers}
             topAssists={pageData.topAssists}
             topRatings={pageData.topRatings}
+            topXtRatings={pageData.topXtRatings}
           />
         </div>
 

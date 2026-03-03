@@ -547,6 +547,72 @@ async function getTopRatingsList(
   });
 }
 
+async function getTopXtRatingsList(
+  seasonId: number,
+  limit: number = 5
+): Promise<PlayerStatRow[]> {
+  const teamSeasonNames = await prisma.teamSeasonName.findMany({
+    where: { season_id: seasonId },
+    select: { team_id: true, team_name: true },
+  });
+  const teamNameMap = new Map<number, string>();
+  teamSeasonNames.forEach((t) => {
+    teamNameMap.set(t.team_id, t.team_name);
+  });
+
+  const grouped = await prisma.playerMatchXtRating.groupBy({
+    by: ['player_id', 'team_id'],
+    where: { match: { season_id: seasonId } },
+    _avg: { xt_rating: true },
+    _count: { xt_rating_id: true },
+    orderBy: { _avg: { xt_rating: 'desc' } },
+    take: limit,
+  });
+
+  if (grouped.length === 0) return [];
+
+  const playerIds = grouped.map((g) => g.player_id);
+  const teamIds = Array.from(new Set(grouped.map((g) => g.team_id)));
+
+  const [players, teams] = await Promise.all([
+    prisma.player.findMany({
+      where: { player_id: { in: playerIds } },
+      select: { player_id: true, name: true, profile_image_url: true },
+    }),
+    prisma.team.findMany({
+      where: { team_id: { in: teamIds } },
+      select: {
+        team_id: true,
+        team_name: true,
+        logo: true,
+        primary_color: true,
+        secondary_color: true,
+      },
+    }),
+  ]);
+
+  const playerMap = new Map(players.map((p) => [p.player_id, p]));
+  const teamMap = new Map(teams.map((t) => [t.team_id, t]));
+
+  return grouped.map((g) => {
+    const player = playerMap.get(g.player_id);
+    const team = teamMap.get(g.team_id);
+    return {
+      player_id: player?.player_id ?? null,
+      player_name: player?.name ?? null,
+      player_image: player?.profile_image_url ?? null,
+      team_name: teamNameMap.get(g.team_id) ?? team?.team_name ?? null,
+      team_logo: team?.logo ?? null,
+      team_primary_color: team?.primary_color ?? null,
+      team_secondary_color: team?.secondary_color ?? null,
+      goals: null,
+      assists: null,
+      matches_played: g._count.xt_rating_id,
+      avg_rating: Math.round((g._avg.xt_rating ?? 0) * 100) / 100,
+    };
+  });
+}
+
 async function getCareerStats(
   limit: number = 5,
   minMatches: number = 10
@@ -797,6 +863,7 @@ export async function getHomePageData(): Promise<HomePageData> {
       topScorers: [],
       topAssists: [],
       topRatings: [],
+      topXtRatings: [],
       latestMatchGoals: null,
       seasonSummary: {
         totalMatches: 0,
@@ -821,6 +888,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     topScorers,
     topAssists,
     topRatings,
+    topXtRatings,
     latestMatchGoals,
     seasonSummary,
     careerStats,
@@ -831,6 +899,9 @@ export async function getHomePageData(): Promise<HomePageData> {
     getTopScorersList(currentSeason.season_id),
     getTopAssistsList(currentSeason.season_id),
     getTopRatingsList(currentSeason.season_id),
+    getTopXtRatingsList(currentSeason.season_id).catch(
+      () => [] as PlayerStatRow[]
+    ),
     getLatestMatchGoalScorers(),
     getSeasonSummaryStats(currentSeason.season_id),
     getCareerStats(),
@@ -844,6 +915,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     topScorers,
     topAssists,
     topRatings,
+    topXtRatings,
     latestMatchGoals,
     seasonSummary,
     careerTopScorers: careerStats.scorers,
