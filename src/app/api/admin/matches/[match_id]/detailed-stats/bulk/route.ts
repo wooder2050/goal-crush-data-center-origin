@@ -26,6 +26,7 @@ interface StatData {
   throw_ins?: number;
   corner_kicks?: number;
   penalty_goals?: number;
+  own_goals?: number;
   goals?: number;
   assists?: number;
   yellow_cards?: number;
@@ -101,6 +102,7 @@ export async function POST(
           throw_ins: stat.throw_ins ?? 0,
           corner_kicks: stat.corner_kicks ?? 0,
           penalty_goals: stat.penalty_goals ?? 0,
+          own_goals: stat.own_goals ?? 0,
           goals: stat.goals ?? 0,
           assists: stat.assists ?? 0,
           yellow_cards: stat.yellow_cards ?? 0,

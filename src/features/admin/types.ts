@@ -26,6 +26,8 @@ export interface MatchLineup {
   player_id: number;
   team_id: number;
   position: string;
+  secondary_position?: string | null; // 포지션 변경 시 두 번째 포지션
+  position_change_minute?: number | null; // 포지션 변경 시점 (경기 시작부터의 분)
   jersey_number?: number | null;
   minutes_played?: number; // 출전 시간 (분)
   player_name?: string; // UI 표시용

@@ -61,6 +61,8 @@ export async function POST(
           player_id: true,
           team_id: true,
           position: true,
+          secondary_position: true,
+          position_change_minute: true,
           minutes_played: true,
           yellow_cards: true,
           red_cards: true,
@@ -85,6 +87,8 @@ export async function POST(
       number,
       {
         position: string;
+        secondary_position: string | null;
+        position_change_minute: number | null;
         minutes_played: number | null;
         yellow_cards: number;
         red_cards: number;
@@ -94,6 +98,8 @@ export async function POST(
       if (bs.player_id != null) {
         basicStatsMap.set(bs.player_id, {
           position: bs.position ?? 'FW',
+          secondary_position: bs.secondary_position ?? null,
+          position_change_minute: bs.position_change_minute ?? null,
           minutes_played: bs.minutes_played ?? null,
           yellow_cards: bs.yellow_cards ?? 0,
           red_cards: bs.red_cards ?? 0,
@@ -105,6 +111,8 @@ export async function POST(
       .map((ds) => {
         const basic = basicStatsMap.get(ds.player_id) ?? {
           position: 'FW',
+          secondary_position: null,
+          position_change_minute: null,
           minutes_played: null,
           yellow_cards: 0,
           red_cards: 0,
@@ -119,10 +127,14 @@ export async function POST(
 
         const input: PlayerMatchRatingInput = {
           position: basic.position,
+          secondary_position: basic.secondary_position,
+          position_change_minute: basic.position_change_minute,
           goals: ds.goals ?? 0,
           assists: ds.assists ?? 0,
           yellow_cards: ds.yellow_cards ?? basic.yellow_cards,
           red_cards: ds.red_cards ?? basic.red_cards,
+          penalty_goals: ds.penalty_goals ?? 0,
+          own_goals: ds.own_goals ?? 0,
           minutes_played: basic.minutes_played,
           passes: ds.passes ?? 0,
           passes_completed: ds.passes_completed ?? 0,
