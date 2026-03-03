@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { invalidateXtGridCache } from '@/features/matches/lib/xT/xtGrid';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches/[match_id]/actions - 경기 이벤트 액션 조회
@@ -142,6 +143,7 @@ export async function POST(
       },
     });
 
+    invalidateXtGridCache();
     return NextResponse.json(action);
   } catch (error) {
     console.error('Failed to create match action:', error);
@@ -191,6 +193,7 @@ export async function DELETE(
       where: { action_id: lastAction.action_id },
     });
 
+    invalidateXtGridCache();
     return NextResponse.json({ success: true, deleted: lastAction });
   } catch (error) {
     console.error('Failed to delete last action:', error);

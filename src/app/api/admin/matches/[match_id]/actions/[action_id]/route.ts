@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { invalidateXtGridCache } from '@/features/matches/lib/xT/xtGrid';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches/[match_id]/actions/[action_id] - 특정 액션 조회
@@ -128,6 +129,7 @@ export async function PATCH(
       },
     });
 
+    invalidateXtGridCache();
     return NextResponse.json(updatedAction);
   } catch (error) {
     console.error('Failed to update action:', error);
@@ -170,6 +172,7 @@ export async function DELETE(
       where: { action_id: actionId },
     });
 
+    invalidateXtGridCache();
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Failed to delete action:', error);

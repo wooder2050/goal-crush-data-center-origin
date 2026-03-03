@@ -32,6 +32,9 @@ export interface PlayerMatchRatingInput {
 
   // Derived externally from match score
   isCleanSheet: boolean;
+
+  // 팀 승패 결과
+  matchResult: 'win' | 'draw' | 'loss' | null;
 }
 
 export interface MatchRatingResult {
@@ -43,6 +46,17 @@ const BASE_RATING = 6.0;
 const MIN_RATING = 6.0;
 const MAX_RATING = 10.0;
 const DEFAULT_MATCH_MINUTES = 24; // 풋살 전반12분+후반12분
+
+const WIN_BONUS = 0.3;
+const LOSS_PENALTY = -0.2;
+
+function getMatchResultBonus(
+  matchResult: 'win' | 'draw' | 'loss' | null
+): number {
+  if (matchResult === 'win') return WIN_BONUS;
+  if (matchResult === 'loss') return LOSS_PENALTY;
+  return 0;
+}
 
 function calcByPosition(
   pos: string,
@@ -115,6 +129,13 @@ export function calculateMatchRating(
     // 단일 포지션 모드 (기존 로직)
     bonus = calcByPosition(primaryPos, input, breakdown);
   }
+
+  // 승패 보너스
+  const matchResultBonus = getMatchResultBonus(input.matchResult);
+  if (matchResultBonus !== 0) {
+    breakdown.match_result = matchResultBonus;
+  }
+  bonus += matchResultBonus;
 
   const rawScore = BASE_RATING + bonus;
   const rating =
@@ -235,11 +256,15 @@ function calcDF(
   bd.assists = input.assists * 0.8;
   bonus += bd.assists;
 
-  bd.interceptions = input.interceptions * 0.1;
+  bd.interceptions = input.interceptions * 0.15;
   bonus += bd.interceptions;
 
-  bd.clearances = input.clearances * 0.08;
+  bd.clearances = input.clearances * 0.12;
   bonus += bd.clearances;
+
+  // clean sheet bonus for defenders
+  bd.clean_sheet = input.isCleanSheet ? 0.3 : 0;
+  bonus += bd.clean_sheet;
 
   // pass_accuracy: max +0.3 (linear scale from 50%-100%)
   const pa = input.pass_accuracy ?? 0;
@@ -283,10 +308,10 @@ function calcGK(
   bd.assists = input.assists * 0.8;
   bonus += bd.assists;
 
-  bd.saves = input.saves * 0.2;
+  bd.saves = input.saves * 0.3;
   bonus += bd.saves;
 
-  bd.goals_conceded = input.goals_conceded * -0.3;
+  bd.goals_conceded = input.goals_conceded * -0.2;
   bonus += bd.goals_conceded;
 
   bd.clean_sheet = input.isCleanSheet ? 1.0 : 0;

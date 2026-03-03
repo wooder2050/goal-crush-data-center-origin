@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useState } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import {
@@ -19,6 +19,7 @@ import {
   getTopAssistsPrisma,
   getTopRatingsPrisma,
   getTopScorersPrisma,
+  getTopXtRatingsPrisma,
 } from '@/features/stats/api-prisma';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import type { PlayerSeasonStats } from '@/lib/types';
@@ -115,6 +116,10 @@ function PlayerSeasonRankingTableInner({
     seasonId,
     10,
   ]);
+  const { data: topXtRatings = [] } = useGoalSuspenseQuery(
+    getTopXtRatingsPrisma,
+    [seasonId, 10]
+  );
 
   const sortedAppearances = useMemo(() => {
     return [...topAppearances].sort((a, b) => {
@@ -148,8 +153,11 @@ function PlayerSeasonRankingTableInner({
     <div className={className}>
       <h3 className="text-lg font-bold mb-2">개인 순위</h3>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
-        {topRatings.length > 0 && (
-          <RatingRankingTable topRatings={topRatings} />
+        {(topRatings.length > 0 || topXtRatings.length > 0) && (
+          <RatingRankingTable
+            topRatings={topRatings}
+            topXtRatings={topXtRatings}
+          />
         )}
         <div>
           <h4 className="mb-3 sm:mb-4 font-semibold">득점 TOP 10</h4>
@@ -494,12 +502,58 @@ function PlayerSeasonRankingTableInner({
 
 function RatingRankingTable({
   topRatings,
+  topXtRatings = [],
 }: {
   topRatings: TopRatedPlayerRow[];
+  topXtRatings?: TopRatedPlayerRow[];
 }) {
+  const [ratingType, setRatingType] = useState<'stats' | 'xt'>('stats');
+
+  const showTabs = topRatings.length > 0 && topXtRatings.length > 0;
+  const effectiveType =
+    ratingType === 'xt' && topXtRatings.length === 0
+      ? 'stats'
+      : ratingType === 'stats' && topRatings.length === 0
+        ? 'xt'
+        : ratingType;
+  const displayData = effectiveType === 'xt' ? topXtRatings : topRatings;
+
   return (
     <div>
-      <h4 className="mb-3 sm:mb-4 font-semibold">평점 TOP 10</h4>
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h4 className="font-semibold">평점 TOP 10</h4>
+        {showTabs && (
+          <div className="flex gap-1">
+            <button
+              onClick={() => setRatingType('stats')}
+              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                effectiveType === 'stats'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              스탯 평점
+            </button>
+            <button
+              onClick={() => setRatingType('xt')}
+              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                effectiveType === 'xt'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              xT 평점
+            </button>
+          </div>
+        )}
+      </div>
+      {showTabs && (
+        <p className="text-[11px] text-gray-400 -mt-2 mb-3">
+          {effectiveType === 'stats'
+            ? '골, 어시스트, 패스 등 경기 스탯을 기반으로 산출한 평점입니다.'
+            : '패스, 드리블, 수비 등 볼 이동의 위협도(xT)를 기반으로 산출한 평점입니다.'}
+        </p>
+      )}
       <Table>
         <TableHeader>
           <TableRow>
@@ -516,7 +570,7 @@ function RatingRankingTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {topRatings.map((row, idx) => (
+          {displayData.map((row, idx) => (
             <TableRow key={row.player_id}>
               <TableCell className="text-center">
                 <span

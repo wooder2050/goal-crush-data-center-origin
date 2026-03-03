@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { getRatingBgColor } from '@/lib/utils';
@@ -11,6 +14,7 @@ interface PlayerStatsWidgetProps {
   topScorers: PlayerStatRow[];
   topAssists: PlayerStatRow[];
   topRatings: PlayerStatRow[];
+  topXtRatings: PlayerStatRow[];
 }
 
 export default function PlayerStatsWidget({
@@ -18,8 +22,16 @@ export default function PlayerStatsWidget({
   topScorers,
   topAssists,
   topRatings,
+  topXtRatings,
 }: PlayerStatsWidgetProps) {
-  const hasRatings = topRatings.length > 0;
+  const [ratingType, setRatingType] = useState<'stats' | 'xt'>('stats');
+
+  const hasStatsRatings = topRatings.length > 0;
+  const hasXtRatings = topXtRatings.length > 0;
+  const hasRatings = hasStatsRatings || hasXtRatings;
+  const showTabs = hasStatsRatings && hasXtRatings;
+
+  const displayRatings = ratingType === 'xt' ? topXtRatings : topRatings;
 
   return (
     <Card className="shadow-sm">
@@ -39,10 +51,11 @@ export default function PlayerStatsWidget({
           className={`grid gap-4 ${hasRatings ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'}`}
         >
           {hasRatings && (
-            <PlayerColumn
-              title="최고 평점"
-              players={topRatings}
-              statKey="avg_rating"
+            <RatingColumn
+              players={displayRatings}
+              ratingType={ratingType}
+              showTabs={showTabs}
+              onRatingTypeChange={setRatingType}
             />
           )}
           <PlayerColumn
@@ -58,6 +71,73 @@ export default function PlayerStatsWidget({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function RatingColumn({
+  players,
+  ratingType,
+  showTabs,
+  onRatingTypeChange,
+}: {
+  players: PlayerStatRow[];
+  ratingType: 'stats' | 'xt';
+  showTabs: boolean;
+  onRatingTypeChange: (type: 'stats' | 'xt') => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <h3 className="text-sm font-semibold text-gray-700">최고 평점</h3>
+        {showTabs && (
+          <div className="flex gap-1">
+            <button
+              onClick={() => onRatingTypeChange('stats')}
+              className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                ratingType === 'stats'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              스탯
+            </button>
+            <button
+              onClick={() => onRatingTypeChange('xt')}
+              className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                ratingType === 'xt'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              xT
+            </button>
+          </div>
+        )}
+      </div>
+      {showTabs && (
+        <p className="text-[11px] text-gray-400 -mt-1 mb-2">
+          {ratingType === 'stats'
+            ? '경기 스탯 기반 평점'
+            : 'xT(위협도) 기반 평점'}
+        </p>
+      )}
+      {players.length === 0 ? (
+        <p className="text-sm text-gray-500 text-center py-4">
+          데이터가 없습니다.
+        </p>
+      ) : (
+        <div className="divide-y divide-gray-100">
+          {players.slice(0, 5).map((player, index) => (
+            <PlayerRow
+              key={player.player_id ?? index}
+              player={player}
+              rank={index + 1}
+              statKey="avg_rating"
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

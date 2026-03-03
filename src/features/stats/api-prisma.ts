@@ -138,6 +138,20 @@ export const getTopRatingsPrisma = async (
   return response.json();
 };
 
+// Get top xT rated players by season
+export const getTopXtRatingsPrisma = async (
+  seasonId: number,
+  limit: number = 10
+): Promise<TopRatedPlayerRow[]> => {
+  const response = await fetch(
+    `/api/stats/player-match/top-xt-ratings?season_id=${seasonId}&limit=${limit}`
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to fetch top xT ratings: ${response.statusText}`);
+  }
+  return response.json();
+};
+
 // ========== Team Season Statistics ==========
 
 // Get team season statistics by season

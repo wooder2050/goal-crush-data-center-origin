@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React from 'react';
+import React, { useState } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +16,11 @@ import {
   getMatchLineupsPrisma,
   getMatchPassMapPrisma,
   getMatchRatingsPrisma,
+  getMatchXtRatingsPrisma,
   getPredictedMatchLineupsPrisma,
   getSeasonPlayersPrisma,
   type MatchRatingsResponse,
+  type MatchXtRatingsResponse,
   type TeamPassNetworkData,
 } from '../../api-prisma';
 import { getPositionColor, getPositionText } from '../../lib/matchUtils';
@@ -56,6 +58,7 @@ function TeamLineupsSectionInner({
   match,
   className = '',
 }: TeamLineupsSectionProps) {
+  const [ratingType, setRatingType] = useState<'stats' | 'xt'>('stats');
   const { data: actualLineups = {} } = useGoalSuspenseQuery(
     getMatchLineupsPrisma,
     [match.match_id]
@@ -187,9 +190,19 @@ function TeamLineupsSectionInner({
     match.match_id,
   ]) as { data: MatchRatingsResponse | undefined };
 
-  // Build player_id -> rating map
+  // Fetch xT ratings
+  const { data: xtRatingsData } = useGoalSuspenseQuery(
+    getMatchXtRatingsPrisma,
+    [match.match_id]
+  ) as { data: MatchXtRatingsResponse | undefined };
+
+  // Build player_id -> rating map based on ratingType
   const playerRatings = new Map<number, number>();
-  if (ratingsData?.ratings) {
+  if (ratingType === 'xt' && xtRatingsData?.ratings?.length) {
+    for (const r of xtRatingsData.ratings) {
+      playerRatings.set(r.player_id, r.xt_rating);
+    }
+  } else if (ratingsData?.ratings) {
     for (const r of ratingsData.ratings) {
       playerRatings.set(r.player_id, r.rating);
     }
@@ -496,6 +509,12 @@ function TeamLineupsSectionInner({
     });
   };
 
+  const hasStatsRatings =
+    ratingsData?.ratings && ratingsData.ratings.length > 0;
+  const hasXtRatings =
+    xtRatingsData?.ratings && xtRatingsData.ratings.length > 0;
+  const showRatingTabs = showPitchView && hasStatsRatings && hasXtRatings;
+
   return (
     <div className={`mt-4 pt-3 border-t border-gray-200 ${className}`}>
       <div className="mb-3 sm:mb-4 flex items-center justify-between">
@@ -510,7 +529,39 @@ function TeamLineupsSectionInner({
             </Badge>
           )}
         </div>
+        {showRatingTabs && (
+          <div className="flex gap-1">
+            <button
+              onClick={() => setRatingType('stats')}
+              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                ratingType === 'stats'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              스탯 평점
+            </button>
+            <button
+              onClick={() => setRatingType('xt')}
+              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                ratingType === 'xt'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              xT 평점
+            </button>
+          </div>
+        )}
       </div>
+
+      {showRatingTabs && (
+        <p className="text-[11px] text-gray-400 -mt-1 mb-2">
+          {ratingType === 'stats'
+            ? '골, 어시스트, 패스 등 경기 스탯을 기반으로 산출한 평점입니다.'
+            : '패스, 드리블, 수비 등 볼 이동의 위협도(xT)를 기반으로 산출한 평점입니다.'}
+        </p>
+      )}
 
       <div className="space-y-4 sm:space-y-5">
         {homeLineups.length === 0 && awayLineups.length === 0 && (
