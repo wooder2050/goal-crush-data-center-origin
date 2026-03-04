@@ -2,13 +2,19 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui';
 
 import type { CareerStatRow } from '../types';
-
-type TabKey = 'goals' | 'assists' | 'attackPoints';
 
 type StatKey =
   | 'goals'
@@ -35,20 +41,12 @@ export default function CareerStatsWidget({
   careerAttackPoints,
   careerAttackPointsPerMatch,
 }: CareerStatsWidgetProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>('goals');
-
   const hasData =
     careerTopScorers.length > 0 ||
     careerTopAssists.length > 0 ||
     careerAttackPoints.length > 0;
 
   if (!hasData) return null;
-
-  const tabs: { key: TabKey; label: string }[] = [
-    { key: 'goals', label: '득점' },
-    { key: 'assists', label: '도움' },
-    { key: 'attackPoints', label: '공격포인트' },
-  ];
 
   return (
     <Card className="shadow-sm">
@@ -62,68 +60,66 @@ export default function CareerStatsWidget({
             전체 통산 기록 보기
           </Link>
         </div>
-        <div className="flex gap-1 mt-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                activeTab === tab.key
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
       </CardHeader>
       <CardContent className="px-3 sm:px-6 pb-4">
-        {activeTab === 'goals' && (
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-            <CareerColumn
-              title="통산 득점"
-              players={careerTopScorers}
-              statKey="goals"
-            />
-            <CareerColumn
-              title="경기당 득점"
-              players={careerGoalsPerMatch}
-              statKey="goals_per_match"
-              subtitle="최소 10경기"
-            />
-          </div>
-        )}
-        {activeTab === 'assists' && (
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-            <CareerColumn
-              title="통산 도움"
-              players={careerTopAssists}
-              statKey="assists"
-            />
-            <CareerColumn
-              title="경기당 도움"
-              players={careerAssistsPerMatch}
-              statKey="assists_per_match"
-              subtitle="최소 10경기"
-            />
-          </div>
-        )}
-        {activeTab === 'attackPoints' && (
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-            <CareerColumn
-              title="통산 공격포인트"
-              players={careerAttackPoints}
-              statKey="attack_points"
-            />
-            <CareerColumn
-              title="경기당 공격포인트"
-              players={careerAttackPointsPerMatch}
-              statKey="attack_points_per_match"
-              subtitle="최소 10경기"
-            />
-          </div>
-        )}
+        <Tabs defaultValue="goals">
+          <TabsList className="mb-3 h-8">
+            <TabsTrigger value="goals" className="text-xs px-2.5 py-1">
+              득점
+            </TabsTrigger>
+            <TabsTrigger value="assists" className="text-xs px-2.5 py-1">
+              도움
+            </TabsTrigger>
+            <TabsTrigger value="attackPoints" className="text-xs px-2.5 py-1">
+              공격포인트
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="goals">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <CareerColumn
+                title="통산 득점"
+                players={careerTopScorers}
+                statKey="goals"
+              />
+              <CareerColumn
+                title="경기당 득점"
+                players={careerGoalsPerMatch}
+                statKey="goals_per_match"
+                subtitle="최소 10경기"
+              />
+            </div>
+          </TabsContent>
+          <TabsContent value="assists">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <CareerColumn
+                title="통산 도움"
+                players={careerTopAssists}
+                statKey="assists"
+              />
+              <CareerColumn
+                title="경기당 도움"
+                players={careerAssistsPerMatch}
+                statKey="assists_per_match"
+                subtitle="최소 10경기"
+              />
+            </div>
+          </TabsContent>
+          <TabsContent value="attackPoints">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <CareerColumn
+                title="통산 공격포인트"
+                players={careerAttackPoints}
+                statKey="attack_points"
+              />
+              <CareerColumn
+                title="경기당 공격포인트"
+                players={careerAttackPointsPerMatch}
+                statKey="attack_points_per_match"
+                subtitle="최소 10경기"
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

@@ -4,7 +4,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  RatingTypeDescription,
+  RatingTypeTabs,
+} from '@/components/ui';
 import { getRatingBgColor } from '@/lib/utils';
 
 import type { PlayerStatRow } from '../types';
@@ -90,36 +97,19 @@ function RatingColumn({
       <div className="flex items-center gap-2 mb-2">
         <h3 className="text-sm font-semibold text-gray-700">최고 평점</h3>
         {showTabs && (
-          <div className="flex gap-1">
-            <button
-              onClick={() => onRatingTypeChange('stats')}
-              className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
-                ratingType === 'stats'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              스탯
-            </button>
-            <button
-              onClick={() => onRatingTypeChange('xt')}
-              className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
-                ratingType === 'xt'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              xT
-            </button>
-          </div>
+          <RatingTypeTabs
+            value={ratingType}
+            onValueChange={onRatingTypeChange}
+            size="sm"
+          />
         )}
       </div>
       {showTabs && (
-        <p className="text-[11px] text-gray-400 -mt-1 mb-2">
-          {ratingType === 'stats'
-            ? '경기 스탯 기반 평점'
-            : 'xT(위협도) 기반 평점'}
-        </p>
+        <RatingTypeDescription
+          type={ratingType}
+          variant="short"
+          className="-mt-1 mb-2"
+        />
       )}
       {players.length === 0 ? (
         <p className="text-sm text-gray-500 text-center py-4">

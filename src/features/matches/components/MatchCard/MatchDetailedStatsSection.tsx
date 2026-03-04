@@ -1,11 +1,17 @@
 'use client';
 
+import * as TabsPrimitive from '@radix-ui/react-tabs';
 import Image from 'next/image';
 import { useState } from 'react';
 
-import { Card, CardContent } from '@/components/ui';
+import {
+  Card,
+  CardContent,
+  RatingTypeDescription,
+  RatingTypeTabs,
+} from '@/components/ui';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
-import { getRatingBgColor, getRatingTextColor } from '@/lib/utils';
+import { cn, getRatingBgColor, getRatingTextColor } from '@/lib/utils';
 
 import {
   getMatchDetailedStatsPrisma,
@@ -884,55 +890,39 @@ function SideBySidePlayerStats({
         <div className="flex items-center justify-between">
           <h4 className="text-base font-medium text-gray-800">필드 플레이어</h4>
           {showRatingTabs && onRatingTypeChange && (
-            <div className="flex gap-1">
-              <button
-                onClick={() => onRatingTypeChange('stats')}
-                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  ratingType === 'stats'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                스탯 평점
-              </button>
-              <button
-                onClick={() => onRatingTypeChange('xt')}
-                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  ratingType === 'xt'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                xT 평점
-              </button>
-            </div>
+            <RatingTypeTabs
+              value={ratingType}
+              onValueChange={onRatingTypeChange}
+            />
           )}
         </div>
 
         {showRatingTabs && (
-          <p className="text-[11px] text-gray-400 -mt-2">
-            {ratingType === 'stats'
-              ? '골, 어시스트, 패스 등 경기 스탯을 기반으로 산출한 평점입니다.'
-              : '패스, 드리블, 수비 등 볼 이동의 위협도(xT)를 기반으로 산출한 평점입니다.'}
-          </p>
+          <RatingTypeDescription type={ratingType} className="-mt-2" />
         )}
 
         {/* 공유 카테고리 필터 */}
-        <div className="flex gap-1 overflow-x-auto pb-1">
-          {FIELD_PLAYER_CATEGORIES.map((cat, index) => (
-            <button
-              key={cat.name}
-              onClick={() => setSelectedCategory(index)}
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                selectedCategory === index
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
+        <TabsPrimitive.Root
+          value={String(selectedCategory)}
+          onValueChange={(v) => setSelectedCategory(Number(v))}
+        >
+          <TabsPrimitive.List className="inline-flex items-center rounded-md bg-muted p-0.5 h-8 overflow-x-auto">
+            {FIELD_PLAYER_CATEGORIES.map((cat, index) => (
+              <TabsPrimitive.Trigger
+                key={cat.name}
+                value={String(index)}
+                className={cn(
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-2.5 py-1 text-xs font-medium transition-all',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+                  'data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm',
+                  'data-[state=inactive]:text-muted-foreground'
+                )}
+              >
+                {cat.name}
+              </TabsPrimitive.Trigger>
+            ))}
+          </TabsPrimitive.List>
+        </TabsPrimitive.Root>
 
         {/* 양팀 테이블 나란히 배치 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -1036,21 +1026,28 @@ function PlayerStatsTable({
           </h4>
 
           {/* 카테고리 탭 */}
-          <div className="mb-3 flex gap-1 overflow-x-auto px-4 pb-1">
-            {STAT_CATEGORIES.map((cat, index) => (
-              <button
-                key={cat.name}
-                onClick={() => setSelectedCategory(index)}
-                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  selectedCategory === index
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
+          <TabsPrimitive.Root
+            value={String(selectedCategory)}
+            onValueChange={(v) => setSelectedCategory(Number(v))}
+            className="mb-3 px-4"
+          >
+            <TabsPrimitive.List className="inline-flex items-center rounded-md bg-muted p-0.5 h-8 overflow-x-auto">
+              {STAT_CATEGORIES.map((cat, index) => (
+                <TabsPrimitive.Trigger
+                  key={cat.name}
+                  value={String(index)}
+                  className={cn(
+                    'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-2.5 py-1 text-xs font-medium transition-all',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+                    'data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm',
+                    'data-[state=inactive]:text-muted-foreground'
+                  )}
+                >
+                  {cat.name}
+                </TabsPrimitive.Trigger>
+              ))}
+            </TabsPrimitive.List>
+          </TabsPrimitive.Root>
 
           <p className="px-4 text-sm text-gray-500">
             {category.name === '골키퍼'
