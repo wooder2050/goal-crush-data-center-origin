@@ -15,6 +15,8 @@ export default function robots(): MetadataRoute.Robots {
           '/profile/',
           '/sign-in/',
           '/sign-up/',
+          '/supports/',
+          '/community/posts/create/',
         ],
       },
       {
@@ -27,6 +29,8 @@ export default function robots(): MetadataRoute.Robots {
           '/profile/',
           '/sign-in/',
           '/sign-up/',
+          '/supports/',
+          '/community/posts/create/',
         ],
       },
       {
@@ -39,6 +43,8 @@ export default function robots(): MetadataRoute.Robots {
           '/profile/',
           '/sign-in/',
           '/sign-up/',
+          '/supports/',
+          '/community/posts/create/',
         ],
       },
     ],
