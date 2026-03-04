@@ -14,6 +14,11 @@ export { Input } from './input';
 export { Pagination } from './pagination';
 export { Progress } from './progress';
 export {
+  type RatingType,
+  RatingTypeDescription,
+  RatingTypeTabs,
+} from './rating-type-tabs';
+export {
   Select,
   SelectContent,
   SelectGroup,

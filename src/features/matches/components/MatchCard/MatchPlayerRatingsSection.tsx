@@ -4,7 +4,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { Card, CardContent } from '@/components/ui';
+import {
+  Card,
+  CardContent,
+  type RatingType,
+  RatingTypeDescription,
+  RatingTypeTabs,
+} from '@/components/ui';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import { getRatingBgColor, getRatingTextColor } from '@/lib/utils';
 
@@ -15,8 +21,6 @@ import {
   type PlayerMatchXtRating,
 } from '../../api-prisma';
 import { getPositionColor, getPositionText } from '../../lib/matchUtils';
-
-type RatingType = 'stats' | 'xt';
 
 interface Props {
   matchId: number;
@@ -338,37 +342,12 @@ export default function MatchPlayerRatingsSection({
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">⭐ 선수 평점</h3>
         {showTabs && (
-          <div className="flex gap-1">
-            <button
-              onClick={() => setRatingType('stats')}
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                effectiveType === 'stats'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              스탯 평점
-            </button>
-            <button
-              onClick={() => setRatingType('xt')}
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                effectiveType === 'xt'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              xT 평점
-            </button>
-          </div>
+          <RatingTypeTabs value={effectiveType} onValueChange={setRatingType} />
         )}
       </div>
 
       {showTabs && (
-        <p className="text-[11px] text-gray-400 -mt-1">
-          {effectiveType === 'stats'
-            ? '골, 어시스트, 패스 등 경기 스탯을 기반으로 산출한 평점입니다.'
-            : '패스, 드리블, 수비 등 볼 이동의 위협도(xT)를 기반으로 산출한 평점입니다.'}
-        </p>
+        <RatingTypeDescription type={effectiveType} className="-mt-1" />
       )}
 
       {effectiveType === 'stats' ? (

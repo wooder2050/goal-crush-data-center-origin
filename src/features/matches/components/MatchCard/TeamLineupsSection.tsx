@@ -5,6 +5,10 @@ import React, { useState } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Badge } from '@/components/ui/badge';
+import {
+  RatingTypeDescription,
+  RatingTypeTabs,
+} from '@/components/ui/rating-type-tabs';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import type { Assist, Goal } from '@/lib/types';
 import { MatchWithTeams } from '@/lib/types/database';
@@ -530,37 +534,15 @@ function TeamLineupsSectionInner({
           )}
         </div>
         {showRatingTabs && (
-          <div className="flex gap-1">
-            <button
-              onClick={() => setRatingType('stats')}
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                ratingType === 'stats'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              스탯 평점
-            </button>
-            <button
-              onClick={() => setRatingType('xt')}
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                ratingType === 'xt'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              xT 평점
-            </button>
-          </div>
+          <RatingTypeTabs
+            value={ratingType}
+            onValueChange={(v) => setRatingType(v as 'stats' | 'xt')}
+          />
         )}
       </div>
 
       {showRatingTabs && (
-        <p className="text-[11px] text-gray-400 -mt-1 mb-2">
-          {ratingType === 'stats'
-            ? '골, 어시스트, 패스 등 경기 스탯을 기반으로 산출한 평점입니다.'
-            : '패스, 드리블, 수비 등 볼 이동의 위협도(xT)를 기반으로 산출한 평점입니다.'}
-        </p>
+        <RatingTypeDescription type={ratingType} className="-mt-1 mb-2" />
       )}
 
       <div className="space-y-4 sm:space-y-5">

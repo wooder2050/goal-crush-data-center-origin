@@ -6,6 +6,10 @@ import { FC, useMemo, useState } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import {
+  RatingTypeDescription,
+  RatingTypeTabs,
+} from '@/components/ui/rating-type-tabs';
+import {
   Table,
   TableBody,
   TableCell,
@@ -523,36 +527,11 @@ function RatingRankingTable({
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <h4 className="font-semibold">평점 TOP 10</h4>
         {showTabs && (
-          <div className="flex gap-1">
-            <button
-              onClick={() => setRatingType('stats')}
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                effectiveType === 'stats'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              스탯 평점
-            </button>
-            <button
-              onClick={() => setRatingType('xt')}
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                effectiveType === 'xt'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              xT 평점
-            </button>
-          </div>
+          <RatingTypeTabs value={effectiveType} onValueChange={setRatingType} />
         )}
       </div>
       {showTabs && (
-        <p className="text-[11px] text-gray-400 -mt-2 mb-3">
-          {effectiveType === 'stats'
-            ? '골, 어시스트, 패스 등 경기 스탯을 기반으로 산출한 평점입니다.'
-            : '패스, 드리블, 수비 등 볼 이동의 위협도(xT)를 기반으로 산출한 평점입니다.'}
-        </p>
+        <RatingTypeDescription type={effectiveType} className="-mt-2 mb-3" />
       )}
       <Table>
         <TableHeader>
