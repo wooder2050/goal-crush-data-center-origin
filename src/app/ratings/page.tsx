@@ -7,6 +7,13 @@ export const metadata: Metadata = {
   title: '선수 평가',
   description:
     '골 때리는 그녀들 선수들의 능력치 평가를 확인하세요. 팬들이 직접 평가한 선수 능력치를 모아볼 수 있습니다.',
+  keywords: [
+    '골때녀 선수 평가',
+    '골때리는 그녀들 능력치',
+    '골때녀 선수 능력치',
+    '골때녀 팬 평가',
+    '골때녀 선수 레이팅',
+  ],
   alternates: { canonical: '/ratings' },
   openGraph: {
     title: '선수 평가 | 골때녀 데이터 센터',

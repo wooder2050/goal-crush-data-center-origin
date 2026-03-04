@@ -19,7 +19,8 @@ SBS 예능 프로그램 '골때리는 그녀들'의 경기 데이터와 선수 �
 
 - 📺 **방송 연계**: 매주 "골 때리는 그녀들"에서 다룬 경기의 상세 데이터를 실시간으로 업데이트
 - 📊 **체계적 데이터**: 선수별 포지션, 득점, 어시스트부터 팀별 전적까지 모든 데이터를 구조화하여 관리
-- 🏅 **현재 득점왕 TOP 5**: 이번 시즌 가장 많은 골을 넣은 선수들 실시간 랭킹
+- ⭐ **선수 평점 시스템**: 스탯 기반 평점과 xT(Expected Threat) 기반 평점 두 가지 평점 체계 제공
+- 🏅 **선수 순위**: 시즌별 득점, 도움, 평점, 통산 기록 등 다양한 순위 제공
 - 📅 **다가오는 경기**: 곧 펼쳐질 흥미진진한 경기 일정 제공
 
 ## 🚀 주요 기능
@@ -28,17 +29,63 @@ SBS 예능 프로그램 '골때리는 그녀들'의 경기 데이터와 선수 �
 - **👩‍⚽ 선수 정보 관리**: 선수 프로필, 시즌별 기록, 개인 통계를 상세하게 제공합니다.
 - **⚽ 팀 정보 관리**: 팀 스쿼드, 시즌 성적, 우승 기록을 체계적으로 관리합니다.
 - **📊 통계 분석**: 득점, 골키퍼, 팀별 통계 및 순위를 다각도로 분석합니다.
+- **⭐ 선수 평점**: 스탯 평점(골, 어시스트, 패스 등 기반)과 xT 평점(볼 이동 위협도 기반) 두 가지 평점 체계를 제공합니다.
+- **📈 통산 기록**: 통산 득점, 도움, 공격포인트 등 역대 기록 순위를 제공합니다.
 - **🎯 판타지 리그**: 선수 선택과 점수 시스템을 통한 판타지 축구 게임을 제공합니다.
 - **💬 커뮤니티**: 팬들이 소통할 수 있는 커뮤니티 공간을 제공합니다.
+- **🗳️ MVP 투표**: 경기별 MVP 투표 기능을 제공합니다.
 - **🔄 실시간 업데이트**: 방송과 연계하여 경기 데이터를 실시간으로 업데이트합니다.
 
 ## 🛠️ 기술 스택
 
-- **Frontend**: `Next.js`, `React`, `TypeScript`
-- **Styling**: `Tailwind CSS`, `shadcn-ui`
-- **Design System**: `Storybook` - [디자인 시스템 문서](https://storybook.gtndatacenter.com/)
-- **Backend & DB**: `Supabase`, `Prisma` (PostgreSQL)
-- **Deployment**: `Vercel`
+| 영역              | 기술                                              |
+| ----------------- | ------------------------------------------------- |
+| **Frontend**      | Next.js 14 (App Router), React 18, TypeScript     |
+| **Styling**       | Tailwind CSS, shadcn-ui (Radix UI)                |
+| **Design System** | [Storybook](https://storybook.gtndatacenter.com/) |
+| **Backend & DB**  | Supabase (PostgreSQL), Prisma ORM                 |
+| **상태 관리**     | TanStack Query (React Query)                      |
+| **폼 & 검증**     | React Hook Form, Zod                              |
+| **테스트**        | Vitest (Storybook 연동)                           |
+| **배포**          | Vercel                                            |
+| **패키지 매니저** | pnpm                                              |
+
+## 📁 프로젝트 구조
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── api/               # API Routes
+│   ├── admin/             # 관리자 대시보드
+│   ├── coaches/           # 감독 정보
+│   ├── community/         # 커뮤니티 게시판
+│   ├── fantasy/           # 판타지 리그
+│   ├── matches/           # 경기 상세
+│   ├── players/           # 선수 프로필
+│   ├── ratings/           # 선수 평점
+│   ├── seasons/           # 시즌별 데이터
+│   ├── stats/             # 통계 분석
+│   └── teams/             # 팀 정보
+├── features/              # 기능별 모듈
+│   ├── admin/             # 관리자 기능
+│   ├── coaches/           # 감독 관리
+│   ├── community/         # 커뮤니티 기능
+│   ├── event-actions/     # 이벤트 액션
+│   ├── fantasy/           # 판타지 리그
+│   ├── home/              # 홈페이지
+│   ├── matches/           # 경기 데이터 및 평점 계산
+│   ├── player-ratings/    # 선수 평점 시스템
+│   ├── players/           # 선수 관리
+│   ├── seasons/           # 시즌 관리
+│   ├── stats/             # 통계 계산
+│   └── teams/             # 팀 관리
+├── components/ui/         # 공유 UI 컴포넌트 (shadcn-ui)
+├── design-system/         # 디자인 토큰 및 시스템
+├── hooks/                 # React Query 래퍼 등 커스텀 훅
+├── lib/                   # 유틸리티 및 설정
+├── types/                 # TypeScript 타입 정의
+└── constants/             # 상수 정의
+```
 
 ## 🏁 시작하기
 
@@ -51,67 +98,84 @@ SBS 예능 프로그램 '골때리는 그녀들'의 경기 데이터와 선수 �
 git clone https://github.com/your-username/goal-crush-data-center.git
 cd goal-crush-data-center
 
-# 의존성 설치
-npm install
+# 의존성 설치 (pnpm 사용)
+pnpm install
 ```
 
-### **2. Supabase 설정**
+### **2. 환경 변수 설정**
 
-이 프로젝트는 백엔드로 Supabase를 사용합니다. 로컬에서 실행하려면 본인의 Supabase 프로젝트를 연결해야 합니다.
+프로젝트 루트에 `.env.local` 파일을 생성합니다.
 
-1.  **Supabase 프로젝트 생성**: [Supabase](https://supabase.com/)에 가입하고 새로운 프로젝트를 생성합니다.
-2.  **데이터베이스 스키마 설정**:
-    - `supabase/migrations` 폴더에 있는 `.sql` 파일들은 이 프로젝트에 필요한 테이블과 관계를 정의합니다.
-    - Supabase 대시보드의 'SQL Editor'로 이동하여, 마이그레이션 파일들의 내용을 순서대로 실행해 데이터베이스 스키마를 설정해주세요.
-3.  **환경 변수 설정**:
-    - 프로젝트 루트에 `.env.local` 파일을 생성합니다.
-    - Supabase 대시보드의 **Settings > API** 메뉴에서 `Project URL`과 `anon` `public` 키를 복사하여 아래와 같이 파일에 추가합니다.
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-    ```
-    NEXT_PUBLIC_SUPABASE_URL=여기에_프로젝트_URL을_붙여넣으세요
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=여기에_ANON_KEY를_붙여넣으세요
-    ```
+# Prisma Database URL (Supabase PostgreSQL)
+DATABASE_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres?sslmode=require
+DIRECT_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
+```
 
-### **3. Prisma 설정 (새로운 API 사용 시)**
-
-새로운 Prisma 기반 API를 사용하려면 다음 단계를 수행하세요:
+### **3. 데이터베이스 설정**
 
 ```bash
 # Prisma 클라이언트 생성
-npm run db:generate
+pnpm db:generate
 
-# 데이터베이스 마이그레이션 (필요한 경우)
-npm run db:migrate
+# 데이터베이스 스키마 동기화
+pnpm db:push
+
+# (선택) Prisma Studio로 데이터 확인
+pnpm db:studio
 ```
 
 ### **4. 개발 서버 실행**
 
 ```bash
 # 메인 애플리케이션 실행
-npm run dev
+pnpm dev
 
 # Storybook 실행 (디자인 시스템)
-npm run storybook
+pnpm storybook
 ```
 
 - **메인 앱**: `http://localhost:3000`
 - **Storybook**: `http://localhost:6006`
 
-## 🔄 API 사용법
+## 📜 개발 스크립트
 
-이 프로젝트는 두 가지 API 방식을 제공합니다:
+| 명령어             | 설명                      |
+| ------------------ | ------------------------- |
+| `pnpm dev`         | 개발 서버 실행            |
+| `pnpm build`       | 프로덕션 빌드             |
+| `pnpm start`       | 프로덕션 서버 실행        |
+| `pnpm lint`        | ESLint 검사               |
+| `pnpm fix`         | ESLint 자동 수정          |
+| `pnpm format`      | Prettier 포맷팅           |
+| `pnpm db:generate` | Prisma 클라이언트 생성    |
+| `pnpm db:push`     | 스키마를 DB에 반영        |
+| `pnpm db:migrate`  | 마이그레이션 생성 및 적용 |
+| `pnpm db:studio`   | Prisma Studio 실행        |
+| `pnpm storybook`   | Storybook 실행            |
+| `pnpm knip`        | 미사용 코드 검출          |
 
-### 기존 Supabase API
+## ⭐ 평점 시스템
 
-- 직접 Supabase 클라이언트를 사용
-- `src/features/matches/api.ts`에서 관리
+이 프로젝트는 두 가지 독립적인 선수 평점 체계를 제공합니다.
 
-### 새로운 Prisma 기반 API (권장)
+### 스탯 평점
 
-- Next.js API Routes와 Prisma를 사용
-- 더 나은 타입 안전성과 성능 제공
-- `src/features/matches/api-prisma.ts`에서 관리
-- 자세한 사용법은 `docs/prisma-api-usage.md` 참조
+골, 어시스트, 패스, 슈팅, 수비 등 경기 스탯을 기반으로 산출한 평점입니다.
+
+- 포지션별(GK, DF, MF, FW) 차별화된 계산 공식 적용
+- 수비수/골키퍼의 수비 기여도를 반영한 공정한 평가
+
+### xT 평점
+
+패스, 드리블, 수비 등 볼 이동의 위협도(Expected Threat)를 기반으로 산출한 평점입니다.
+
+- 포지션별 가중치 적용 (수비수는 수비 xT 비중 높음, 공격수는 공격 xT 비중 높음)
+- 포지션 그룹별 정규화로 포지션 간 공정한 비교
 
 ## 🌐 배포
 
@@ -123,20 +187,8 @@ npm run storybook
 ### 배포 플랫폼
 
 - **호스팅**: Vercel
-- **도메인**: 커스텀 도메인 연결
 - **CDN**: Vercel Edge Network
 - **SSL**: 자동 SSL 인증서
-
-### 🎨 디자인 시스템 (Storybook)
-
-UI 컴포넌트와 디자인 가이드라인을 체계적으로 문서화한 Storybook이 배포되어 있습니다:
-
-- **📚 컴포넌트 문서**: 모든 UI 컴포넌트의 사용법과 예시
-- **🎨 디자인 토큰**: 색상, 타이포그래피, 간격 등 디자인 시스템 요소
-- **⚡ 인터랙티브 예시**: 실시간으로 props를 변경하며 컴포넌트 테스트
-- **♿ 접근성 가이드**: 웹 접근성 준수 사항 및 테스트 결과
-
-> **Storybook 바로가기**: [https://storybook.gtndatacenter.com/](https://storybook.gtndatacenter.com/)
 
 ## 📝 라이선스 & 고지사항
 
