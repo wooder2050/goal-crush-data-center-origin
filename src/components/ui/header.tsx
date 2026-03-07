@@ -30,7 +30,7 @@ const Header = React.forwardRef<HTMLElement, HeaderProps>(
         <div className="px-4 lg:px-6">
           <div className="mx-auto max-w-7xl">
             <div className="flex w-full items-center justify-between py-3 md:py-4">
-              <div className="flex items-center gap-6 overflow-x-auto">
+              <div className="flex min-w-0 flex-1 items-center gap-6 overflow-x-auto">
                 {CHANNELS.map((c) => (
                   <Link
                     key={c.label}
@@ -42,17 +42,23 @@ const Header = React.forwardRef<HTMLElement, HeaderProps>(
                 ))}
               </div>
               {/* Auth buttons in top right */}
-              <div className="flex items-center gap-2">{authButtons}</div>
+              <div className="flex shrink-0 items-center gap-2">
+                {authButtons}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Row 2: categories (children) with active underline */}
         <div className="px-4 lg:px-6">
-          <div className="mx-auto flex h-8 md:h-8 max-w-7xl items-end overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <nav className="flex items-end gap-6 whitespace-nowrap">
-              {children}
-            </nav>
+          <div className="relative mx-auto max-w-7xl">
+            <div className="flex h-8 md:h-8 items-end overflow-x-auto overflow-y-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <nav className="flex items-end gap-6 whitespace-nowrap pr-6 md:pr-0">
+                {children}
+              </nav>
+            </div>
+            {/* Fade hint for horizontal scroll on mobile */}
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white to-transparent md:hidden" />
           </div>
         </div>
       </header>

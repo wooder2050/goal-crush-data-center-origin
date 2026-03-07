@@ -19,8 +19,8 @@ export default function SupportPage() {
             <span className="text-[#ff4800]/80">지원/문의</span>
           </H1>
           <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            골크러쉬 데이터센터 이용 중 궁금한 점이나 불편한 사항이 있으시면
-            아래 방법으로 문의해주세요.
+            골 때리는 그녀들 데이터센터 이용 중 궁금한 점이나 불편한 사항이
+            있으시면 아래 방법으로 문의해주세요.
           </p>
         </div>
       </Section>

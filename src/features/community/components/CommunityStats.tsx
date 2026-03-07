@@ -59,7 +59,7 @@ function CommunityStatsContent() {
   const statItems = [
     {
       icon: MessageCircle,
-      label: '총 게시글',
+      label: '게시글',
       value: stats.totalPosts.toLocaleString(),
       subtext: `오늘 ${stats.todayPosts}개`,
       color: 'text-blue-600',
@@ -67,7 +67,7 @@ function CommunityStatsContent() {
     },
     {
       icon: Users,
-      label: '커뮤니티 멤버',
+      label: '멤버',
       value: stats.totalUsers.toLocaleString(),
       subtext: `이번 주 ${stats.weeklyGrowth >= 0 ? '+' : ''}${stats.weeklyGrowth}%`,
       color: stats.weeklyGrowth >= 0 ? 'text-green-600' : 'text-red-600',
@@ -75,7 +75,7 @@ function CommunityStatsContent() {
     },
     {
       icon: TrendingUp,
-      label: '총 댓글',
+      label: '댓글',
       value: stats.totalComments.toLocaleString(),
       subtext: '활발한 소통',
       color: 'text-orange-600',
@@ -97,15 +97,19 @@ function CommunityStatsContent() {
         const IconComponent = item.icon;
         return (
           <Card key={index} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center space-x-2 md:space-x-3">
                 <div
-                  className={`w-10 h-10 rounded-lg ${item.bgColor} flex items-center justify-center`}
+                  className={`w-9 h-9 md:w-10 md:h-10 shrink-0 rounded-lg ${item.bgColor} flex items-center justify-center`}
                 >
-                  <IconComponent className={`w-5 h-5 ${item.color}`} />
+                  <IconComponent
+                    className={`w-4 h-4 md:w-5 md:h-5 ${item.color}`}
+                  />
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{item.label}</p>
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-gray-600 mb-1 truncate">
+                    {item.label}
+                  </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {item.value}
                   </p>

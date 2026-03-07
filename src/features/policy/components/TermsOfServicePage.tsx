@@ -31,8 +31,8 @@ export default function TermsOfServicePage() {
             <span className="text-[#ff4800]/80">이용약관</span>
           </H1>
           <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            골크러쉬 데이터센터 서비스를 이용하시기 전에 다음 약관을 반드시
-            확인해주시기 바랍니다.
+            골 때리는 그녀들 데이터센터 서비스를 이용하시기 전에 다음 약관을
+            반드시 확인해주시기 바랍니다.
           </p>
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
             <Calendar className="h-4 w-4" />
@@ -53,11 +53,11 @@ export default function TermsOfServicePage() {
               </h2>
               <div className="space-y-4 text-gray-700">
                 <p className="leading-relaxed">
-                  이 약관은 골크러쉬 데이터센터(이하 &ldquo;회사&rdquo;)가
-                  제공하는 &ldquo;골 때리는 그녀들&rdquo; 관련 데이터
-                  서비스(이하 &ldquo;서비스&rdquo;)의 이용과 관련하여 회사와
-                  이용자 간의 권리, 의무 및 책임사항, 기타 필요한 사항을
-                  규정함을 목적으로 합니다.
+                  이 약관은 골 때리는 그녀들 데이터센터(이하
+                  &ldquo;회사&rdquo;)가 제공하는 &ldquo;골 때리는 그녀들&rdquo;
+                  관련 데이터 서비스(이하 &ldquo;서비스&rdquo;)의 이용과
+                  관련하여 회사와 이용자 간의 권리, 의무 및 책임사항, 기타
+                  필요한 사항을 규정함을 목적으로 합니다.
                 </p>
                 <div className="bg-[#ff4800]/5 rounded-lg p-4 border-l-4 border-[#ff4800]">
                   <p className="text-sm font-medium text-[#ff4800]">
@@ -86,8 +86,8 @@ export default function TermsOfServicePage() {
                       1. &ldquo;서비스&rdquo;
                     </h4>
                     <p className="text-sm">
-                      회사가 제공하는 골크러쉬 데이터센터 웹사이트 및 관련
-                      서비스 일체
+                      회사가 제공하는 골 때리는 그녀들 데이터센터 웹사이트 및
+                      관련 서비스 일체
                     </p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4">

@@ -142,18 +142,32 @@ function StandingsTable({ standings }: { standings: HomeStanding[] }) {
 function RecentResults({ form }: { form: string | null }) {
   if (!form) return null;
 
+  const getResult = (char: string) => {
+    if (char === 'W') return { label: '승', className: 'bg-green-500' };
+    if (char === 'L') return { label: '패', className: 'bg-red-500' };
+    return null;
+  };
+
   return (
-    <div className="flex items-center gap-1">
-      {form.split('').map((char, i) => (
-        <span
-          key={i}
-          className={`w-5 h-5 rounded-full text-white text-[9px] font-bold flex items-center justify-center ${
-            char === 'W' ? 'bg-green-500' : 'bg-red-500'
-          }`}
-        >
-          {char === 'W' ? '승' : '패'}
-        </span>
-      ))}
+    <div
+      className="flex items-center gap-1"
+      role="list"
+      aria-label="최근 경기 결과"
+    >
+      {form.split('').map((char, i) => {
+        const result = getResult(char);
+        if (!result) return null;
+        return (
+          <span
+            key={i}
+            role="listitem"
+            aria-label={result.label}
+            className={`w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center ${result.className}`}
+          >
+            {result.label}
+          </span>
+        );
+      })}
     </div>
   );
 }

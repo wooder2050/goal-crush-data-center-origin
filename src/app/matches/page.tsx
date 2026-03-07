@@ -68,7 +68,7 @@ export default function MatchesPage() {
                   </CardDescription>
                 </div>
                 <div className="text-center">
-                  <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white transition-colors">
+                  <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white transition-colors">
                     시즌 목록 보기
                   </Button>
                 </div>
@@ -92,7 +92,7 @@ export default function MatchesPage() {
                   </CardDescription>
                 </div>
                 <div className="text-center">
-                  <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white transition-colors">
+                  <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white transition-colors">
                     통계 보기
                   </Button>
                 </div>

@@ -12,7 +12,7 @@ export default function Footer() {
           {/* 사이트 소개 */}
           <div className="md:col-span-2">
             <h3 className="text-xl font-bold mb-4 text-[#ff4800]">
-              골크러쉬 데이터센터
+              골 때리는 그녀들 데이터센터
             </h3>
             <p className="text-gray-300 leading-relaxed mb-4">
               &ldquo;골 때리는 그녀들&rdquo; 방송과 함께하는 공식 데이터
@@ -20,7 +20,7 @@ export default function Footer() {
               제공합니다.
             </p>
             <div className="flex space-x-4 text-sm text-gray-400">
-              <span>© {currentYear} 골크러쉬 데이터센터</span>
+              <span>© {currentYear} 골 때리는 그녀들 데이터센터</span>
             </div>
           </div>
 

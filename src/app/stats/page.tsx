@@ -54,7 +54,6 @@ export default function StatsPage() {
       href: '/stats/scoring',
       icon: <Trophy className="h-8 w-8 text-amber-500" />,
       gradient: 'from-amber-50 to-yellow-50',
-      buttonColor: 'bg-amber-500 hover:bg-amber-600',
     },
     {
       title: '골키퍼 랭킹',
@@ -62,7 +61,6 @@ export default function StatsPage() {
       href: '/stats/goalkeepers',
       icon: <Shield className="h-8 w-8 text-green-500" />,
       gradient: 'from-green-50 to-emerald-50',
-      buttonColor: 'bg-green-500 hover:bg-green-600',
     },
     {
       title: '팀 순위',
@@ -70,7 +68,6 @@ export default function StatsPage() {
       href: '/stats/teams',
       icon: <Target className="h-8 w-8 text-blue-500" />,
       gradient: 'from-blue-50 to-cyan-50',
-      buttonColor: 'bg-blue-500 hover:bg-blue-600',
     },
     {
       title: '팀 맞대결',
@@ -78,7 +75,6 @@ export default function StatsPage() {
       href: '/stats/head-to-head',
       icon: <Swords className="h-8 w-8 text-red-500" />,
       gradient: 'from-red-50 to-pink-50',
-      buttonColor: 'bg-red-500 hover:bg-red-600',
     },
     {
       title: '선수 vs 팀',
@@ -86,7 +82,6 @@ export default function StatsPage() {
       href: '/stats/player-vs-team',
       icon: <Users className="h-8 w-8 text-purple-500" />,
       gradient: 'from-purple-50 to-indigo-50',
-      buttonColor: 'bg-purple-500 hover:bg-purple-600',
     },
     {
       title: '선발 출전 승률',
@@ -94,7 +89,6 @@ export default function StatsPage() {
       href: '/stats/starter-win-rate',
       icon: <TrendingUp className="h-8 w-8 text-cyan-500" />,
       gradient: 'from-cyan-50 to-sky-50',
-      buttonColor: 'bg-cyan-500 hover:bg-cyan-600',
     },
     {
       title: '승부차기 통계',
@@ -102,7 +96,6 @@ export default function StatsPage() {
       href: '/stats/penalty-shootout',
       icon: <CircleDot className="h-8 w-8 text-orange-500" />,
       gradient: 'from-orange-50 to-amber-50',
-      buttonColor: 'bg-orange-500 hover:bg-orange-600',
     },
   ];
 
@@ -141,9 +134,7 @@ export default function StatsPage() {
                     </CardDescription>
                   </div>
                   <div className="text-center">
-                    <Button
-                      className={`w-full ${category.buttonColor} text-white transition-colors`}
-                    >
+                    <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white transition-colors">
                       랭킹 보기
                     </Button>
                   </div>
