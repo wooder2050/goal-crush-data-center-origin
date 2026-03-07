@@ -30,8 +30,8 @@ export default function PrivacyPolicyPage() {
             <span className="text-[#ff4800]/80">처리방침</span>
           </H1>
           <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            골크러쉬 데이터센터는 사용자의 개인정보를 소중히 여기며, 관련 법령에
-            따라 개인정보를 보호하고 있습니다.
+            골 때리는 그녀들 데이터센터는 사용자의 개인정보를 소중히 여기며,
+            관련 법령에 따라 개인정보를 보호하고 있습니다.
           </p>
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
             <Calendar className="h-4 w-4" />
@@ -52,8 +52,9 @@ export default function PrivacyPolicyPage() {
               </h2>
               <div className="space-y-4 text-gray-700">
                 <p className="leading-relaxed">
-                  골크러쉬 데이터센터는 다음의 목적을 위하여 개인정보를 처리하고
-                  있으며, 다음의 목적 이외의 용도로는 이용하지 않습니다.
+                  골 때리는 그녀들 데이터센터는 다음의 목적을 위하여 개인정보를
+                  처리하고 있으며, 다음의 목적 이외의 용도로는 이용하지
+                  않습니다.
                 </p>
                 <ul className="space-y-2 pl-6">
                   <li className="flex items-start gap-2">

@@ -51,7 +51,14 @@ export default function PlayersListBody({
                         className="object-contain transition-transform duration-300 group-hover:scale-[1.02]"
                       />
                     ) : (
-                      <div className="h-full w-full bg-gray-200" />
+                      <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center gap-2">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/80 text-2xl font-bold text-gray-400">
+                          {p.name.charAt(0)}
+                        </div>
+                        <span className="text-sm font-medium text-gray-400">
+                          {p.name}
+                        </span>
+                      </div>
                     )}
                   </div>
                   <CardContent className="p-3">
