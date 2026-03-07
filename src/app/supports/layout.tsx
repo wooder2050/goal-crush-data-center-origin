@@ -11,6 +11,7 @@ export const metadata: Metadata = {
     '골때녀 팬 응원',
   ],
   alternates: { canonical: '/supports' },
+  robots: { index: false, follow: true },
   openGraph: {
     title: '응원하기 | 골때녀 데이터 센터',
     description:
