@@ -93,9 +93,6 @@ export const metadata: Metadata = {
       },
     ],
     countryName: '대한민국',
-    emails: ['contact@goal-crush-data-center.com'],
-    phoneNumbers: ['+82-2-1234-5678'],
-    faxNumbers: ['+82-2-1234-5679'],
     ttl: 86400,
   },
   twitter: {
