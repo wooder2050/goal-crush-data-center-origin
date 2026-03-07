@@ -41,11 +41,11 @@ export default function SupportPage() {
                 드리겠습니다.
               </p>
               <a
-                href="mailto:goalcrush.official@gmail.com"
+                href="mailto:gtndata.official@gmail.com"
                 className="inline-flex items-center gap-2 text-lg font-semibold text-[#ff4800] hover:underline"
               >
                 <Mail className="h-5 w-5" />
-                goalcrush.official@gmail.com
+                gtndata.official@gmail.com
               </a>
             </CardContent>
           </Card>
