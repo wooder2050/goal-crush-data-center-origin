@@ -2,6 +2,8 @@
 
 import { Match } from '@prisma/client';
 
+import { apiUrl } from '@/lib/api-url';
+
 // 경기 생성을 위한 타입
 export interface CreateMatchData {
   season_id: number;
@@ -167,7 +169,7 @@ export const getMatches = async (params?: {
   const queryString = searchParams.toString();
   const url = `/api/admin/matches${queryString ? `?${queryString}` : ''}`;
 
-  const response = await fetch(url);
+  const response = await fetch(apiUrl(url));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch matches: ${response.statusText}`);
@@ -180,7 +182,7 @@ export const getMatches = async (params?: {
 export const getMatch = async (
   matchId: number
 ): Promise<MatchWithRelations> => {
-  const response = await fetch(`/api/admin/matches/${matchId}`);
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}`));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch match: ${response.statusText}`);
@@ -193,7 +195,7 @@ export const getMatch = async (
 export const getMatchCoaches = async (
   matchId: number
 ): Promise<MatchCoachResponse[]> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/coaches`);
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/coaches`));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch match coaches: ${response.statusText}`);
@@ -207,7 +209,7 @@ export const createMatchCoach = async (
   matchId: number,
   data: CreateCoachData
 ) => {
-  const response = await fetch(`/api/admin/matches/${matchId}/coaches`, {
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/coaches`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -228,7 +230,7 @@ export const createMatchCoach = async (
 // 경기 감독 삭제
 export const deleteMatchCoach = async (matchId: number, coachId: number) => {
   const response = await fetch(
-    `/api/admin/matches/${matchId}/coaches/${coachId}`,
+    apiUrl(`/api/admin/matches/${matchId}/coaches/${coachId}`),
     {
       method: 'DELETE',
     }
@@ -248,7 +250,7 @@ export const deleteMatchCoach = async (matchId: number, coachId: number) => {
 export const createMatch = async (
   data: CreateMatchData
 ): Promise<MatchWithRelations> => {
-  const response = await fetch('/api/admin/matches', {
+  const response = await fetch(apiUrl('/api/admin/matches'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -269,7 +271,7 @@ export const updateMatch = async (
   matchId: number,
   data: UpdateMatchData
 ): Promise<MatchWithRelations> => {
-  const response = await fetch(`/api/admin/matches/${matchId}`, {
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}`), {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -287,7 +289,7 @@ export const updateMatch = async (
 
 // 경기 삭제
 export const deleteMatch = async (matchId: number): Promise<void> => {
-  const response = await fetch(`/api/admin/matches/${matchId}`, {
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}`), {
     method: 'DELETE',
   });
 
@@ -317,7 +319,7 @@ export interface Goal {
 }
 
 export const getGoals = async (matchId: number): Promise<Goal[]> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/goals`);
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/goals`));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch goals: ${response.statusText}`);
@@ -331,7 +333,7 @@ export const createGoal = async (
   matchId: number,
   data: CreateGoalData
 ): Promise<Goal> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/goals`, {
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/goals`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -369,7 +371,7 @@ export interface Assist {
 }
 
 export const getAssists = async (matchId: number): Promise<Assist[]> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/assists`);
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/assists`));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch assists: ${response.statusText}`);
@@ -383,7 +385,7 @@ export const createAssist = async (
   matchId: number,
   data: CreateAssistData
 ): Promise<Assist> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/assists`, {
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/assists`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -423,7 +425,7 @@ export interface Lineup {
 }
 
 export const getLineups = async (matchId: number): Promise<Lineup[]> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/lineups`);
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/lineups`));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch lineups: ${response.statusText}`);
@@ -437,7 +439,7 @@ export const createLineup = async (
   matchId: number,
   data: CreateLineupData
 ): Promise<Lineup> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/lineups`, {
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/lineups`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -481,7 +483,7 @@ export interface Substitution {
 export const getSubstitutions = async (
   matchId: number
 ): Promise<Substitution[]> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/substitutions`);
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/substitutions`));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch substitutions: ${response.statusText}`);
@@ -495,7 +497,7 @@ export const createSubstitution = async (
   matchId: number,
   data: CreateSubstitutionData
 ): Promise<Substitution> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/substitutions`, {
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/substitutions`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -517,7 +519,7 @@ export const deleteSubstitution = async (
   substitutionId: number
 ): Promise<void> => {
   const response = await fetch(
-    `/api/admin/matches/${matchId}/substitutions/${substitutionId}`,
+    apiUrl(`/api/admin/matches/${matchId}/substitutions/${substitutionId}`),
     {
       method: 'DELETE',
     }
@@ -556,7 +558,7 @@ export interface Penalty {
 }
 
 export const getPenalties = async (matchId: number): Promise<Penalty[]> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/penalties`);
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/penalties`));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch penalties: ${response.statusText}`);
@@ -570,7 +572,7 @@ export const createPenalty = async (
   matchId: number,
   data: CreatePenaltyData
 ): Promise<Penalty> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/penalties`, {
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/penalties`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -603,7 +605,7 @@ export interface Player {
 
 // 팀별 선수 목록 조회 (현재 소속 선수만 - is_active = true)
 export const getTeamPlayers = async (teamId: number): Promise<Player[]> => {
-  const response = await fetch(`/api/teams/${teamId}/players?scope=current`);
+  const response = await fetch(apiUrl(`/api/teams/${teamId}/players?scope=current`));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch team players: ${response.statusText}`);
@@ -720,7 +722,7 @@ export interface DetailedStats {
 export const getDetailedStats = async (
   matchId: number
 ): Promise<DetailedStats[]> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/detailed-stats`);
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/detailed-stats`));
 
   if (!response.ok) {
     throw new Error(`Failed to fetch detailed stats: ${response.statusText}`);
@@ -734,7 +736,7 @@ export const saveDetailedStats = async (
   matchId: number,
   data: CreateDetailedStatsData
 ): Promise<DetailedStats> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/detailed-stats`, {
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/detailed-stats`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -756,7 +758,7 @@ export const deleteDetailedStats = async (
   playerId: number
 ): Promise<void> => {
   const response = await fetch(
-    `/api/admin/matches/${matchId}/detailed-stats?player_id=${playerId}`,
+    apiUrl(`/api/admin/matches/${matchId}/detailed-stats?player_id=${playerId}`),
     {
       method: 'DELETE',
     }
@@ -774,7 +776,7 @@ export const bulkSaveDetailedStats = async (
   stats: CreateDetailedStatsData[]
 ): Promise<{ success: boolean; count: number }> => {
   const response = await fetch(
-    `/api/admin/matches/${matchId}/detailed-stats/bulk`,
+    apiUrl(`/api/admin/matches/${matchId}/detailed-stats/bulk`),
     {
       method: 'POST',
       headers: {

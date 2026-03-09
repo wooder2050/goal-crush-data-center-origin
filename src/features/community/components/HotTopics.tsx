@@ -8,11 +8,12 @@ import Link from 'next/link';
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Badge } from '@/components/ui/badge';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 import { HotTopic, POST_CATEGORIES } from '@/types';
 
 // API 함수
 const getHotTopics = async (): Promise<HotTopic[]> => {
-  const response = await fetch('/api/community/hot-topics?limit=5');
+  const response = await fetch(apiUrl('/api/community/hot-topics?limit=5'));
 
   if (!response.ok) {
     throw new Error('인기 토픽을 불러오는데 실패했습니다.');

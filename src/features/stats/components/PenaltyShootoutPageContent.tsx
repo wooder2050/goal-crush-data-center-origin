@@ -20,6 +20,7 @@ import {
 } from '@/components/ui';
 import InfiniteSeasonSelect from '@/features/stats/components/InfiniteSeasonSelect';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 
 interface KickerRanking {
   rank: number;
@@ -80,7 +81,7 @@ async function getPenaltyShootoutStats(
     params.append('season_id', seasonId.toString());
   }
 
-  const response = await fetch(`/api/stats/penalty-shootout?${params}`);
+  const response = await fetch(apiUrl(`/api/stats/penalty-shootout?${params}`));
   if (!response.ok) {
     throw new Error('Failed to fetch penalty shootout stats');
   }

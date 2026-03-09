@@ -4,10 +4,11 @@ import Image from 'next/image';
 
 import { Card, CardContent } from '@/components/ui';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 
 // 경기 골키퍼 통계 API 호출 함수
 async function getMatchGoalkeeperStats(matchId: number) {
-  const response = await fetch(`/api/matches/${matchId}/goalkeeper-stats`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/goalkeeper-stats`));
   if (!response.ok) {
     throw new Error('Failed to fetch match goalkeeper stats');
   }

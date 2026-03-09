@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 
 interface HeadToHeadMatch {
   match_id: number;
@@ -76,7 +77,7 @@ async function getHeadToHeadStats(
     limit: limit.toString(),
   });
 
-  const response = await fetch(`/api/stats/head-to-head?${params}`, {
+  const response = await fetch(apiUrl(`/api/stats/head-to-head?${params}`), {
     cache: 'no-store',
   });
 
@@ -88,7 +89,7 @@ async function getHeadToHeadStats(
 }
 
 async function getAllTeams(): Promise<TeamOption[]> {
-  const response = await fetch('/api/teams', {
+  const response = await fetch(apiUrl('/api/teams'), {
     cache: 'no-store',
   });
 

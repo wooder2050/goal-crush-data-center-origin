@@ -288,7 +288,7 @@ export const createAssistPrisma = async (
     description?: string;
   }
 ): Promise<Assist> => {
-  const response = await fetch(`/api/matches/${matchId}/assists`, {
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/assists`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -472,7 +472,7 @@ export const createSubstitutionPrisma = async (
   matchId: number,
   substitution: SubstitutionInput
 ): Promise<Substitution> => {
-  const response = await fetch(`/api/matches/${matchId}/substitutions`, {
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/substitutions`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -693,7 +693,7 @@ export const getMatchPassMapPrisma = async (
   matchId: number
 ): Promise<TeamPassNetworkData[]> => {
   const response = await fetch(
-    `/api/admin/matches/${matchId}/actions/pass-map`
+    apiUrl(`/api/admin/matches/${matchId}/actions/pass-map`)
   );
   if (!response.ok) {
     // Return empty array if not found or error
@@ -720,7 +720,7 @@ export interface RawMatchAction {
 export const getMatchActionsPrisma = async (
   matchId: number
 ): Promise<RawMatchAction[]> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/actions`);
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/actions`));
   if (!response.ok) {
     // Return empty array if not found or error
     return [];

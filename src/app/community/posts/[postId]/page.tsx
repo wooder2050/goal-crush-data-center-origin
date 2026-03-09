@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGoalMutation } from '@/hooks/useGoalMutation';
 import { useGoalQuery, useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import { usePostViewTracking } from '@/hooks/usePostViewTracking';
+import { apiUrl } from '@/lib/api-url';
 
 interface CommunityPost {
   post_id: string;
@@ -52,7 +53,7 @@ interface PostDetailResponse {
 
 // API 함수들
 const getPostDetail = async (postId: string): Promise<PostDetailResponse> => {
-  const response = await fetch(`/api/community/posts/${postId}`);
+  const response = await fetch(apiUrl(`/api/community/posts/${postId}`));
 
   if (!response.ok) {
     throw new Error('게시글을 불러오는데 실패했습니다.');
@@ -67,7 +68,7 @@ const getLikeStatus = async (
   userId: string
 ): Promise<{ liked: boolean }> => {
   const response = await fetch(
-    `/api/community/posts/${postId}/like?userId=${userId}`
+    apiUrl(`/api/community/posts/${postId}/like?userId=${userId}`)
   );
 
   if (!response.ok) {
@@ -83,7 +84,7 @@ const toggleLike = async (params: {
   userId: string;
   action: 'like' | 'unlike';
 }): Promise<{ liked: boolean }> => {
-  const response = await fetch(`/api/community/posts/${params.postId}/like`, {
+  const response = await fetch(apiUrl(`/api/community/posts/${params.postId}/like`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -108,7 +109,7 @@ const createComment = async (params: {
   content: string;
 }): Promise<Comment> => {
   const response = await fetch(
-    `/api/community/posts/${params.postId}/comments`,
+    apiUrl(`/api/community/posts/${params.postId}/comments`),
     {
       method: 'POST',
       headers: {
@@ -130,7 +131,7 @@ const createComment = async (params: {
 };
 
 const getUserPoints = async (userId: string): Promise<number> => {
-  const response = await fetch(`/api/user/points?userId=${userId}`);
+  const response = await fetch(apiUrl(`/api/user/points?userId=${userId}`));
 
   if (!response.ok) {
     throw new Error('포인트 정보를 가져올 수 없습니다.');

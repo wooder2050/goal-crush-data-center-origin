@@ -17,6 +17,7 @@ import {
 } from '@/components/ui';
 import { Button } from '@/components/ui/button';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 
 import { CreatePostModal } from './CreatePostModal';
 
@@ -52,7 +53,7 @@ interface CommunityPost {
 const getTeamCommunity = async (
   teamId: string
 ): Promise<{ data: TeamCommunity }> => {
-  const response = await fetch(`/api/community/team-communities/${teamId}`);
+  const response = await fetch(apiUrl(`/api/community/team-communities/${teamId}`));
 
   if (!response.ok) {
     throw new Error('팀 커뮤니티 정보를 불러오는데 실패했습니다.');
@@ -68,7 +69,7 @@ getTeamCommunity.queryKey = 'team-community';
 const getTeamCommunityPosts = async (
   teamId: string
 ): Promise<{ data: CommunityPost[] }> => {
-  const response = await fetch(`/api/community/teams/${teamId}/posts?limit=20`);
+  const response = await fetch(apiUrl(`/api/community/teams/${teamId}/posts?limit=20`));
 
   if (!response.ok) {
     throw new Error('팀 커뮤니티 게시글을 불러오는데 실패했습니다.');

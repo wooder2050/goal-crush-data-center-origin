@@ -21,6 +21,7 @@ import {
 import InfiniteSeasonSelect from '@/features/stats/components/InfiniteSeasonSelect';
 import type { ScoringRankingsResponse } from '@/features/stats/types';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 
 async function getScoringRankings(
   seasonId?: number,
@@ -40,7 +41,7 @@ async function getScoringRankings(
     params.append('season_id', seasonId.toString());
   }
 
-  const response = await fetch(`/api/stats/scoring-rankings?${params}`);
+  const response = await fetch(apiUrl(`/api/stats/scoring-rankings?${params}`));
   if (!response.ok) {
     throw new Error('Failed to fetch scoring rankings');
   }

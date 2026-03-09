@@ -1,7 +1,9 @@
+import { apiUrl } from '@/lib/api-url';
+
 import type { HomePageData } from './types';
 
 export const fetchHomePageData = async (): Promise<HomePageData> => {
-  const response = await fetch('/api/home/data', {
+  const response = await fetch(apiUrl('/api/home/data'), {
     cache: 'no-store',
   });
 

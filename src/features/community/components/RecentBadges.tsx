@@ -4,6 +4,7 @@ import { Trophy } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 
 interface Badge {
   badge_name: string;
@@ -23,7 +24,7 @@ interface UserBadge {
 }
 
 const getRecentBadges = async (): Promise<UserBadge[]> => {
-  const response = await fetch('/api/community/badges/recent');
+  const response = await fetch(apiUrl('/api/community/badges/recent'));
   if (!response.ok) {
     throw new Error('배지 조회에 실패했습니다.');
   }

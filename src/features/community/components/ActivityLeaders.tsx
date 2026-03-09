@@ -4,6 +4,7 @@ import { Award, TrendingUp, Users } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 
 interface ActivityLeader {
   user_id: string;
@@ -21,7 +22,7 @@ interface ActivityLeadersData {
 }
 
 const getActivityLeaders = async (): Promise<ActivityLeadersData> => {
-  const response = await fetch('/api/community/activity/leaders');
+  const response = await fetch(apiUrl('/api/community/activity/leaders'));
   if (!response.ok) {
     throw new Error('활동 리더보드 조회에 실패했습니다.');
   }

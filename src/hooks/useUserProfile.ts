@@ -1,4 +1,5 @@
 import { useAuth } from '@/components/AuthProvider';
+import { apiUrl } from '@/lib/api-url';
 
 import { useGoalMutation } from './useGoalMutation';
 import { useGoalQuery } from './useGoalQuery';
@@ -36,7 +37,7 @@ export const useUserProfile = () => {
   const { user } = useAuth();
 
   const fetchProfile = async (): Promise<UserProfileResponse> => {
-    const response = await fetch('/api/users/profile');
+    const response = await fetch(apiUrl('/api/users/profile'));
     if (!response.ok) {
       throw new Error('프로필 조회에 실패했습니다');
     }
@@ -63,7 +64,7 @@ export const useUpdateProfile = () => {
     Error,
     UpdateProfileData
   >(async (data: UpdateProfileData) => {
-    const response = await fetch('/api/users/profile', {
+    const response = await fetch(apiUrl('/api/users/profile'), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -87,7 +88,7 @@ export const useCheckNickname = () => {
     Error,
     { korean_nickname: string }
   >(async (data: { korean_nickname: string }) => {
-    const response = await fetch('/api/users/profile', {
+    const response = await fetch(apiUrl('/api/users/profile'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
