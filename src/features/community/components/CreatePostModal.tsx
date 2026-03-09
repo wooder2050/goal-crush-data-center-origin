@@ -30,6 +30,7 @@ import { Label } from '@/components/ui/label';
 import { useGoalMutation } from '@/hooks/useGoalMutation';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 // API 함수들
 const getTeams = async (): Promise<{
@@ -52,7 +53,7 @@ const createPost = async (data: {
   team_id?: number;
   match_id?: number;
 }): Promise<{ success: boolean; data: { post_id: string } }> => {
-  const response = await fetch(apiUrl('/api/community/posts'), {
+  const response = await authFetch('/api/community/posts', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGoalInfiniteQuery, useGoalQuery } from '@/hooks/useGoalQuery';
 import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 interface CommunityPost {
   post_id: string;
@@ -100,8 +101,8 @@ const getLikeStatus = async (
   postId: string,
   userId: string
 ): Promise<{ liked: boolean }> => {
-  const response = await fetch(
-    apiUrl(`/api/community/posts/${postId}/like?userId=${userId}`)
+  const response = await authFetch(
+    `/api/community/posts/${postId}/like?userId=${userId}`
   );
 
   if (!response.ok) {
