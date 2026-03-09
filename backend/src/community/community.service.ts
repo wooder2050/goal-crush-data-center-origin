@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -34,10 +29,7 @@ export class CommunityService {
     });
   }
 
-  private async addPostCreatePoints(
-    userId: string,
-    postId: number,
-  ): Promise<void> {
+  private async addPostCreatePoints(userId: string, postId: number): Promise<void> {
     await this.addUserPoints({
       user_id: userId,
       points_change: 10,
@@ -48,10 +40,7 @@ export class CommunityService {
     await this.checkAndAwardBadges(userId);
   }
 
-  private async addCommentCreatePoints(
-    userId: string,
-    commentId: number,
-  ): Promise<void> {
+  private async addCommentCreatePoints(userId: string, commentId: number): Promise<void> {
     await this.addUserPoints({
       user_id: userId,
       points_change: 5,
@@ -62,10 +51,7 @@ export class CommunityService {
     await this.checkAndAwardBadges(userId);
   }
 
-  private async addLikeReceivedPoints(
-    userId: string,
-    postId: number,
-  ): Promise<void> {
+  private async addLikeReceivedPoints(userId: string, postId: number): Promise<void> {
     await this.addUserPoints({
       user_id: userId,
       points_change: 2,
@@ -76,10 +62,7 @@ export class CommunityService {
     await this.checkAndAwardBadges(userId);
   }
 
-  private async addMvpVotePoints(
-    userId: string,
-    voteId: number,
-  ): Promise<void> {
+  private async addMvpVotePoints(userId: string, voteId: number): Promise<void> {
     await this.addUserPoints({
       user_id: userId,
       points_change: 5,
@@ -518,11 +501,7 @@ export class CommunityService {
   // ────────────────────────────────────────────
 
   /** POST /community/posts/:postId/like */
-  async toggleLikeLegacy(
-    userId: string,
-    postId: number,
-    body: { action: string },
-  ) {
+  async toggleLikeLegacy(userId: string, postId: number, body: { action: string }) {
     const { action } = body;
 
     if (!action) {
@@ -539,9 +518,7 @@ export class CommunityService {
     }
 
     if (post.user_id === userId) {
-      throw new BadRequestException(
-        '본인이 작성한 게시글에는 좋아요를 할 수 없습니다.',
-      );
+      throw new BadRequestException('본인이 작성한 게시글에는 좋아요를 할 수 없습니다.');
     }
 
     if (action === 'like') {
@@ -590,7 +567,11 @@ export class CommunityService {
         });
         return { success: true, data: { liked: false }, message: '좋아요가 취소되었습니다.' };
       } else {
-        return { success: true, data: { liked: false }, message: '좋아요를 누르지 않은 게시글입니다.' };
+        return {
+          success: true,
+          data: { liked: false },
+          message: '좋아요를 누르지 않은 게시글입니다.',
+        };
       }
     } else {
       throw new BadRequestException('유효하지 않은 액션입니다.');
@@ -700,12 +681,7 @@ export class CommunityService {
   // ────────────────────────────────────────────
 
   /** POST /community/posts/:postId/view */
-  async trackView(
-    postId: number,
-    userId: string | null,
-    ip: string,
-    userAgent: string,
-  ) {
+  async trackView(postId: number, userId: string | null, ip: string, userAgent: string) {
     const post = await this.prisma.communityPost.findUnique({
       where: { post_id: postId },
       select: { post_id: true, is_deleted: true },
@@ -915,11 +891,7 @@ export class CommunityService {
         created_at: true,
         _count: { select: { viewRecords: true } },
       },
-      orderBy: [
-        { views_count: 'desc' },
-        { likes_count: 'desc' },
-        { comments_count: 'desc' },
-      ],
+      orderBy: [{ views_count: 'desc' }, { likes_count: 'desc' }, { comments_count: 'desc' }],
       take: limit,
     });
 
@@ -1077,11 +1049,7 @@ export class CommunityService {
   // ────────────────────────────────────────────
 
   /** GET /community/mvp-votes */
-  async getMvpVotes(query: {
-    season_id?: number;
-    vote_type?: string;
-    limit?: number;
-  }) {
+  async getMvpVotes(query: { season_id?: number; vote_type?: string; limit?: number }) {
     const voteType = query.vote_type || 'season';
     const limit = query.limit || 10;
 

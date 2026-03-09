@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -183,7 +178,12 @@ export class AdminTeamsService {
       }
     }
 
-    const updateData: { name?: string; nationality?: string; profile_image_url?: string; birth_date?: Date | null } = {};
+    const updateData: {
+      name?: string;
+      nationality?: string;
+      profile_image_url?: string;
+      birth_date?: Date | null;
+    } = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.nationality !== undefined) updateData.nationality = data.nationality;
     if (data.profile_image_url !== undefined) updateData.profile_image_url = data.profile_image_url;

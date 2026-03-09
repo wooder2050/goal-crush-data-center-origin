@@ -11,13 +11,7 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiQuery,
-  ApiParam,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard, OptionalAuthGuard, AuthUser } from '../common/guards/auth.guard';
 import { RatingsService } from './ratings.service';
 
@@ -31,8 +25,7 @@ export class RatingsController {
   @Get('ratings')
   @ApiOperation({
     summary: '평가 목록 조회',
-    description:
-      '선수 능력치 평가 목록을 반환합니다 (페이지네이션, 필터, 정렬 지원)',
+    description: '선수 능력치 평가 목록을 반환합니다 (페이지네이션, 필터, 정렬 지원)',
   })
   @ApiQuery({ name: 'player_id', required: false, type: Number, description: '선수 ID 필터' })
   @ApiQuery({ name: 'user_id', required: false, description: '사용자 ID 필터' })
@@ -84,10 +77,7 @@ export class RatingsController {
     summary: '평가 생성',
     description: '선수 능력치 평가를 생성합니다',
   })
-  create(
-    @Req() req: { user: AuthUser },
-    @Body() body: Record<string, unknown>,
-  ) {
+  create(@Req() req: { user: AuthUser }, @Body() body: Record<string, unknown>) {
     return this.ratingsService.create(req.user.userId, body);
   }
 
@@ -131,10 +121,7 @@ export class RatingsController {
     description: '본인의 평가를 삭제합니다',
   })
   @ApiParam({ name: 'ratingId', type: Number, description: '평가 ID' })
-  remove(
-    @Req() req: { user: AuthUser },
-    @Param('ratingId', ParseIntPipe) ratingId: number,
-  ) {
+  remove(@Req() req: { user: AuthUser }, @Param('ratingId', ParseIntPipe) ratingId: number) {
     return this.ratingsService.remove(req.user.userId, ratingId);
   }
 
@@ -232,8 +219,7 @@ export class RatingsController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({
     summary: '선수별 평가 데이터',
-    description:
-      '특정 선수의 능력치 평가 데이터를 조회합니다 (집계, 사용자 평가, 인기 평가 포함)',
+    description: '특정 선수의 능력치 평가 데이터를 조회합니다 (집계, 사용자 평가, 인기 평가 포함)',
   })
   @ApiQuery({ name: 'player_id', required: true, type: Number, description: '선수 ID' })
   @ApiQuery({ name: 'season_id', required: false, description: '시즌 ID (all=전체)' })
@@ -266,12 +252,8 @@ export class RatingsController {
       playerId: parseInt(playerId, 10),
       seasonId: seasonId || undefined,
       includeReviews: includeReviews === 'true',
-      topRatingsLimit: topRatingsLimit
-        ? parseInt(topRatingsLimit, 10) || undefined
-        : undefined,
-      userRatingsLimit: userRatingsLimit
-        ? parseInt(userRatingsLimit, 10) || undefined
-        : undefined,
+      topRatingsLimit: topRatingsLimit ? parseInt(topRatingsLimit, 10) || undefined : undefined,
+      userRatingsLimit: userRatingsLimit ? parseInt(userRatingsLimit, 10) || undefined : undefined,
       currentUserId: req.user?.userId || null,
     });
   }

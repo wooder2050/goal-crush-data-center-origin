@@ -66,9 +66,7 @@ export class UsersService {
 
     return {
       user: dbUser,
-      hasNickname:
-        !!dbUser.korean_nickname &&
-        !dbUser.korean_nickname.startsWith('임시사용자'),
+      hasNickname: !!dbUser.korean_nickname && !dbUser.korean_nickname.startsWith('임시사용자'),
     };
   }
 
@@ -124,9 +122,7 @@ export class UsersService {
     }
 
     if (!NICKNAME_REGEX.test(trimmed)) {
-      throw new BadRequestException(
-        '닉네임은 한글, 영문, 숫자, 공백만 사용할 수 있습니다',
-      );
+      throw new BadRequestException('닉네임은 한글, 영문, 숫자, 공백만 사용할 수 있습니다');
     }
   }
 }

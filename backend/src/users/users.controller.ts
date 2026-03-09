@@ -42,10 +42,7 @@ export class UsersProfileController {
     summary: '프로필 저장',
     description: '로그인한 사용자의 닉네임을 저장합니다',
   })
-  updateProfile(
-    @Req() req: { user: AuthUser },
-    @Body() body: { korean_nickname: string },
-  ) {
+  updateProfile(@Req() req: { user: AuthUser }, @Body() body: { korean_nickname: string }) {
     return this.usersService.updateProfile(req.user.userId, body.korean_nickname);
   }
 
@@ -56,10 +53,7 @@ export class UsersProfileController {
     summary: '닉네임 중복 확인',
     description: '닉네임이 사용 가능한지 확인합니다',
   })
-  checkNickname(
-    @Req() req: { user: AuthUser },
-    @Body() body: { korean_nickname: string },
-  ) {
+  checkNickname(@Req() req: { user: AuthUser }, @Body() body: { korean_nickname: string }) {
     return this.usersService.checkNickname(req.user.userId, body.korean_nickname);
   }
 }

@@ -175,12 +175,7 @@ export class AdminMatchesService {
   constructor(private readonly prisma: PrismaService) {}
 
   // ── GET /admin/matches ──
-  async findAll(query: {
-    status?: string;
-    season_id?: string;
-    team_id?: string;
-    limit?: string;
-  }) {
+  async findAll(query: { status?: string; season_id?: string; team_id?: string; limit?: string }) {
     const where: Prisma.MatchWhereInput = {};
 
     if (query.status) {
@@ -213,7 +208,12 @@ export class AdminMatchesService {
 
   // ── POST /admin/matches ──
   async create(data: CreateMatchData) {
-    const requiredFields: (keyof CreateMatchData)[] = ['season_id', 'home_team_id', 'away_team_id', 'match_date'];
+    const requiredFields: (keyof CreateMatchData)[] = [
+      'season_id',
+      'home_team_id',
+      'away_team_id',
+      'match_date',
+    ];
     for (const field of requiredFields) {
       if (!data[field]) {
         throw new BadRequestException(`Missing required field: ${field}`);
@@ -274,8 +274,10 @@ export class AdminMatchesService {
       data: {
         home_score: data.home_score !== undefined ? data.home_score : undefined,
         away_score: data.away_score !== undefined ? data.away_score : undefined,
-        penalty_home_score: data.penalty_home_score !== undefined ? data.penalty_home_score : undefined,
-        penalty_away_score: data.penalty_away_score !== undefined ? data.penalty_away_score : undefined,
+        penalty_home_score:
+          data.penalty_home_score !== undefined ? data.penalty_home_score : undefined,
+        penalty_away_score:
+          data.penalty_away_score !== undefined ? data.penalty_away_score : undefined,
         status: (data.status as string) || undefined,
         match_date: data.match_date ? new Date(data.match_date as string) : undefined,
         location: data.location !== undefined ? data.location : undefined,
@@ -332,8 +334,14 @@ export class AdminMatchesService {
   // ── POST /admin/matches/:matchId/actions ──
   async createAction(matchId: number, body: CreateActionData) {
     const requiredFields: (keyof CreateActionData)[] = [
-      'period_id', 'time_seconds', 'player_id', 'team_id',
-      'action_type', 'result', 'start_x', 'start_y',
+      'period_id',
+      'time_seconds',
+      'player_id',
+      'team_id',
+      'action_type',
+      'result',
+      'start_x',
+      'start_y',
     ];
 
     for (const field of requiredFields) {
@@ -490,13 +498,16 @@ export class AdminMatchesService {
       orderBy: [{ period_id: 'asc' }, { action_index: 'asc' }],
     });
 
-    const teamMap = new Map<number, {
-      team_id: number;
-      team_name: string;
-      primary_color: string;
-      secondary_color: string;
-      actions: typeof actions;
-    }>();
+    const teamMap = new Map<
+      number,
+      {
+        team_id: number;
+        team_name: string;
+        primary_color: string;
+        secondary_color: string;
+        actions: typeof actions;
+      }
+    >();
 
     actions.forEach((action) => {
       const teamId = action.team_id;
@@ -515,15 +526,18 @@ export class AdminMatchesService {
     const result: TeamPassNetworkData[] = [];
 
     teamMap.forEach((teamData) => {
-      const playerMap = new Map<number, {
-        player_id: number;
-        player_name: string;
-        jersey_number: number;
-        profile_image_url: string | null;
-        positions: { x: number; y: number }[];
-        total_passes: number;
-        success_passes: number;
-      }>();
+      const playerMap = new Map<
+        number,
+        {
+          player_id: number;
+          player_name: string;
+          jersey_number: number;
+          profile_image_url: string | null;
+          positions: { x: number; y: number }[];
+          total_passes: number;
+          success_passes: number;
+        }
+      >();
 
       const connectionMap = new Map<string, number>();
       const teamActions = teamData.actions;
@@ -543,7 +557,10 @@ export class AdminMatchesService {
         }
 
         const normalizedPos = normalizeCoordinates(
-          action.start_x, action.start_y, action.period_id, isSidesSwapped,
+          action.start_x,
+          action.start_y,
+          action.period_id,
+          isSidesSwapped,
         );
         playerMap.get(jerseyNumber)!.positions.push({ x: normalizedPos.x, y: normalizedPos.y });
 
@@ -631,7 +648,10 @@ export class AdminMatchesService {
   }
 
   // ── POST /admin/matches/:matchId/assists ──
-  async createAssist(matchId: number, data: { player_id: number; goal_id: number; description?: string }) {
+  async createAssist(
+    matchId: number,
+    data: { player_id: number; goal_id: number; description?: string },
+  ) {
     if (!data.player_id || !data.goal_id) {
       throw new BadRequestException('player_id and goal_id are required');
     }
@@ -664,7 +684,9 @@ export class AdminMatchesService {
         player: { select: { player_id: true, name: true, jersey_number: true } },
         goal: {
           select: {
-            goal_id: true, goal_time: true, goal_type: true,
+            goal_id: true,
+            goal_time: true,
+            goal_type: true,
             player: { select: { player_id: true, name: true, jersey_number: true } },
           },
         },
@@ -815,10 +837,9 @@ export class AdminMatchesService {
     const shots = data.shots ?? 0;
     const shotsOnTarget = data.shots_on_target ?? 0;
 
-    const rawPassAccuracy = data.pass_accuracy ??
-      (passes > 0 ? (passesCompleted / passes) * 100 : 0);
-    const rawShotAccuracy = data.shot_accuracy ??
-      (shots > 0 ? (shotsOnTarget / shots) * 100 : 0);
+    const rawPassAccuracy =
+      data.pass_accuracy ?? (passes > 0 ? (passesCompleted / passes) * 100 : 0);
+    const rawShotAccuracy = data.shot_accuracy ?? (shots > 0 ? (shotsOnTarget / shots) * 100 : 0);
 
     const statsData = {
       passes: data.passes ?? 0,
@@ -882,9 +903,11 @@ export class AdminMatchesService {
 
     const results = await this.prisma.$transaction(
       stats.map((stat) => {
-        const rawPassAccuracy = stat.pass_accuracy ??
+        const rawPassAccuracy =
+          stat.pass_accuracy ??
           (stat.passes && stat.passes > 0 ? ((stat.passes_completed ?? 0) / stat.passes) * 100 : 0);
-        const rawShotAccuracy = stat.shot_accuracy ??
+        const rawShotAccuracy =
+          stat.shot_accuracy ??
           (stat.shots && stat.shots > 0 ? ((stat.shots_on_target ?? 0) / stat.shots) * 100 : 0);
 
         const baseStatsData = {
@@ -918,9 +941,10 @@ export class AdminMatchesService {
           updated_at: new Date(),
         };
 
-        const updateData = stat.possession_time !== undefined
-          ? { ...baseStatsData, possession_time: stat.possession_time }
-          : baseStatsData;
+        const updateData =
+          stat.possession_time !== undefined
+            ? { ...baseStatsData, possession_time: stat.possession_time }
+            : baseStatsData;
 
         const createData = {
           ...baseStatsData,
@@ -930,7 +954,12 @@ export class AdminMatchesService {
         return this.prisma.playerMatchDetailedStats.upsert({
           where: { match_id_player_id: { match_id: matchId, player_id: stat.player_id } },
           update: updateData,
-          create: { match_id: matchId, player_id: stat.player_id, team_id: stat.team_id, ...createData },
+          create: {
+            match_id: matchId,
+            player_id: stat.player_id,
+            team_id: stat.team_id,
+            ...createData,
+          },
         });
       }),
     );
@@ -962,7 +991,10 @@ export class AdminMatchesService {
   }
 
   // ── POST /admin/matches/:matchId/goals ──
-  async createGoal(matchId: number, data: { player_id: number; goal_time: number; goal_type?: string; description?: string }) {
+  async createGoal(
+    matchId: number,
+    data: { player_id: number; goal_time: number; goal_type?: string; description?: string },
+  ) {
     if (!data.player_id || data.goal_time === undefined) {
       throw new BadRequestException('player_id and goal_time are required');
     }
@@ -1029,7 +1061,15 @@ export class AdminMatchesService {
 
   // ── POST /admin/matches/:matchId/lineups ──
   async createLineup(matchId: number, data: CreateLineupData) {
-    const { player_id, team_id, position, secondary_position, position_change_minute, minutes_played, goals_conceded } = data;
+    const {
+      player_id,
+      team_id,
+      position,
+      secondary_position,
+      position_change_minute,
+      minutes_played,
+      goals_conceded,
+    } = data;
 
     if (!player_id || !team_id || !position) {
       throw new BadRequestException('player_id, team_id, and position are required');
@@ -1037,7 +1077,9 @@ export class AdminMatchesService {
 
     const VALID_POSITIONS = ['GK', 'DF', 'MF', 'FW'];
     const sanitizedSecondaryPosition =
-      secondary_position && VALID_POSITIONS.includes(secondary_position) ? secondary_position : null;
+      secondary_position && VALID_POSITIONS.includes(secondary_position)
+        ? secondary_position
+        : null;
 
     const player = await this.prisma.player.findUnique({ where: { player_id } });
     if (!player) throw new NotFoundException('Player not found');
@@ -1064,10 +1106,17 @@ export class AdminMatchesService {
         data: {
           team_id,
           position,
-          secondary_position: secondary_position !== undefined ? sanitizedSecondaryPosition : existingLineup.secondary_position,
-          position_change_minute: position_change_minute !== undefined ? position_change_minute : existingLineup.position_change_minute,
+          secondary_position:
+            secondary_position !== undefined
+              ? sanitizedSecondaryPosition
+              : existingLineup.secondary_position,
+          position_change_minute:
+            position_change_minute !== undefined
+              ? position_change_minute
+              : existingLineup.position_change_minute,
           minutes_played: minutes_played ?? existingLineup.minutes_played ?? 0,
-          goals_conceded: goals_conceded !== undefined ? goals_conceded : existingLineup.goals_conceded,
+          goals_conceded:
+            goals_conceded !== undefined ? goals_conceded : existingLineup.goals_conceded,
           updated_at: new Date(),
         },
         include: includeOpts,
@@ -1126,21 +1175,34 @@ export class AdminMatchesService {
   }
 
   // ── POST /admin/matches/:matchId/penalties ──
-  async createPenalty(matchId: number, data: {
-    team_id: number;
-    player_id: number;
-    goalkeeper_id: number;
-    is_scored: boolean;
-    order: number;
-  }) {
-    if (!data.team_id || !data.player_id || !data.goalkeeper_id || data.is_scored === undefined || !data.order) {
-      throw new BadRequestException('team_id, player_id, goalkeeper_id, is_scored, and order are required');
+  async createPenalty(
+    matchId: number,
+    data: {
+      team_id: number;
+      player_id: number;
+      goalkeeper_id: number;
+      is_scored: boolean;
+      order: number;
+    },
+  ) {
+    if (
+      !data.team_id ||
+      !data.player_id ||
+      !data.goalkeeper_id ||
+      data.is_scored === undefined ||
+      !data.order
+    ) {
+      throw new BadRequestException(
+        'team_id, player_id, goalkeeper_id, is_scored, and order are required',
+      );
     }
 
     const player = await this.prisma.player.findUnique({ where: { player_id: data.player_id } });
     if (!player) throw new NotFoundException('Player not found');
 
-    const goalkeeper = await this.prisma.player.findUnique({ where: { player_id: data.goalkeeper_id } });
+    const goalkeeper = await this.prisma.player.findUnique({
+      where: { player_id: data.goalkeeper_id },
+    });
     if (!goalkeeper) throw new NotFoundException('Goalkeeper not found');
 
     const team = await this.prisma.team.findUnique({ where: { team_id: data.team_id } });
@@ -1273,14 +1335,17 @@ export class AdminMatchesService {
       return { match_id: matchId, ratings: [], message: 'No detailed stats data available.' };
     }
 
-    const basicStatsMap = new Map<number, {
-      position: string;
-      secondary_position: string | null;
-      position_change_minute: number | null;
-      minutes_played: number | null;
-      yellow_cards: number;
-      red_cards: number;
-    }>();
+    const basicStatsMap = new Map<
+      number,
+      {
+        position: string;
+        secondary_position: string | null;
+        position_change_minute: number | null;
+        minutes_played: number | null;
+        yellow_cards: number;
+        red_cards: number;
+      }
+    >();
 
     for (const bs of basicStats) {
       if (bs.player_id != null) {
@@ -1299,75 +1364,78 @@ export class AdminMatchesService {
     // In the NestJS backend, we store the rating data that was computed from the frontend.
     // For now, the ratings endpoint stores pre-computed data or relies on the frontend to call this.
     // We'll build the rating entries from detailedStats + basicStats and save them.
-    const ratings = detailedStats.map((ds) => {
-      const basic = basicStatsMap.get(ds.player_id) ?? {
-        position: 'FW',
-        secondary_position: null,
-        position_change_minute: null,
-        minutes_played: null,
-        yellow_cards: 0,
-        red_cards: 0,
-      };
+    const ratings = detailedStats
+      .map((ds) => {
+        const basic = basicStatsMap.get(ds.player_id) ?? {
+          position: 'FW',
+          secondary_position: null,
+          position_change_minute: null,
+          minutes_played: null,
+          yellow_cards: 0,
+          red_cards: 0,
+        };
 
-      const isHomeTeam = ds.team_id === match.home_team_id;
-      const teamConceded = isHomeTeam ? (match.away_score ?? 0) : (match.home_score ?? 0);
-      const isCleanSheet = teamConceded === 0;
+        const isHomeTeam = ds.team_id === match.home_team_id;
+        const teamConceded = isHomeTeam ? (match.away_score ?? 0) : (match.home_score ?? 0);
+        const isCleanSheet = teamConceded === 0;
 
-      let matchResult: 'win' | 'draw' | 'loss' | null = null;
-      if (match.home_score != null && match.away_score != null) {
-        if (match.home_score === match.away_score) {
-          matchResult = 'draw';
-        } else {
-          const teamWon = isHomeTeam
-            ? match.home_score > match.away_score
-            : match.away_score > match.home_score;
-          matchResult = teamWon ? 'win' : 'loss';
+        let matchResult: 'win' | 'draw' | 'loss' | null = null;
+        if (match.home_score != null && match.away_score != null) {
+          if (match.home_score === match.away_score) {
+            matchResult = 'draw';
+          } else {
+            const teamWon = isHomeTeam
+              ? match.home_score > match.away_score
+              : match.away_score > match.home_score;
+            matchResult = teamWon ? 'win' : 'loss';
+          }
         }
-      }
 
-      // Simple rating calculation placeholder (base 6.0 + contributions)
-      // The actual calculation uses the imported function from the frontend; for the backend
-      // we simply store a base rating. The frontend's calculateMatchRating would be called separately.
-      let rating = 6.0;
-      const goals = ds.goals ?? 0;
-      const assists = ds.assists ?? 0;
-      const yellowCards = ds.yellow_cards ?? basic.yellow_cards;
-      const redCards = ds.red_cards ?? basic.red_cards;
-      const position = basic.position;
+        // Simple rating calculation placeholder (base 6.0 + contributions)
+        // The actual calculation uses the imported function from the frontend; for the backend
+        // we simply store a base rating. The frontend's calculateMatchRating would be called separately.
+        let rating = 6.0;
+        const goals = ds.goals ?? 0;
+        const assists = ds.assists ?? 0;
+        const yellowCards = ds.yellow_cards ?? basic.yellow_cards;
+        const redCards = ds.red_cards ?? basic.red_cards;
+        const position = basic.position;
 
-      // Goal contribution
-      rating += goals * (position === 'GK' || position === 'DF' ? 1.2 : position === 'MF' ? 1.0 : 0.8);
-      rating += assists * 0.5;
-      // Clean sheet bonus for GK/DF
-      if (isCleanSheet && (position === 'GK' || position === 'DF')) rating += 0.5;
-      // Card deductions
-      rating -= (yellowCards ?? 0) * 0.3;
-      rating -= (redCards ?? 0) * 1.0;
-      // Win bonus
-      if (matchResult === 'win') rating += 0.3;
-      else if (matchResult === 'loss') rating -= 0.2;
-      // Clamp
-      rating = Math.max(1.0, Math.min(10.0, Math.round(rating * 10) / 10));
+        // Goal contribution
+        rating +=
+          goals * (position === 'GK' || position === 'DF' ? 1.2 : position === 'MF' ? 1.0 : 0.8);
+        rating += assists * 0.5;
+        // Clean sheet bonus for GK/DF
+        if (isCleanSheet && (position === 'GK' || position === 'DF')) rating += 0.5;
+        // Card deductions
+        rating -= (yellowCards ?? 0) * 0.3;
+        rating -= (redCards ?? 0) * 1.0;
+        // Win bonus
+        if (matchResult === 'win') rating += 0.3;
+        else if (matchResult === 'loss') rating -= 0.2;
+        // Clamp
+        rating = Math.max(1.0, Math.min(10.0, Math.round(rating * 10) / 10));
 
-      // Skip players with 0 minutes
-      if ((basic.minutes_played ?? 0) === 0) rating = 0;
+        // Skip players with 0 minutes
+        if ((basic.minutes_played ?? 0) === 0) rating = 0;
 
-      return {
-        player_id: ds.player_id,
-        team_id: ds.team_id,
-        player_name: ds.player.name,
-        jersey_number: ds.player.jersey_number,
-        profile_image_url: ds.player.profile_image_url,
-        team_name: ds.team.team_name,
-        position: basic.position,
-        goals,
-        assists,
-        yellow_cards: yellowCards,
-        red_cards: redCards,
-        rating,
-        breakdown: {} as Prisma.InputJsonValue,
-      };
-    }).filter((r) => r.rating > 0);
+        return {
+          player_id: ds.player_id,
+          team_id: ds.team_id,
+          player_name: ds.player.name,
+          jersey_number: ds.player.jersey_number,
+          profile_image_url: ds.player.profile_image_url,
+          team_name: ds.team.team_name,
+          position: basic.position,
+          goals,
+          assists,
+          yellow_cards: yellowCards,
+          red_cards: redCards,
+          rating,
+          breakdown: {} as Prisma.InputJsonValue,
+        };
+      })
+      .filter((r) => r.rating > 0);
 
     ratings.sort((a, b) => b.rating - a.rating);
 
@@ -1411,23 +1479,35 @@ export class AdminMatchesService {
   }
 
   // ── POST /admin/matches/:matchId/substitutions ──
-  async createSubstitution(matchId: number, data: {
-    team_id: number;
-    player_in_id: number;
-    player_out_id: number;
-    substitution_time: number;
-    description?: string;
-  }) {
-    if (!data.team_id || !data.player_in_id || !data.player_out_id || data.substitution_time === undefined) {
+  async createSubstitution(
+    matchId: number,
+    data: {
+      team_id: number;
+      player_in_id: number;
+      player_out_id: number;
+      substitution_time: number;
+      description?: string;
+    },
+  ) {
+    if (
+      !data.team_id ||
+      !data.player_in_id ||
+      !data.player_out_id ||
+      data.substitution_time === undefined
+    ) {
       throw new BadRequestException(
         'team_id, player_in_id, player_out_id, and substitution_time are required',
       );
     }
 
-    const playerIn = await this.prisma.player.findUnique({ where: { player_id: data.player_in_id } });
+    const playerIn = await this.prisma.player.findUnique({
+      where: { player_id: data.player_in_id },
+    });
     if (!playerIn) throw new NotFoundException('Player in not found');
 
-    const playerOut = await this.prisma.player.findUnique({ where: { player_id: data.player_out_id } });
+    const playerOut = await this.prisma.player.findUnique({
+      where: { player_id: data.player_out_id },
+    });
     if (!playerOut) throw new NotFoundException('Player out not found');
 
     const team = await this.prisma.team.findUnique({ where: { team_id: data.team_id } });
@@ -1628,18 +1708,31 @@ export class AdminMatchesService {
       (m) => m.status === 'completed' && m.home_score !== null && m.away_score !== null,
     );
 
-    const teamStats = new Map<number, {
-      matches_played: number; wins: number; draws: number; losses: number;
-      goals_for: number; goals_against: number; points: number;
-    }>();
+    const teamStats = new Map<
+      number,
+      {
+        matches_played: number;
+        wins: number;
+        draws: number;
+        losses: number;
+        goals_for: number;
+        goals_against: number;
+        points: number;
+      }
+    >();
 
     for (const match of allMatches) {
       if (!match.home_team_id || !match.away_team_id) continue;
       for (const teamId of [match.home_team_id, match.away_team_id]) {
         if (!teamStats.has(teamId)) {
           teamStats.set(teamId, {
-            matches_played: 0, wins: 0, draws: 0, losses: 0,
-            goals_for: 0, goals_against: 0, points: 0,
+            matches_played: 0,
+            wins: 0,
+            draws: 0,
+            losses: 0,
+            goals_for: 0,
+            goals_against: 0,
+            points: 0,
           });
         }
       }
@@ -1652,8 +1745,13 @@ export class AdminMatchesService {
     for (const gs of groupStandings) {
       if (gs.team_id && !teamStats.has(gs.team_id)) {
         teamStats.set(gs.team_id, {
-          matches_played: 0, wins: 0, draws: 0, losses: 0,
-          goals_for: 0, goals_against: 0, points: 0,
+          matches_played: 0,
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          goals_for: 0,
+          goals_against: 0,
+          points: 0,
         });
       }
     }
@@ -1778,11 +1876,18 @@ export class AdminMatchesService {
       where: { status: 'completed', home_score: { not: null }, away_score: { not: null } },
     });
 
-    const h2hStats = new Map<string, {
-      team1_id: number; team2_id: number;
-      team1_wins: number; team2_wins: number; draws: number;
-      team1_goals: number; team2_goals: number;
-    }>();
+    const h2hStats = new Map<
+      string,
+      {
+        team1_id: number;
+        team2_id: number;
+        team1_wins: number;
+        team2_wins: number;
+        draws: number;
+        team1_goals: number;
+        team2_goals: number;
+      }
+    >();
 
     for (const match of matches) {
       if (!match.home_team_id || !match.away_team_id) continue;
@@ -1793,9 +1898,13 @@ export class AdminMatchesService {
 
       if (!h2hStats.has(key)) {
         h2hStats.set(key, {
-          team1_id: team1, team2_id: team2,
-          team1_wins: 0, team2_wins: 0, draws: 0,
-          team1_goals: 0, team2_goals: 0,
+          team1_id: team1,
+          team2_id: team2,
+          team1_wins: 0,
+          team2_wins: 0,
+          draws: 0,
+          team1_goals: 0,
+          team2_goals: 0,
         });
       }
 
@@ -1868,11 +1977,20 @@ export class AdminMatchesService {
 
     if (matches.length === 0) return;
 
-    const groupStats = new Map<string, {
-      group_stage: string; team_id: number;
-      matches_played: number; wins: number; draws: number; losses: number;
-      goals_for: number; goals_against: number; points: number;
-    }>();
+    const groupStats = new Map<
+      string,
+      {
+        group_stage: string;
+        team_id: number;
+        matches_played: number;
+        wins: number;
+        draws: number;
+        losses: number;
+        goals_for: number;
+        goals_against: number;
+        points: number;
+      }
+    >();
 
     for (const match of matches) {
       if (!match.home_team_id || !match.away_team_id || !match.group_stage) continue;
@@ -1882,16 +2000,28 @@ export class AdminMatchesService {
 
       if (!groupStats.has(homeKey)) {
         groupStats.set(homeKey, {
-          group_stage: match.group_stage, team_id: match.home_team_id,
-          matches_played: 0, wins: 0, draws: 0, losses: 0,
-          goals_for: 0, goals_against: 0, points: 0,
+          group_stage: match.group_stage,
+          team_id: match.home_team_id,
+          matches_played: 0,
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          goals_for: 0,
+          goals_against: 0,
+          points: 0,
         });
       }
       if (!groupStats.has(awayKey)) {
         groupStats.set(awayKey, {
-          group_stage: match.group_stage, team_id: match.away_team_id,
-          matches_played: 0, wins: 0, draws: 0, losses: 0,
-          goals_for: 0, goals_against: 0, points: 0,
+          group_stage: match.group_stage,
+          team_id: match.away_team_id,
+          matches_played: 0,
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          goals_for: 0,
+          goals_against: 0,
+          points: 0,
         });
       }
 

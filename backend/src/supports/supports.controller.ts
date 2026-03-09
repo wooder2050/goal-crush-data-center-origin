@@ -26,14 +26,10 @@ export class SupportsController {
   @Get()
   @ApiOperation({
     summary: '응원 조회',
-    description:
-      'matchId가 있으면 특정 경기의 사용자 응원을, 없으면 모든 응원 목록을 반환합니다',
+    description: 'matchId가 있으면 특정 경기의 사용자 응원을, 없으면 모든 응원 목록을 반환합니다',
   })
   @ApiQuery({ name: 'matchId', required: false, type: Number, description: '경기 ID' })
-  findSupports(
-    @Req() req: { user: AuthUser },
-    @Query('matchId') matchId?: string,
-  ) {
+  findSupports(@Req() req: { user: AuthUser }, @Query('matchId') matchId?: string) {
     const userId = req.user.userId;
 
     if (matchId) {
@@ -71,10 +67,7 @@ export class SupportsController {
     description: '특정 경기에 대한 사용자의 응원을 삭제합니다',
   })
   @ApiQuery({ name: 'matchId', required: true, type: Number, description: '경기 ID' })
-  removeByMatch(
-    @Req() req: { user: AuthUser },
-    @Query('matchId') matchId: string,
-  ) {
+  removeByMatch(@Req() req: { user: AuthUser }, @Query('matchId') matchId: string) {
     return this.supportsService.removeByMatch(req.user.userId, parseInt(matchId, 10));
   }
 
@@ -86,10 +79,7 @@ export class SupportsController {
     description: '특정 응원을 ID로 삭제합니다 (본인 응원만 삭제 가능)',
   })
   @ApiParam({ name: 'supportId', type: Number, description: '응원 ID' })
-  removeById(
-    @Req() req: { user: AuthUser },
-    @Param('supportId', ParseIntPipe) supportId: number,
-  ) {
+  removeById(@Req() req: { user: AuthUser }, @Param('supportId', ParseIntPipe) supportId: number) {
     return this.supportsService.removeById(req.user.userId, supportId);
   }
 }

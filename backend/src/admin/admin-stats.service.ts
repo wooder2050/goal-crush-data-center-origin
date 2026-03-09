@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -151,10 +147,7 @@ export class AdminStatsService {
           homeStats.losses++;
         } else {
           // 정규시간 동점 - 승부차기로 승패 결정 (골때녀에는 무승부 없음)
-          if (
-            match.penalty_home_score !== null &&
-            match.penalty_away_score !== null
-          ) {
+          if (match.penalty_home_score !== null && match.penalty_away_score !== null) {
             if ((match.penalty_home_score || 0) > (match.penalty_away_score || 0)) {
               homeStats.wins++;
               homeStats.points += 3;
@@ -202,11 +195,7 @@ export class AdminStatsService {
       for (const season of seasons) {
         const standings = await this.prisma.standing.findMany({
           where: { season_id: season.season_id },
-          orderBy: [
-            { points: 'desc' },
-            { goal_difference: 'desc' },
-            { goals_for: 'desc' },
-          ],
+          orderBy: [{ points: 'desc' }, { goal_difference: 'desc' }, { goals_for: 'desc' }],
         });
 
         for (let i = 0; i < standings.length; i++) {
@@ -234,9 +223,7 @@ export class AdminStatsService {
 
       const playerMatchStats = await this.prisma.playerMatchStats.findMany({
         where: {
-          match: seasonFilter.season_id
-            ? { season_id: seasonFilter.season_id }
-            : {},
+          match: seasonFilter.season_id ? { season_id: seasonFilter.season_id } : {},
         },
         include: {
           match: { select: { season_id: true, status: true } },
@@ -397,7 +384,9 @@ export class AdminStatsService {
       this.logger.log('Regenerating H2H stats...');
 
       if (seasonId && seasonId !== 'all') {
-        this.logger.log('H2H stats are always calculated from all seasons. Season parameter ignored.');
+        this.logger.log(
+          'H2H stats are always calculated from all seasons. Season parameter ignored.',
+        );
       }
 
       await this.prisma.h2hPairStats.deleteMany();
@@ -476,10 +465,7 @@ export class AdminStatsService {
           stats.team2_wins++;
         } else {
           // 정규시간 동점 - 승부차기로 승패 결정 (골때녀에는 무승부 없음)
-          if (
-            match.penalty_home_score !== null &&
-            match.penalty_away_score !== null
-          ) {
+          if (match.penalty_home_score !== null && match.penalty_away_score !== null) {
             let team1PenaltyScore: number, team2PenaltyScore: number;
             if (match.home_team_id === team1) {
               team1PenaltyScore = match.penalty_home_score || 0;
@@ -656,9 +642,7 @@ export class AdminStatsService {
       take: 20,
     });
 
-    const completedMatchStats = matchStats.filter(
-      (stat) => stat.match?.status === 'completed',
-    );
+    const completedMatchStats = matchStats.filter((stat) => stat.match?.status === 'completed');
 
     const calculatedStats = new Map<
       string,
@@ -1094,7 +1078,11 @@ export class AdminStatsService {
       { team_id: 35, wins: 1, draws: 0, losses: 4, points: 3 },
     ];
 
-    const results: { team_id: number; updated_count: number; new_values: Record<string, number> }[] = [];
+    const results: {
+      team_id: number;
+      updated_count: number;
+      new_values: Record<string, number>;
+    }[] = [];
 
     for (const update of updates) {
       const result = await this.prisma.standing.updateMany({

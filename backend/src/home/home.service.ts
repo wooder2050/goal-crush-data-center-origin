@@ -163,7 +163,11 @@ export class HomeService {
   }
 
   private async buildTeamNameMap(
-    matches: Array<{ home_team_id: number | null; away_team_id: number | null; season_id: number | null }>,
+    matches: Array<{
+      home_team_id: number | null;
+      away_team_id: number | null;
+      season_id: number | null;
+    }>,
   ): Promise<Map<string, string>> {
     const pairs = matches.flatMap((m) => {
       const result: Array<{ team_id: number; season_id: number }> = [];
@@ -220,9 +224,15 @@ export class HomeService {
       penalty_home_score: match.penalty_home_score,
       penalty_away_score: match.penalty_away_score,
       status: match.status,
-      season: match.season ? { season_id: match.season.season_id, season_name: match.season.season_name } : null,
-      home_team: match.home_team ? { team_id: match.home_team.team_id, team_name: homeTeamName, logo: match.home_team.logo } : null,
-      away_team: match.away_team ? { team_id: match.away_team.team_id, team_name: awayTeamName, logo: match.away_team.logo } : null,
+      season: match.season
+        ? { season_id: match.season.season_id, season_name: match.season.season_name }
+        : null,
+      home_team: match.home_team
+        ? { team_id: match.home_team.team_id, team_name: homeTeamName, logo: match.home_team.logo }
+        : null,
+      away_team: match.away_team
+        ? { team_id: match.away_team.team_id, team_name: awayTeamName, logo: match.away_team.logo }
+        : null,
     };
   }
 
@@ -330,7 +340,10 @@ export class HomeService {
             team: s.team
               ? {
                   team_id: s.team.team_id,
-                  team_name: s.team_id != null ? (teamNameMap.get(s.team_id) ?? s.team.team_name) : s.team.team_name,
+                  team_name:
+                    s.team_id != null
+                      ? (teamNameMap.get(s.team_id) ?? s.team.team_name)
+                      : s.team.team_name,
                   logo: s.team.logo,
                 }
               : null,
@@ -361,7 +374,10 @@ export class HomeService {
         team: s.team
           ? {
               team_id: s.team.team_id,
-              team_name: s.team_id != null ? (teamNameMap.get(s.team_id) ?? s.team.team_name) : s.team.team_name,
+              team_name:
+                s.team_id != null
+                  ? (teamNameMap.get(s.team_id) ?? s.team.team_name)
+                  : s.team.team_name,
               logo: s.team.logo,
             }
           : null,
@@ -372,10 +388,16 @@ export class HomeService {
       else groupMap.set(name, [standing]);
     }
 
-    return Array.from(groupMap.entries()).map(([name, standings]) => ({ group_name: name, standings }));
+    return Array.from(groupMap.entries()).map(([name, standings]) => ({
+      group_name: name,
+      standings,
+    }));
   }
 
-  private async buildRecentFormMap(seasonId: number, teamIds: number[]): Promise<Map<number, string>> {
+  private async buildRecentFormMap(
+    seasonId: number,
+    teamIds: number[],
+  ): Promise<Map<number, string>> {
     if (teamIds.length === 0) return new Map();
 
     const recentMatches = await this.prisma.match.findMany({
@@ -434,7 +456,15 @@ export class HomeService {
       where: { season_id: seasonId },
       include: {
         player: { select: { player_id: true, name: true, profile_image_url: true } },
-        team: { select: { team_id: true, team_name: true, logo: true, primary_color: true, secondary_color: true } },
+        team: {
+          select: {
+            team_id: true,
+            team_name: true,
+            logo: true,
+            primary_color: true,
+            secondary_color: true,
+          },
+        },
       },
       orderBy: { goals: 'desc' },
       take: limit,
@@ -444,7 +474,10 @@ export class HomeService {
       player_id: s.player?.player_id ?? null,
       player_name: s.player?.name ?? null,
       player_image: s.player?.profile_image_url ?? null,
-      team_name: s.team_id != null ? (teamNameMap.get(s.team_id) ?? s.team?.team_name ?? null) : (s.team?.team_name ?? null),
+      team_name:
+        s.team_id != null
+          ? (teamNameMap.get(s.team_id) ?? s.team?.team_name ?? null)
+          : (s.team?.team_name ?? null),
       team_logo: s.team?.logo ?? null,
       team_primary_color: s.team?.primary_color ?? null,
       team_secondary_color: s.team?.secondary_color ?? null,
@@ -467,7 +500,15 @@ export class HomeService {
       where: { season_id: seasonId },
       include: {
         player: { select: { player_id: true, name: true, profile_image_url: true } },
-        team: { select: { team_id: true, team_name: true, logo: true, primary_color: true, secondary_color: true } },
+        team: {
+          select: {
+            team_id: true,
+            team_name: true,
+            logo: true,
+            primary_color: true,
+            secondary_color: true,
+          },
+        },
       },
       orderBy: { assists: 'desc' },
       take: limit,
@@ -477,7 +518,10 @@ export class HomeService {
       player_id: s.player?.player_id ?? null,
       player_name: s.player?.name ?? null,
       player_image: s.player?.profile_image_url ?? null,
-      team_name: s.team_id != null ? (teamNameMap.get(s.team_id) ?? s.team?.team_name ?? null) : (s.team?.team_name ?? null),
+      team_name:
+        s.team_id != null
+          ? (teamNameMap.get(s.team_id) ?? s.team?.team_name ?? null)
+          : (s.team?.team_name ?? null),
       team_logo: s.team?.logo ?? null,
       team_primary_color: s.team?.primary_color ?? null,
       team_secondary_color: s.team?.secondary_color ?? null,
@@ -517,7 +561,13 @@ export class HomeService {
       }),
       this.prisma.team.findMany({
         where: { team_id: { in: teamIds } },
-        select: { team_id: true, team_name: true, logo: true, primary_color: true, secondary_color: true },
+        select: {
+          team_id: true,
+          team_name: true,
+          logo: true,
+          primary_color: true,
+          secondary_color: true,
+        },
       }),
     ]);
 
@@ -572,7 +622,13 @@ export class HomeService {
       }),
       this.prisma.team.findMany({
         where: { team_id: { in: teamIds } },
-        select: { team_id: true, team_name: true, logo: true, primary_color: true, secondary_color: true },
+        select: {
+          team_id: true,
+          team_name: true,
+          logo: true,
+          primary_color: true,
+          secondary_color: true,
+        },
       }),
     ]);
 
@@ -602,7 +658,9 @@ export class HomeService {
     const stats = await this.prisma.playerSeasonStats.findMany({
       include: {
         player: { select: { player_id: true, name: true, profile_image_url: true } },
-        team: { select: { team_id: true, team_name: true, primary_color: true, secondary_color: true } },
+        team: {
+          select: { team_id: true, team_name: true, primary_color: true, secondary_color: true },
+        },
       },
       orderBy: { season_id: 'asc' },
     });
@@ -663,27 +721,48 @@ export class HomeService {
       goals: p.goals,
       assists: p.assists,
       matches_played: p.matches_played,
-      goals_per_match: p.matches_played > 0 ? Math.round((p.goals / p.matches_played) * 100) / 100 : 0,
-      assists_per_match: p.matches_played > 0 ? Math.round((p.assists / p.matches_played) * 100) / 100 : 0,
+      goals_per_match:
+        p.matches_played > 0 ? Math.round((p.goals / p.matches_played) * 100) / 100 : 0,
+      assists_per_match:
+        p.matches_played > 0 ? Math.round((p.assists / p.matches_played) * 100) / 100 : 0,
       attack_points: p.goals + p.assists,
       attack_points_per_match:
-        p.matches_played > 0 ? Math.round(((p.goals + p.assists) / p.matches_played) * 100) / 100 : 0,
+        p.matches_played > 0
+          ? Math.round(((p.goals + p.assists) / p.matches_played) * 100) / 100
+          : 0,
     });
 
     const qualifiedPlayers = allPlayers.filter((p) => p.matches_played >= minMatches);
 
     return {
-      scorers: [...allPlayers].sort((a, b) => b.goals - a.goals).slice(0, limit).map(toRow),
-      assists: [...allPlayers].sort((a, b) => b.assists - a.assists).slice(0, limit).map(toRow),
+      scorers: [...allPlayers]
+        .sort((a, b) => b.goals - a.goals)
+        .slice(0, limit)
+        .map(toRow),
+      assists: [...allPlayers]
+        .sort((a, b) => b.assists - a.assists)
+        .slice(0, limit)
+        .map(toRow),
       goalsPerMatch: [...qualifiedPlayers]
-        .sort((a, b) => (b.matches_played > 0 ? b.goals / b.matches_played : 0) - (a.matches_played > 0 ? a.goals / a.matches_played : 0))
+        .sort(
+          (a, b) =>
+            (b.matches_played > 0 ? b.goals / b.matches_played : 0) -
+            (a.matches_played > 0 ? a.goals / a.matches_played : 0),
+        )
         .slice(0, limit)
         .map(toRow),
       assistsPerMatch: [...qualifiedPlayers]
-        .sort((a, b) => (b.matches_played > 0 ? b.assists / b.matches_played : 0) - (a.matches_played > 0 ? a.assists / a.matches_played : 0))
+        .sort(
+          (a, b) =>
+            (b.matches_played > 0 ? b.assists / b.matches_played : 0) -
+            (a.matches_played > 0 ? a.assists / a.matches_played : 0),
+        )
         .slice(0, limit)
         .map(toRow),
-      attackPoints: [...allPlayers].sort((a, b) => b.goals + b.assists - (a.goals + a.assists)).slice(0, limit).map(toRow),
+      attackPoints: [...allPlayers]
+        .sort((a, b) => b.goals + b.assists - (a.goals + a.assists))
+        .slice(0, limit)
+        .map(toRow),
       attackPointsPerMatch: [...qualifiedPlayers]
         .sort(
           (a, b) =>
@@ -695,7 +774,10 @@ export class HomeService {
     };
   }
 
-  private async getLatestMatchGoalScorers(): Promise<{ match: HomeMatch; goals: GoalScorerRow[] } | null> {
+  private async getLatestMatchGoalScorers(): Promise<{
+    match: HomeMatch;
+    goals: GoalScorerRow[];
+  } | null> {
     const latestMatch = await this.prisma.match.findFirst({
       where: { status: 'completed' },
       orderBy: { match_date: 'desc' },

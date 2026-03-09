@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from '@supabase/supabase-js';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -61,9 +56,7 @@ export class AuthGuard implements CanActivate {
         data: {
           user_id: user.id,
           korean_nickname:
-            user.user_metadata?.korean_nickname ||
-            user.email?.split('@')[0] ||
-            'User',
+            user.user_metadata?.korean_nickname || user.email?.split('@')[0] || 'User',
           display_name: user.user_metadata?.display_name,
           profile_image_url: user.user_metadata?.avatar_url,
         },
@@ -144,9 +137,7 @@ export class OptionalAuthGuard implements CanActivate {
           data: {
             user_id: user.id,
             korean_nickname:
-              user.user_metadata?.korean_nickname ||
-              user.email?.split('@')[0] ||
-              'User',
+              user.user_metadata?.korean_nickname || user.email?.split('@')[0] || 'User',
             display_name: user.user_metadata?.display_name,
             profile_image_url: user.user_metadata?.avatar_url,
           },

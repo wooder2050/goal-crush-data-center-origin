@@ -11,13 +11,7 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiQuery,
-  ApiParam,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard, AuthUser } from '../common/guards/auth.guard';
 import { FantasyService } from './fantasy.service';
 
@@ -163,9 +157,7 @@ export class FantasyController {
     summary: '판타지 시즌 생성 (관리자용)',
     description: '새로운 판타지 시즌을 생성합니다',
   })
-  createSeason(
-    @Body() body: { season_id: number; year: number; month: number },
-  ) {
+  createSeason(@Body() body: { season_id: number; year: number; month: number }) {
     return this.fantasyService.createSeason(body);
   }
 
@@ -192,10 +184,7 @@ export class FantasyController {
     description: '현재 사용자의 판타지 팀 정보를 반환합니다',
   })
   @ApiQuery({ name: 'fantasy_season_id', required: true, type: Number })
-  getMyTeam(
-    @Req() req: { user: AuthUser },
-    @Query('fantasy_season_id') fantasySeasonId: string,
-  ) {
+  getMyTeam(@Req() req: { user: AuthUser }, @Query('fantasy_season_id') fantasySeasonId: string) {
     return this.fantasyService.getMyTeam(req.user.userId, fantasySeasonId);
   }
 
@@ -218,8 +207,7 @@ export class FantasyController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: '팀 수정용 데이터 조회',
-    description:
-      '팀 수정 페이지에 필요한 데이터를 반환합니다 (기존 팀, 선수 목록, 추천 선수)',
+    description: '팀 수정 페이지에 필요한 데이터를 반환합니다 (기존 팀, 선수 목록, 추천 선수)',
   })
   @ApiParam({ name: 'seasonId', type: Number })
   getTeamEditData(
@@ -239,10 +227,7 @@ export class FantasyController {
     description: '현재 사용자의 모든 판타지 팀 또는 특정 시즌 팀을 반환합니다',
   })
   @ApiQuery({ name: 'fantasy_season_id', required: false, type: Number })
-  getTeams(
-    @Req() req: { user: AuthUser },
-    @Query('fantasy_season_id') fantasySeasonId?: string,
-  ) {
+  getTeams(@Req() req: { user: AuthUser }, @Query('fantasy_season_id') fantasySeasonId?: string) {
     return this.fantasyService.getTeams(req.user.userId, fantasySeasonId);
   }
 
@@ -311,10 +296,7 @@ export class FantasyController {
     description: '본인의 판타지 팀을 삭제합니다',
   })
   @ApiParam({ name: 'teamId', type: Number })
-  deleteTeam(
-    @Req() req: { user: AuthUser },
-    @Param('teamId', ParseIntPipe) teamId: number,
-  ) {
+  deleteTeam(@Req() req: { user: AuthUser }, @Param('teamId', ParseIntPipe) teamId: number) {
     return this.fantasyService.deleteTeam(req.user.userId, teamId);
   }
 }

@@ -45,10 +45,8 @@ function formatPlayer(player: PlayerData) {
           team_id: player.player_team_history[0].team.team_id,
           team_name: player.player_team_history[0].team.team_name,
           logo: player.player_team_history[0].team.logo || undefined,
-          primary_color:
-            player.player_team_history[0].team.primary_color || undefined,
-          secondary_color:
-            player.player_team_history[0].team.secondary_color || undefined,
+          primary_color: player.player_team_history[0].team.primary_color || undefined,
+          secondary_color: player.player_team_history[0].team.secondary_color || undefined,
         }
       : undefined,
     season_stats: player.player_season_stats[0]
@@ -80,18 +78,13 @@ function validateTeamComposition(
   const teamCounts = new Map<number, number>();
   players.forEach((player) => {
     if (player.team_id) {
-      teamCounts.set(
-        player.team_id,
-        (teamCounts.get(player.team_id) || 0) + 1,
-      );
+      teamCounts.set(player.team_id, (teamCounts.get(player.team_id) || 0) + 1);
     }
   });
 
   teamCounts.forEach((count, teamId) => {
     if (count > 2) {
-      errors.push(
-        `같은 팀에서 최대 2명까지만 선택할 수 있습니다. (팀 ID: ${teamId})`,
-      );
+      errors.push(`같은 팀에서 최대 2명까지만 선택할 수 있습니다. (팀 ID: ${teamId})`);
     }
   });
 
@@ -222,16 +215,13 @@ function calculatePlayerFantasyPoints(
   if (
     teamData.is_clean_sheet &&
     performance.position &&
-    ['GK', 'CB', 'LB', 'RB', 'LWB', 'RWB'].includes(
-      performance.position.toUpperCase(),
-    )
+    ['GK', 'CB', 'LB', 'RB', 'LWB', 'RWB'].includes(performance.position.toUpperCase())
   ) {
     clean_sheet_points = rules.defense.clean_sheet;
   }
 
   if (performance.saves > 0) {
-    save_points =
-      Math.floor(performance.saves / 2) * rules.defense.goalkeeper_save_per_2;
+    save_points = Math.floor(performance.saves / 2) * rules.defense.goalkeeper_save_per_2;
   }
 
   if (performance.yellow_cards > 0) {
@@ -306,23 +296,16 @@ export class FantasyService {
 
   // ── GET /fantasy/players/available ──
 
-  async getAvailablePlayers(
-    seasonIdStr: string,
-    fantasySeasonIdStr: string,
-  ) {
+  async getAvailablePlayers(seasonIdStr: string, fantasySeasonIdStr: string) {
     if (!seasonIdStr || !fantasySeasonIdStr) {
-      throw new BadRequestException(
-        'season_id and fantasy_season_id are required',
-      );
+      throw new BadRequestException('season_id and fantasy_season_id are required');
     }
 
     const seasonIdNum = parseInt(seasonIdStr);
     const fantasySeasonIdNum = parseInt(fantasySeasonIdStr);
 
     if (isNaN(seasonIdNum) || isNaN(fantasySeasonIdNum)) {
-      throw new BadRequestException(
-        'Invalid season_id or fantasy_season_id',
-      );
+      throw new BadRequestException('Invalid season_id or fantasy_season_id');
     }
 
     const availablePlayers = await this.prisma.player.findMany({
@@ -348,36 +331,35 @@ export class FantasyService {
       },
     });
 
-    const recommendations =
-      await this.prisma.fantasyAIRecommendation.findMany({
-        where: { fantasy_season_id: fantasySeasonIdNum },
-        include: {
-          player: {
-            include: {
-              player_team_history: {
-                where: { season_id: seasonIdNum, is_active: true },
-                include: {
-                  team: {
-                    select: {
-                      team_id: true,
-                      team_name: true,
-                      logo: true,
-                      primary_color: true,
-                      secondary_color: true,
-                    },
+    const recommendations = await this.prisma.fantasyAIRecommendation.findMany({
+      where: { fantasy_season_id: fantasySeasonIdNum },
+      include: {
+        player: {
+          include: {
+            player_team_history: {
+              where: { season_id: seasonIdNum, is_active: true },
+              include: {
+                team: {
+                  select: {
+                    team_id: true,
+                    team_name: true,
+                    logo: true,
+                    primary_color: true,
+                    secondary_color: true,
                   },
                 },
               },
-              player_season_stats: {
-                where: { season_id: seasonIdNum },
-                select: { goals: true, assists: true, matches_played: true },
-              },
+            },
+            player_season_stats: {
+              where: { season_id: seasonIdNum },
+              select: { goals: true, assists: true, matches_played: true },
             },
           },
         },
-        orderBy: { recommendation_score: 'desc' },
-        take: 20,
-      });
+      },
+      orderBy: { recommendation_score: 'desc' },
+      take: 20,
+    });
 
     const formattedPlayers = availablePlayers
       .filter((player) => player.player_team_history.length > 0)
@@ -452,14 +434,8 @@ export class FantasyService {
       take: limit,
     });
 
-    if (
-      recommendations.length === 0 ||
-      isRecommendationOutdated(recommendations[0]?.created_at)
-    ) {
-      await this.generateAIRecommendations(
-        fantasySeasonId,
-        fantasySeason.season_id,
-      );
+    if (recommendations.length === 0 || isRecommendationOutdated(recommendations[0]?.created_at)) {
+      await this.generateAIRecommendations(fantasySeasonId, fantasySeason.season_id);
 
       recommendations = await this.prisma.fantasyAIRecommendation.findMany({
         where: { fantasy_season_id: fantasySeasonId },
@@ -498,10 +474,7 @@ export class FantasyService {
       throw new NotFoundException('판타지 시즌을 찾을 수 없습니다.');
     }
 
-    const result = await this.generateAIRecommendations(
-      fantasySeasonId,
-      fantasySeason.season_id,
-    );
+    const result = await this.generateAIRecommendations(fantasySeasonId, fantasySeason.season_id);
 
     return {
       message: 'AI 추천이 새로 생성되었습니다.',
@@ -512,11 +485,7 @@ export class FantasyService {
 
   // ── GET /fantasy/rankings ──
 
-  async getRankings(
-    fantasySeasonIdStr: string,
-    pageStr?: string,
-    limitStr?: string,
-  ) {
+  async getRankings(fantasySeasonIdStr: string, pageStr?: string, limitStr?: string) {
     const fantasySeasonId = parseInt(fantasySeasonIdStr);
     const page = pageStr ? parseInt(pageStr) : 1;
     const limit = limitStr ? parseInt(limitStr) : 20;
@@ -778,11 +747,7 @@ export class FantasyService {
 
   // ── POST /fantasy/scoring ──
 
-  async calculateScoring(body: {
-    type: string;
-    match_id?: number;
-    season_id?: number;
-  }) {
+  async calculateScoring(body: { type: string; match_id?: number; season_id?: number }) {
     const { type } = body;
 
     if (type === 'match') {
@@ -804,9 +769,7 @@ export class FantasyService {
         result,
       };
     } else {
-      throw new BadRequestException(
-        '잘못된 타입입니다. "match" 또는 "season"을 지정해주세요.',
-      );
+      throw new BadRequestException('잘못된 타입입니다. "match" 또는 "season"을 지정해주세요.');
     }
   }
 
@@ -831,11 +794,7 @@ export class FantasyService {
 
   // ── POST /fantasy/seasons ──
 
-  async createSeason(body: {
-    season_id: number;
-    year: number;
-    month: number;
-  }) {
+  async createSeason(body: { season_id: number; year: number; month: number }) {
     const { season_id, year, month } = body;
 
     if (!season_id || !year || !month || month < 1 || month > 12) {
@@ -847,9 +806,7 @@ export class FantasyService {
     });
 
     if (existingSeason) {
-      throw new BadRequestException(
-        '이미 해당 월의 판타지 시즌이 존재합니다.',
-      );
+      throw new BadRequestException('이미 해당 월의 판타지 시즌이 존재합니다.');
     }
 
     const dates = getMonthlySeasonDates(year, month);
@@ -1046,9 +1003,7 @@ export class FantasyService {
     });
 
     if (existingTeam) {
-      throw new BadRequestException(
-        '이미 해당 시즌의 판타지 팀이 존재합니다.',
-      );
+      throw new BadRequestException('이미 해당 시즌의 판타지 팀이 존재합니다.');
     }
 
     const players = await this.prisma.player.findMany({
@@ -1293,9 +1248,7 @@ export class FantasyService {
 
       if (players.length !== player_ids.length) {
         const foundPlayerIds = players.map((p) => p.player_id);
-        const missingPlayerIds = player_ids.filter(
-          (id) => !foundPlayerIds.includes(id),
-        );
+        const missingPlayerIds = player_ids.filter((id) => !foundPlayerIds.includes(id));
         throw new BadRequestException({
           error: '일부 선수를 찾을 수 없습니다.',
           missing_player_ids: missingPlayerIds,
@@ -1498,30 +1451,25 @@ export class FantasyService {
 
     const defaultPositions = ['GK', 'DF', 'MF', 'FW', 'FW'] as const;
 
-    const playersWithPosition = fantasyTeam.player_selections.map(
-      (selection, index) => ({
-        player_id: selection.player.player_id,
-        name: selection.player.name,
-        profile_image_url: selection.player.profile_image_url || undefined,
-        points_earned: selection.points_earned,
-        position: selection.position || defaultPositions[index] || 'FW',
-        season_stats: {
-          goals: Math.round(
-            selection.match_performances.reduce(
-              (sum, perf) => sum + (perf.goal_points || 0) / 4,
-              0,
-            ),
+    const playersWithPosition = fantasyTeam.player_selections.map((selection, index) => ({
+      player_id: selection.player.player_id,
+      name: selection.player.name,
+      profile_image_url: selection.player.profile_image_url || undefined,
+      points_earned: selection.points_earned,
+      position: selection.position || defaultPositions[index] || 'FW',
+      season_stats: {
+        goals: Math.round(
+          selection.match_performances.reduce((sum, perf) => sum + (perf.goal_points || 0) / 4, 0),
+        ),
+        assists: Math.round(
+          selection.match_performances.reduce(
+            (sum, perf) => sum + (perf.assist_points || 0) / 2,
+            0,
           ),
-          assists: Math.round(
-            selection.match_performances.reduce(
-              (sum, perf) => sum + (perf.assist_points || 0) / 2,
-              0,
-            ),
-          ),
-          matches_played: selection.match_performances.length,
-        },
-      }),
-    );
+        ),
+        matches_played: selection.match_performances.length,
+      },
+    }));
 
     return {
       fantasyTeam: {
@@ -1531,10 +1479,7 @@ export class FantasyService {
         total_teams: totalTeams,
       },
       user: {
-        name:
-          fantasyTeam.user.display_name ||
-          fantasyTeam.user.korean_nickname ||
-          'Unknown User',
+        name: fantasyTeam.user.display_name || fantasyTeam.user.korean_nickname || 'Unknown User',
         avatar: fantasyTeam.user.profile_image_url,
       },
       fantasySeason: {
@@ -1579,9 +1524,7 @@ export class FantasyService {
         player_selections: {
           include: {
             player: {
-              select: playerSelectWithTeamAndStats(
-                fantasySeason.season.season_id,
-              ),
+              select: playerSelectWithTeamAndStats(fantasySeason.season.season_id),
             },
           },
           orderBy: { selection_order: 'asc' },
@@ -1626,39 +1569,38 @@ export class FantasyService {
       },
     });
 
-    const recommendations =
-      await this.prisma.fantasyAIRecommendation.findMany({
-        where: { fantasy_season_id: fantasySeasonId },
-        include: {
-          player: {
-            include: {
-              player_team_history: {
-                where: {
-                  season_id: fantasySeason.season.season_id,
-                  is_active: true,
-                },
-                include: {
-                  team: {
-                    select: {
-                      team_id: true,
-                      team_name: true,
-                      logo: true,
-                      primary_color: true,
-                      secondary_color: true,
-                    },
+    const recommendations = await this.prisma.fantasyAIRecommendation.findMany({
+      where: { fantasy_season_id: fantasySeasonId },
+      include: {
+        player: {
+          include: {
+            player_team_history: {
+              where: {
+                season_id: fantasySeason.season.season_id,
+                is_active: true,
+              },
+              include: {
+                team: {
+                  select: {
+                    team_id: true,
+                    team_name: true,
+                    logo: true,
+                    primary_color: true,
+                    secondary_color: true,
                   },
                 },
               },
-              player_season_stats: {
-                where: { season_id: fantasySeason.season.season_id },
-                select: { goals: true, assists: true, matches_played: true },
-              },
+            },
+            player_season_stats: {
+              where: { season_id: fantasySeason.season.season_id },
+              select: { goals: true, assists: true, matches_played: true },
             },
           },
         },
-        orderBy: { recommendation_score: 'desc' },
-        take: 20,
-      });
+      },
+      orderBy: { recommendation_score: 'desc' },
+      take: 20,
+    });
 
     const formattedPlayers = availablePlayers
       .filter((player) => player.player_team_history.length > 0)
@@ -1670,38 +1612,32 @@ export class FantasyService {
 
     const defaultPositions = ['GK', 'DF', 'MF', 'FW', 'FW'] as const;
 
-    const initialSelectedPlayers = existingTeam.player_selections.map(
-      (selection, index) => {
-        const player = selection.player as unknown as PlayerData;
-        return {
-          player_id: player.player_id,
-          name: player.name,
-          profile_image_url: player.profile_image_url || undefined,
-          jersey_number: player.jersey_number || undefined,
-          position: selection.position || defaultPositions[index] || 'FW',
-          current_team: player.player_team_history[0]?.team
-            ? {
-                team_id: player.player_team_history[0].team.team_id,
-                team_name: player.player_team_history[0].team.team_name,
-                logo: player.player_team_history[0].team.logo || undefined,
-                primary_color:
-                  player.player_team_history[0].team.primary_color || undefined,
-                secondary_color:
-                  player.player_team_history[0].team.secondary_color ||
-                  undefined,
-              }
-            : undefined,
-          season_stats: player.player_season_stats[0]
-            ? {
-                goals: player.player_season_stats[0].goals || 0,
-                assists: player.player_season_stats[0].assists || 0,
-                matches_played:
-                  player.player_season_stats[0].matches_played || 0,
-              }
-            : { goals: 0, assists: 0, matches_played: 0 },
-        };
-      },
-    );
+    const initialSelectedPlayers = existingTeam.player_selections.map((selection, index) => {
+      const player = selection.player as unknown as PlayerData;
+      return {
+        player_id: player.player_id,
+        name: player.name,
+        profile_image_url: player.profile_image_url || undefined,
+        jersey_number: player.jersey_number || undefined,
+        position: selection.position || defaultPositions[index] || 'FW',
+        current_team: player.player_team_history[0]?.team
+          ? {
+              team_id: player.player_team_history[0].team.team_id,
+              team_name: player.player_team_history[0].team.team_name,
+              logo: player.player_team_history[0].team.logo || undefined,
+              primary_color: player.player_team_history[0].team.primary_color || undefined,
+              secondary_color: player.player_team_history[0].team.secondary_color || undefined,
+            }
+          : undefined,
+        season_stats: player.player_season_stats[0]
+          ? {
+              goals: player.player_season_stats[0].goals || 0,
+              assists: player.player_season_stats[0].assists || 0,
+              matches_played: player.player_season_stats[0].matches_played || 0,
+            }
+          : { goals: 0, assists: 0, matches_played: 0 },
+      };
+    });
 
     return {
       fantasySeason: {
@@ -1730,9 +1666,7 @@ export class FantasyService {
     const seasonId = parseInt(fantasySeasonIdStr);
 
     if (isNaN(seasonId)) {
-      throw new BadRequestException(
-        '유효하지 않은 fantasy_season_id입니다.',
-      );
+      throw new BadRequestException('유효하지 않은 fantasy_season_id입니다.');
     }
 
     const fantasySeason = await this.prisma.fantasySeason.findUnique({
@@ -1818,24 +1752,18 @@ export class FantasyService {
       current_team: selection.player.player_team_history[0]?.team
         ? {
             team_id: selection.player.player_team_history[0].team.team_id,
-            team_name:
-              selection.player.player_team_history[0].team.team_name,
-            logo:
-              selection.player.player_team_history[0].team.logo || undefined,
-            primary_color:
-              selection.player.player_team_history[0].team.primary_color ||
-              undefined,
+            team_name: selection.player.player_team_history[0].team.team_name,
+            logo: selection.player.player_team_history[0].team.logo || undefined,
+            primary_color: selection.player.player_team_history[0].team.primary_color || undefined,
             secondary_color:
-              selection.player.player_team_history[0].team
-                .secondary_color || undefined,
+              selection.player.player_team_history[0].team.secondary_color || undefined,
           }
         : undefined,
       season_stats: selection.player.player_season_stats[0]
         ? {
             goals: selection.player.player_season_stats[0].goals || 0,
             assists: selection.player.player_season_stats[0].assists || 0,
-            matches_played:
-              selection.player.player_season_stats[0].matches_played || 0,
+            matches_played: selection.player.player_season_stats[0].matches_played || 0,
           }
         : { goals: 0, assists: 0, matches_played: 0 },
       points_earned: selection.points_earned,
@@ -1867,10 +1795,7 @@ export class FantasyService {
 
   // ── Private: Generate AI Recommendations ──
 
-  private async generateAIRecommendations(
-    fantasySeasonId: number,
-    seasonId: number,
-  ) {
+  private async generateAIRecommendations(fantasySeasonId: number, seasonId: number) {
     await this.prisma.fantasyAIRecommendation.deleteMany({
       where: { fantasy_season_id: fantasySeasonId },
     });
@@ -1909,8 +1834,7 @@ export class FantasyService {
         return {
           fantasy_season_id: fantasySeasonId,
           player_id: stat.player_id!,
-          recommendation_score:
-            Math.round(recommendationScore * 100) / 100,
+          recommendation_score: Math.round(recommendationScore * 100) / 100,
           reason,
           form_score: Math.round(formScore * 100) / 100,
           fixture_difficulty: 5.0,
@@ -1997,28 +1921,20 @@ export class FantasyService {
         team_id: playerStats.team_id,
       };
 
-      const teamData =
-        performance.team_id === homeTeamData.team_id
-          ? homeTeamData
-          : awayTeamData;
+      const teamData = performance.team_id === homeTeamData.team_id ? homeTeamData : awayTeamData;
 
       const isStarter = (performance.minutes_played || 0) >= 60;
-      const points = calculatePlayerFantasyPoints(
-        performance,
-        teamData,
-        isStarter,
-      );
+      const points = calculatePlayerFantasyPoints(performance, teamData, isStarter);
 
       for (const fantasySeason of activeFantasySeasons) {
-        const playerSelections =
-          await this.prisma.fantasyPlayerSelection.findMany({
-            where: {
-              player_id: performance.player_id,
-              fantasy_team: {
-                fantasy_season_id: fantasySeason.fantasy_season_id,
-              },
+        const playerSelections = await this.prisma.fantasyPlayerSelection.findMany({
+          where: {
+            player_id: performance.player_id,
+            fantasy_team: {
+              fantasy_season_id: fantasySeason.fantasy_season_id,
             },
-          });
+          },
+        });
 
         for (const selection of playerSelections) {
           fantasyPerformances.push({
@@ -2055,9 +1971,7 @@ export class FantasyService {
       });
     }
 
-    await this.updateFantasyTeamTotals(
-      activeFantasySeasons.map((s) => s.fantasy_season_id),
-    );
+    await this.updateFantasyTeamTotals(activeFantasySeasons.map((s) => s.fantasy_season_id));
 
     return {
       match_id: matchId,

@@ -10,18 +10,8 @@ import {
   ParseIntPipe,
   Headers,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiQuery,
-  ApiParam,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import {
-  AuthGuard,
-  OptionalAuthGuard,
-  AuthUser,
-} from '../common/guards/auth.guard';
+import { ApiTags, ApiOperation, ApiQuery, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard, OptionalAuthGuard, AuthUser } from '../common/guards/auth.guard';
 import { CommunityService } from './community.service';
 
 @ApiTags('Community')
@@ -117,10 +107,7 @@ export class CommunityController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 좋아요 상태 확인 (레거시)' })
   @ApiParam({ name: 'postId', type: Number })
-  getLikeStatus(
-    @Req() req: { user: AuthUser },
-    @Param('postId', ParseIntPipe) postId: number,
-  ) {
+  getLikeStatus(@Req() req: { user: AuthUser }, @Param('postId', ParseIntPipe) postId: number) {
     return this.communityService.getLikeStatus(req.user.userId, postId);
   }
 
@@ -133,10 +120,7 @@ export class CommunityController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 좋아요 토글' })
   @ApiParam({ name: 'postId', type: Number })
-  toggleLike(
-    @Req() req: { user: AuthUser },
-    @Param('postId', ParseIntPipe) postId: number,
-  ) {
+  toggleLike(@Req() req: { user: AuthUser }, @Param('postId', ParseIntPipe) postId: number) {
     return this.communityService.toggleLike(req.user.userId, postId);
   }
 
@@ -148,10 +132,7 @@ export class CommunityController {
     @Req() req: { user: AuthUser | null },
     @Param('postId', ParseIntPipe) postId: number,
   ) {
-    return this.communityService.getLikesStatus(
-      req.user?.userId || null,
-      postId,
-    );
+    return this.communityService.getLikesStatus(req.user?.userId || null, postId);
   }
 
   // ──────────────────────────────────────
@@ -217,9 +198,7 @@ export class CommunityController {
   @ApiOperation({ summary: '인기 토픽 조회' })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   getHotTopics(@Query('limit') limit?: string) {
-    return this.communityService.getHotTopics(
-      limit ? parseInt(limit, 10) : 5,
-    );
+    return this.communityService.getHotTopics(limit ? parseInt(limit, 10) : 5);
   }
 
   // ──────────────────────────────────────
@@ -288,9 +267,7 @@ export class CommunityController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '최신 리그 경기 MVP 선수 조회' })
   getMvpVotingCurrent(@Req() req: { user: AuthUser | null }) {
-    return this.communityService.getMvpVotingCurrent(
-      req.user?.userId || null,
-    );
+    return this.communityService.getMvpVotingCurrent(req.user?.userId || null);
   }
 
   // ──────────────────────────────────────
@@ -301,9 +278,7 @@ export class CommunityController {
   @ApiOperation({ summary: '팀별 커뮤니티 현황 조회' })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   getTeamCommunities(@Query('limit') limit?: string) {
-    return this.communityService.getTeamCommunities(
-      limit ? parseInt(limit, 10) : 20,
-    );
+    return this.communityService.getTeamCommunities(limit ? parseInt(limit, 10) : 20);
   }
 
   @Get('team-communities/:teamId')

@@ -87,31 +87,24 @@ function formatRatingResponse(rating: Record<string, unknown>) {
     ...rating,
     player: {
       ...(rating.player as Record<string, unknown>),
-      profile_image_url:
-        (rating.player as Record<string, unknown>).profile_image_url ?? undefined,
+      profile_image_url: (rating.player as Record<string, unknown>).profile_image_url ?? undefined,
     },
     user: {
       ...(rating.user as Record<string, unknown>),
-      profile_image_url:
-        (rating.user as Record<string, unknown>).profile_image_url ?? undefined,
+      profile_image_url: (rating.user as Record<string, unknown>).profile_image_url ?? undefined,
     },
-    season: rating.season
-      ? { ...(rating.season as Record<string, unknown>) }
-      : undefined,
+    season: rating.season ? { ...(rating.season as Record<string, unknown>) } : undefined,
     ...(rating.reviews
       ? {
-          reviews: (rating.reviews as Record<string, unknown>[]).map(
-            (review) => ({
-              ...review,
-              user: {
-                ...(review.user as Record<string, unknown>),
-                profile_image_url:
-                  (review.user as Record<string, unknown>).profile_image_url ??
-                  undefined,
-              },
-              created_at: (review.created_at as Date).toISOString(),
-            }),
-          ),
+          reviews: (rating.reviews as Record<string, unknown>[]).map((review) => ({
+            ...review,
+            user: {
+              ...(review.user as Record<string, unknown>),
+              profile_image_url:
+                (review.user as Record<string, unknown>).profile_image_url ?? undefined,
+            },
+            created_at: (review.created_at as Date).toISOString(),
+          })),
         }
       : {}),
     created_at: (rating.created_at as Date).toISOString(),
@@ -225,9 +218,7 @@ export class RatingsService {
         });
 
     if (existingRating) {
-      throw new ConflictException(
-        'You have already rated this player for this season',
-      );
+      throw new ConflictException('You have already rated this player for this season');
     }
 
     // 평가 생성
@@ -276,11 +267,7 @@ export class RatingsService {
 
   // ── PUT /ratings/:ratingId ──
 
-  async update(
-    userId: string,
-    ratingId: number,
-    data: Record<string, unknown>,
-  ) {
+  async update(userId: string, ratingId: number, data: Record<string, unknown>) {
     // 평가 존재 확인 및 권한 확인
     const existingRating = await this.prisma.playerAbilityRating.findUnique({
       where: { rating_id: ratingId },
@@ -321,9 +308,7 @@ export class RatingsService {
       include: RATING_INCLUDE,
     });
 
-    return formatRatingResponse(
-      updatedRating as unknown as Record<string, unknown>,
-    );
+    return formatRatingResponse(updatedRating as unknown as Record<string, unknown>);
   }
 
   // ── DELETE /ratings/:ratingId ──
@@ -351,10 +336,7 @@ export class RatingsService {
 
   // ── GET /ratings/:ratingId/reviews ──
 
-  async findReviews(
-    ratingId: number,
-    params: { type?: string; page?: number; limit?: number },
-  ) {
+  async findReviews(ratingId: number, params: { type?: string; page?: number; limit?: number }) {
     const page = params.page || 1;
     const limit = params.limit || 10;
 
@@ -371,10 +353,7 @@ export class RatingsService {
       rating_id: ratingId,
     };
 
-    if (
-      params.type &&
-      ['helpful', 'not_helpful', 'comment'].includes(params.type)
-    ) {
+    if (params.type && ['helpful', 'not_helpful', 'comment'].includes(params.type)) {
       where.review_type = params.type;
     }
 
@@ -431,9 +410,7 @@ export class RatingsService {
 
     // 댓글 타입인 경우 댓글 내용 필요
     if (review_type === 'comment' && (!comment || comment.trim() === '')) {
-      throw new BadRequestException(
-        'Comment is required for comment type reviews',
-      );
+      throw new BadRequestException('Comment is required for comment type reviews');
     }
 
     // 평가 존재 확인
@@ -462,15 +439,12 @@ export class RatingsService {
     });
 
     if (existingReview) {
-      throw new ConflictException(
-        'You have already submitted this type of review for this rating',
-      );
+      throw new ConflictException('You have already submitted this type of review for this rating');
     }
 
     // helpful/not_helpful의 경우 반대 타입이 있으면 삭제 (토글)
     if (review_type === 'helpful' || review_type === 'not_helpful') {
-      const oppositeType =
-        review_type === 'helpful' ? 'not_helpful' : 'helpful';
+      const oppositeType = review_type === 'helpful' ? 'not_helpful' : 'helpful';
       await this.prisma.ratingReview.deleteMany({
         where: {
           rating_id: ratingId,
@@ -543,11 +517,7 @@ export class RatingsService {
         ];
         break;
       case 'rating':
-        orderBy = [
-          { overall_rating: 'desc' },
-          { helpful_count: 'desc' },
-          { created_at: 'desc' },
-        ];
+        orderBy = [{ overall_rating: 'desc' }, { helpful_count: 'desc' }, { created_at: 'desc' }];
         break;
       case 'recent':
       default:
@@ -605,8 +575,7 @@ export class RatingsService {
           ? {
               user_id: rating.user.user_id,
               korean_nickname: rating.user.korean_nickname,
-              profile_image_url:
-                rating.user.profile_image_url ?? undefined,
+              profile_image_url: rating.user.profile_image_url ?? undefined,
             }
           : undefined,
         overall_rating: rating.overall_rating,
@@ -644,12 +613,7 @@ export class RatingsService {
     userRatingsLimit?: number;
     currentUserId: string | null;
   }) {
-    const {
-      playerId,
-      seasonId,
-      includeReviews,
-      currentUserId,
-    } = params;
+    const { playerId, seasonId, includeReviews, currentUserId } = params;
     const topRatingsLimit = params.topRatingsLimit || 5;
     const userRatingsLimit = params.userRatingsLimit || 10;
 
@@ -749,11 +713,7 @@ export class RatingsService {
         },
         ...reviewsInclude,
       },
-      orderBy: [
-        { helpful_count: 'desc' },
-        { total_reviews: 'desc' },
-        { created_at: 'desc' },
-      ],
+      orderBy: [{ helpful_count: 'desc' }, { total_reviews: 'desc' }, { created_at: 'desc' }],
       take: userRatingsLimit,
     });
 
@@ -795,9 +755,7 @@ export class RatingsService {
         where: {
           player_id: playerId,
           user_id: currentUserId,
-          ...(seasonId && seasonId !== 'all'
-            ? { season_id: parseInt(seasonId, 10) }
-            : {}),
+          ...(seasonId && seasonId !== 'all' ? { season_id: parseInt(seasonId, 10) } : {}),
         },
       });
       hasUserRated = !!existingRating;
@@ -827,10 +785,7 @@ export class RatingsService {
   // ── Private Helpers ──
 
   /** 선수/시즌별 능력치 집계 데이터를 업데이트합니다 */
-  private async updatePlayerAbilityAggregate(
-    playerId: number,
-    seasonId: number | null,
-  ) {
+  private async updatePlayerAbilityAggregate(playerId: number, seasonId: number | null) {
     try {
       const ratings = await this.prisma.playerAbilityRating.findMany({
         where: {
@@ -850,8 +805,7 @@ export class RatingsService {
           .filter((v) => v !== null && v !== undefined);
 
         if (values.length > 0) {
-          const avg =
-            values.reduce((sum, val) => sum + val, 0) / values.length;
+          const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
           aggregateData[`avg_${field}`] = Math.round(avg * 100) / 100;
         }
       }

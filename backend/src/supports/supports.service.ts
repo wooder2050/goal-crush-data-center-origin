@@ -107,8 +107,7 @@ export class SupportsService {
     }
 
     // 선택한 팀이 해당 경기에 참여하는지 확인
-    const isValidTeam =
-      teamId === match.home_team?.team_id || teamId === match.away_team?.team_id;
+    const isValidTeam = teamId === match.home_team?.team_id || teamId === match.away_team?.team_id;
 
     if (!isValidTeam) {
       throw new BadRequestException('Team is not participating in this match');
@@ -198,9 +197,7 @@ export class SupportsService {
     }
 
     if (
-      this.hasMatchStarted(
-        existingSupport.match as { match_date: Date; status: string | null },
-      )
+      this.hasMatchStarted(existingSupport.match as { match_date: Date; status: string | null })
     ) {
       throw new BadRequestException('Cannot delete support after match has started');
     }

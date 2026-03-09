@@ -22,10 +22,7 @@ export class AdminStatsController {
   // ── POST /admin/stats/regenerate ──
   @Post('stats/regenerate')
   @ApiOperation({ summary: '모든 통계 데이터 재생성' })
-  regenerate(
-    @Query('season_id') season_id?: string,
-    @Query('type') type?: string,
-  ) {
+  regenerate(@Query('season_id') season_id?: string, @Query('type') type?: string) {
     return this.adminStatsService.regenerate({ season_id, type });
   }
 
@@ -46,10 +43,7 @@ export class AdminStatsController {
   // ── GET /admin/stats/player-stats-debug ──
   @Get('stats/player-stats-debug')
   @ApiOperation({ summary: '선수 통계 디버깅 정보' })
-  playerStatsDebug(
-    @Query('season_id') season_id?: string,
-    @Query('player_id') player_id?: string,
-  ) {
+  playerStatsDebug(@Query('season_id') season_id?: string, @Query('player_id') player_id?: string) {
     return this.adminStatsService.playerStatsDebug({ season_id, player_id });
   }
 

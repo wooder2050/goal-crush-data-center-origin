@@ -69,20 +69,14 @@ export class AdminMatchesController {
   // ── PUT /admin/matches/:matchId ──
   @Put(':matchId')
   @ApiOperation({ summary: '경기 정보 업데이트 (PUT)' })
-  update(
-    @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: UpdateMatchData,
-  ) {
+  update(@Param('matchId', ParseIntPipe) matchId: number, @Body() body: UpdateMatchData) {
     return this.adminMatchesService.update(matchId, body);
   }
 
   // ── PATCH /admin/matches/:matchId ──
   @Patch(':matchId')
   @ApiOperation({ summary: '경기 정보 업데이트 (PATCH)' })
-  patch(
-    @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: UpdateMatchData,
-  ) {
+  patch(@Param('matchId', ParseIntPipe) matchId: number, @Body() body: UpdateMatchData) {
     return this.adminMatchesService.update(matchId, body);
   }
 
@@ -103,10 +97,7 @@ export class AdminMatchesController {
   // ── POST /admin/matches/:matchId/actions ──
   @Post(':matchId/actions')
   @ApiOperation({ summary: '새 액션 추가' })
-  createAction(
-    @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: CreateActionData,
-  ) {
+  createAction(@Param('matchId', ParseIntPipe) matchId: number, @Body() body: CreateActionData) {
     return this.adminMatchesService.createAction(matchId, body);
   }
 
@@ -254,7 +245,8 @@ export class AdminMatchesController {
   @ApiOperation({ summary: '골 추가' })
   createGoal(
     @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: { player_id: number; goal_time: number; goal_type?: string; description?: string },
+    @Body()
+    body: { player_id: number; goal_time: number; goal_type?: string; description?: string },
   ) {
     return this.adminMatchesService.createGoal(matchId, body);
   }
@@ -270,10 +262,7 @@ export class AdminMatchesController {
   @Post(':matchId/lineups')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: '라인업 추가' })
-  createLineup(
-    @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: CreateLineupData,
-  ) {
+  createLineup(@Param('matchId', ParseIntPipe) matchId: number, @Body() body: CreateLineupData) {
     return this.adminMatchesService.createLineup(matchId, body);
   }
 
@@ -290,7 +279,8 @@ export class AdminMatchesController {
   @ApiOperation({ summary: '페널티킥 추가' })
   createPenalty(
     @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: {
+    @Body()
+    body: {
       team_id: number;
       player_id: number;
       goalkeeper_id: number;
@@ -345,7 +335,8 @@ export class AdminMatchesController {
   @ApiOperation({ summary: '교체 추가' })
   createSubstitution(
     @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: {
+    @Body()
+    body: {
       team_id: number;
       player_in_id: number;
       player_out_id: number;
