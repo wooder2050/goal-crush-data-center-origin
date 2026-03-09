@@ -316,7 +316,9 @@ export const getMatchLineupsPrisma = async (
 export const getPredictedMatchLineupsPrisma = async (
   matchId: number
 ): Promise<Record<string, LineupPlayer[]>> => {
-  const response = await fetch(apiUrl(`/api/matches/${matchId}/predicted-lineups`));
+  const response = await fetch(
+    apiUrl(`/api/matches/${matchId}/predicted-lineups`)
+  );
   if (!response.ok) {
     throw new Error(
       `Failed to fetch predicted match lineups: ${response.statusText}`
@@ -363,7 +365,9 @@ export const getUpcomingMatchesPrisma = async (filters?: {
   if (filters?.limit) q.set('limit', String(filters.limit));
   if (filters?.offset) q.set('offset', String(filters.offset));
   const qs = q.toString();
-  const response = await fetch(apiUrl(`/api/matches/upcoming${qs ? `?${qs}` : ''}`));
+  const response = await fetch(
+    apiUrl(`/api/matches/upcoming${qs ? `?${qs}` : ''}`)
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch upcoming matches: ${response.statusText}`);
   }
@@ -472,13 +476,16 @@ export const createSubstitutionPrisma = async (
   matchId: number,
   substitution: SubstitutionInput
 ): Promise<Substitution> => {
-  const response = await fetch(apiUrl(`/api/matches/${matchId}/substitutions`), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(substitution),
-  });
+  const response = await fetch(
+    apiUrl(`/api/matches/${matchId}/substitutions`),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(substitution),
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to create substitution: ${response.statusText}`);
@@ -648,7 +655,9 @@ export interface MatchDetailedStats {
 export const getMatchDetailedStatsPrisma = async (
   matchId: number
 ): Promise<MatchDetailedStats[]> => {
-  const response = await fetch(apiUrl(`/api/matches/${matchId}/detailed-stats`));
+  const response = await fetch(
+    apiUrl(`/api/matches/${matchId}/detailed-stats`)
+  );
   if (!response.ok) {
     throw new Error(
       `Failed to fetch match detailed stats: ${response.statusText}`

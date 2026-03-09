@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { AdminStatsService } from './admin-stats.service';
+import { AdminStatsService, BackupData } from './admin-stats.service';
 import { AdminGuard } from '../common/guards/auth.guard';
 
 @ApiTags('Admin - Stats')
@@ -39,7 +39,7 @@ export class AdminStatsController {
   // ── PUT /admin/stats/backup ──
   @Put('stats/backup')
   @ApiOperation({ summary: '백업 데이터 복원' })
-  restoreBackup(@Body() body: { data: Record<string, any>; season_id?: string }) {
+  restoreBackup(@Body() body: { data: BackupData; season_id?: string }) {
     return this.adminStatsService.restoreBackup(body);
   }
 

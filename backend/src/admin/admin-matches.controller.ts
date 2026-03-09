@@ -14,7 +14,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { AdminMatchesService } from './admin-matches.service';
+import {
+  AdminMatchesService,
+  CreateMatchData,
+  UpdateMatchData,
+  CreateActionData,
+  UpdateActionData,
+  DetailedStatData,
+  CreateLineupData,
+  PossessionData,
+} from './admin-matches.service';
 import { AdminGuard } from '../common/guards/auth.guard';
 
 @ApiTags('Admin - Matches')
@@ -39,7 +48,7 @@ export class AdminMatchesController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: '새 경기 등록' })
-  create(@Body() body: Record<string, any>) {
+  create(@Body() body: CreateMatchData) {
     return this.adminMatchesService.create(body);
   }
 
@@ -62,7 +71,7 @@ export class AdminMatchesController {
   @ApiOperation({ summary: '경기 정보 업데이트 (PUT)' })
   update(
     @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: Record<string, any>,
+    @Body() body: UpdateMatchData,
   ) {
     return this.adminMatchesService.update(matchId, body);
   }
@@ -72,7 +81,7 @@ export class AdminMatchesController {
   @ApiOperation({ summary: '경기 정보 업데이트 (PATCH)' })
   patch(
     @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: Record<string, any>,
+    @Body() body: UpdateMatchData,
   ) {
     return this.adminMatchesService.update(matchId, body);
   }
@@ -96,7 +105,7 @@ export class AdminMatchesController {
   @ApiOperation({ summary: '새 액션 추가' })
   createAction(
     @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: Record<string, any>,
+    @Body() body: CreateActionData,
   ) {
     return this.adminMatchesService.createAction(matchId, body);
   }
@@ -134,7 +143,7 @@ export class AdminMatchesController {
   updateAction(
     @Param('matchId', ParseIntPipe) matchId: number,
     @Param('actionId', ParseIntPipe) actionId: number,
-    @Body() body: Record<string, any>,
+    @Body() body: UpdateActionData,
   ) {
     return this.adminMatchesService.updateAction(matchId, actionId, body);
   }
@@ -207,7 +216,7 @@ export class AdminMatchesController {
   @ApiOperation({ summary: '상세 통계 추가/업데이트' })
   createOrUpdateDetailedStats(
     @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: Record<string, any>,
+    @Body() body: DetailedStatData,
   ) {
     return this.adminMatchesService.createOrUpdateDetailedStats(matchId, body);
   }
@@ -227,7 +236,7 @@ export class AdminMatchesController {
   @ApiOperation({ summary: '상세 통계 일괄 저장' })
   bulkSaveDetailedStats(
     @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: { stats: any[] },
+    @Body() body: { stats: DetailedStatData[] },
   ) {
     return this.adminMatchesService.bulkSaveDetailedStats(matchId, body.stats);
   }
@@ -263,7 +272,7 @@ export class AdminMatchesController {
   @ApiOperation({ summary: '라인업 추가' })
   createLineup(
     @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: Record<string, any>,
+    @Body() body: CreateLineupData,
   ) {
     return this.adminMatchesService.createLineup(matchId, body);
   }
@@ -304,7 +313,7 @@ export class AdminMatchesController {
   @ApiOperation({ summary: '점유율 일괄 저장' })
   savePossession(
     @Param('matchId', ParseIntPipe) matchId: number,
-    @Body() body: { possessions: any[] },
+    @Body() body: { possessions: PossessionData[] },
   ) {
     return this.adminMatchesService.savePossession(matchId, body.possessions);
   }

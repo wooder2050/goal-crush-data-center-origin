@@ -85,16 +85,19 @@ const toggleLike = async (params: {
   userId: string;
   action: 'like' | 'unlike';
 }): Promise<{ liked: boolean }> => {
-  const response = await authFetch(`/api/community/posts/${params.postId}/like`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      user_id: params.userId,
-      action: params.action,
-    }),
-  });
+  const response = await authFetch(
+    `/api/community/posts/${params.postId}/like`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: params.userId,
+        action: params.action,
+      }),
+    }
+  );
 
   if (!response.ok) {
     throw new Error('좋아요 처리에 실패했습니다.');

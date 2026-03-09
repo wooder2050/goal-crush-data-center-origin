@@ -29,7 +29,9 @@ async function getSeasonsPaginated(
   page: number,
   limit: number = 7
 ): Promise<SeasonsResponse> {
-  const response = await fetch(apiUrl(`/api/seasons?page=${page}&limit=${limit}`));
+  const response = await fetch(
+    apiUrl(`/api/seasons?page=${page}&limit=${limit}`)
+  );
   if (!response.ok) {
     throw new Error('Failed to fetch seasons');
   }

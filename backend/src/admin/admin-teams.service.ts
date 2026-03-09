@@ -183,7 +183,7 @@ export class AdminTeamsService {
       }
     }
 
-    const updateData: Record<string, any> = {};
+    const updateData: { name?: string; nationality?: string; profile_image_url?: string; birth_date?: Date | null } = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.nationality !== undefined) updateData.nationality = data.nationality;
     if (data.profile_image_url !== undefined) updateData.profile_image_url = data.profile_image_url;

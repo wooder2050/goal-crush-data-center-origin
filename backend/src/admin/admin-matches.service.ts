@@ -5,7 +5,7 @@ import {
   ConflictException,
   Logger,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, ActionType, ActionResult, BodyPart } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 // 피치 크기 (골때녀 풋살 규격)
@@ -59,7 +59,7 @@ export interface TeamPassNetworkData {
   success_passes: number;
 }
 
-interface DetailedStatData {
+export interface DetailedStatData {
   player_id: number;
   team_id: number;
   passes?: number;
@@ -92,10 +92,80 @@ interface DetailedStatData {
   possession_time?: number;
 }
 
-interface PossessionData {
+export interface PossessionData {
   player_id: number;
   team_id: number;
   possession_time: number;
+}
+
+export interface CreateMatchData {
+  season_id: number;
+  home_team_id: number;
+  away_team_id: number;
+  match_date: string;
+  location?: string | null;
+  status?: string;
+  description?: string | null;
+  tournament_stage?: string | null;
+  group_stage?: string | null;
+}
+
+export interface UpdateMatchData {
+  home_score?: number | null;
+  away_score?: number | null;
+  penalty_home_score?: number | null;
+  penalty_away_score?: number | null;
+  status?: string;
+  match_date?: string;
+  location?: string | null;
+  description?: string | null;
+  tournament_stage?: string | null;
+  group_stage?: string | null;
+  highlight_url?: string | null;
+  full_video_url?: string | null;
+  is_sides_swapped?: boolean;
+}
+
+export interface CreateActionData {
+  period_id: number;
+  time_seconds: number;
+  player_id: number;
+  team_id: number;
+  action_type: ActionType;
+  result: ActionResult;
+  body_part?: BodyPart | null;
+  start_x: number;
+  start_y: number;
+  end_x?: number | null;
+  end_y?: number | null;
+  description?: string | null;
+  is_set_piece?: boolean;
+}
+
+export interface UpdateActionData {
+  period_id?: number;
+  time_seconds?: number;
+  player_id?: number;
+  team_id?: number;
+  action_type?: ActionType;
+  result?: ActionResult;
+  body_part?: BodyPart | null;
+  start_x?: number;
+  start_y?: number;
+  end_x?: number | null;
+  end_y?: number | null;
+  description?: string | null;
+  is_set_piece?: boolean;
+}
+
+export interface CreateLineupData {
+  player_id: number;
+  team_id: number;
+  position: string;
+  secondary_position?: string | null;
+  position_change_minute?: number | null;
+  minutes_played?: number;
+  goals_conceded?: number | null;
 }
 
 @Injectable()
@@ -142,8 +212,8 @@ export class AdminMatchesService {
   }
 
   // ── POST /admin/matches ──
-  async create(data: Record<string, any>) {
-    const requiredFields = ['season_id', 'home_team_id', 'away_team_id', 'match_date'];
+  async create(data: CreateMatchData) {
+    const requiredFields: (keyof CreateMatchData)[] = ['season_id', 'home_team_id', 'away_team_id', 'match_date'];
     for (const field of requiredFields) {
       if (!data[field]) {
         throw new BadRequestException(`Missing required field: ${field}`);
@@ -190,7 +260,7 @@ export class AdminMatchesService {
   }
 
   // ── PUT/PATCH /admin/matches/:matchId ──
-  async update(matchId: number, data: Record<string, any>) {
+  async update(matchId: number, data: UpdateMatchData) {
     const existingMatch = await this.prisma.match.findUnique({
       where: { match_id: matchId },
     });
@@ -260,8 +330,8 @@ export class AdminMatchesService {
   }
 
   // ── POST /admin/matches/:matchId/actions ──
-  async createAction(matchId: number, body: Record<string, any>) {
-    const requiredFields = [
+  async createAction(matchId: number, body: CreateActionData) {
+    const requiredFields: (keyof CreateActionData)[] = [
       'period_id', 'time_seconds', 'player_id', 'team_id',
       'action_type', 'result', 'start_x', 'start_y',
     ];
@@ -348,7 +418,7 @@ export class AdminMatchesService {
   }
 
   // ── PATCH /admin/matches/:matchId/actions/:actionId ──
-  async updateAction(matchId: number, actionId: number, body: Record<string, any>) {
+  async updateAction(matchId: number, actionId: number, body: UpdateActionData) {
     const existingAction = await this.prisma.matchAction.findFirst({
       where: { action_id: actionId, match_id: matchId },
     });
@@ -357,23 +427,25 @@ export class AdminMatchesService {
       throw new NotFoundException('Action not found');
     }
 
+    const updateData: Prisma.MatchActionUncheckedUpdateInput = {
+      ...(body.period_id !== undefined && { period_id: body.period_id }),
+      ...(body.time_seconds !== undefined && { time_seconds: body.time_seconds }),
+      ...(body.player_id !== undefined && { player_id: body.player_id }),
+      ...(body.team_id !== undefined && { team_id: body.team_id }),
+      ...(body.action_type !== undefined && { action_type: body.action_type }),
+      ...(body.result !== undefined && { result: body.result }),
+      ...(body.body_part !== undefined && { body_part: body.body_part }),
+      ...(body.start_x !== undefined && { start_x: body.start_x }),
+      ...(body.start_y !== undefined && { start_y: body.start_y }),
+      ...(body.end_x !== undefined && { end_x: body.end_x }),
+      ...(body.end_y !== undefined && { end_y: body.end_y }),
+      ...(body.description !== undefined && { description: body.description }),
+      ...(body.is_set_piece !== undefined && { is_set_piece: body.is_set_piece }),
+    };
+
     return this.prisma.matchAction.update({
       where: { action_id: actionId },
-      data: {
-        ...(body.period_id !== undefined && { period_id: body.period_id }),
-        ...(body.time_seconds !== undefined && { time_seconds: body.time_seconds }),
-        ...(body.player_id !== undefined && { player_id: body.player_id }),
-        ...(body.team_id !== undefined && { team_id: body.team_id }),
-        ...(body.action_type !== undefined && { action_type: body.action_type }),
-        ...(body.result !== undefined && { result: body.result }),
-        ...(body.body_part !== undefined && { body_part: body.body_part }),
-        ...(body.start_x !== undefined && { start_x: body.start_x }),
-        ...(body.start_y !== undefined && { start_y: body.start_y }),
-        ...(body.end_x !== undefined && { end_x: body.end_x }),
-        ...(body.end_y !== undefined && { end_y: body.end_y }),
-        ...(body.description !== undefined && { description: body.description }),
-        ...(body.is_set_piece !== undefined && { is_set_piece: body.is_set_piece }),
-      },
+      data: updateData,
       include: {
         player: {
           select: { player_id: true, name: true, jersey_number: true, profile_image_url: true },
@@ -719,7 +791,7 @@ export class AdminMatchesService {
   }
 
   // ── POST /admin/matches/:matchId/detailed-stats ──
-  async createOrUpdateDetailedStats(matchId: number, data: Record<string, any>) {
+  async createOrUpdateDetailedStats(matchId: number, data: DetailedStatData) {
     const { player_id, team_id } = data;
     if (!player_id || !team_id) {
       throw new BadRequestException('player_id and team_id are required');
@@ -738,10 +810,15 @@ export class AdminMatchesService {
       where: { match_id: matchId, player_id },
     });
 
+    const passes = data.passes ?? 0;
+    const passesCompleted = data.passes_completed ?? 0;
+    const shots = data.shots ?? 0;
+    const shotsOnTarget = data.shots_on_target ?? 0;
+
     const rawPassAccuracy = data.pass_accuracy ??
-      (data.passes > 0 ? (data.passes_completed / data.passes) * 100 : 0);
+      (passes > 0 ? (passesCompleted / passes) * 100 : 0);
     const rawShotAccuracy = data.shot_accuracy ??
-      (data.shots > 0 ? (data.shots_on_target / data.shots) * 100 : 0);
+      (shots > 0 ? (shotsOnTarget / shots) * 100 : 0);
 
     const statsData = {
       passes: data.passes ?? 0,
@@ -951,7 +1028,7 @@ export class AdminMatchesService {
   }
 
   // ── POST /admin/matches/:matchId/lineups ──
-  async createLineup(matchId: number, data: Record<string, any>) {
+  async createLineup(matchId: number, data: CreateLineupData) {
     const { player_id, team_id, position, secondary_position, position_change_minute, minutes_played, goals_conceded } = data;
 
     if (!player_id || !team_id || !position) {
@@ -1288,7 +1365,7 @@ export class AdminMatchesService {
         yellow_cards: yellowCards,
         red_cards: redCards,
         rating,
-        breakdown: {} as Record<string, any>,
+        breakdown: {} as Prisma.InputJsonValue,
       };
     }).filter((r) => r.rating > 0);
 

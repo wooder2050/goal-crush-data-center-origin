@@ -47,7 +47,9 @@ export const getSeasonsPaginatedPrisma = async ({
   totalPages: number;
   currentPage: number;
 }> => {
-  const response = await fetch(apiUrl(`/api/seasons?page=${page}&limit=${limit}`));
+  const response = await fetch(
+    apiUrl(`/api/seasons?page=${page}&limit=${limit}`)
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch seasons: ${response.statusText}`);
   }
@@ -69,7 +71,9 @@ export const getSeasonsPagePrisma = async (
   hasNextPage: boolean;
   currentPage: number;
 }> => {
-  const response = await fetch(apiUrl(`/api/seasons?page=${page}&limit=${limit}`));
+  const response = await fetch(
+    apiUrl(`/api/seasons?page=${page}&limit=${limit}`)
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch seasons page: ${response.statusText}`);
   }
@@ -129,7 +133,9 @@ Object.defineProperty(getLatestSeasonPrisma, 'queryKey', {
 export const searchSeasonsByNamePrisma = async (
   name: string
 ): Promise<Season[]> => {
-  const response = await fetch(apiUrl(`/api/seasons?name=${encodeURIComponent(name)}`));
+  const response = await fetch(
+    apiUrl(`/api/seasons?name=${encodeURIComponent(name)}`)
+  );
   if (!response.ok) {
     throw new Error(`Failed to search seasons: ${response.statusText}`);
   }

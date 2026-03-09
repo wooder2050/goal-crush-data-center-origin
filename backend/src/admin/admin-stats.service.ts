@@ -3,7 +3,16 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+
+export interface BackupData {
+  standings?: Prisma.StandingCreateManyInput[];
+  playerSeasonStats?: Prisma.PlayerSeasonStatsCreateManyInput[];
+  teamSeasonStats?: Prisma.TeamSeasonStatsCreateManyInput[];
+  teamSeason?: Prisma.TeamSeasonCreateManyInput[];
+  h2hPairStats?: Prisma.H2hPairStatsCreateManyInput[];
+}
 
 @Injectable()
 export class AdminStatsService {
@@ -556,7 +565,7 @@ export class AdminStatsService {
   }
 
   // ── PUT /admin/stats/backup ──
-  async restoreBackup(body: { data: Record<string, any>; season_id?: string }) {
+  async restoreBackup(body: { data: BackupData; season_id?: string }) {
     const { data: backupData, season_id } = body;
 
     if (!backupData) {
@@ -581,23 +590,23 @@ export class AdminStatsService {
       h2hPairStats: 0,
     };
 
-    if (backupData.standings?.length > 0) {
+    if (backupData.standings && backupData.standings.length > 0) {
       await this.prisma.standing.createMany({ data: backupData.standings });
       results.standings = backupData.standings.length;
     }
-    if (backupData.playerSeasonStats?.length > 0) {
+    if (backupData.playerSeasonStats && backupData.playerSeasonStats.length > 0) {
       await this.prisma.playerSeasonStats.createMany({ data: backupData.playerSeasonStats });
       results.playerSeasonStats = backupData.playerSeasonStats.length;
     }
-    if (backupData.teamSeasonStats?.length > 0) {
+    if (backupData.teamSeasonStats && backupData.teamSeasonStats.length > 0) {
       await this.prisma.teamSeasonStats.createMany({ data: backupData.teamSeasonStats });
       results.teamSeasonStats = backupData.teamSeasonStats.length;
     }
-    if (backupData.teamSeason?.length > 0) {
+    if (backupData.teamSeason && backupData.teamSeason.length > 0) {
       await this.prisma.teamSeason.createMany({ data: backupData.teamSeason });
       results.teamSeason = backupData.teamSeason.length;
     }
-    if (backupData.h2hPairStats?.length > 0) {
+    if (backupData.h2hPairStats && backupData.h2hPairStats.length > 0) {
       await this.prisma.h2hPairStats.createMany({ data: backupData.h2hPairStats });
       results.h2hPairStats = backupData.h2hPairStats.length;
     }

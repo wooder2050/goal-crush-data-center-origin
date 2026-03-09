@@ -349,7 +349,8 @@ function EditSeasonForm({
   // 시즌 데이터 로드
   const { data: season } = useQuery({
     queryKey: ['season', seasonId],
-    queryFn: () => authFetch(`/api/seasons/${seasonId}`).then((res) => res.json()),
+    queryFn: () =>
+      authFetch(`/api/seasons/${seasonId}`).then((res) => res.json()),
   });
 
   // 시즌 데이터가 로드되면 폼에 설정

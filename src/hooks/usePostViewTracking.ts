@@ -39,12 +39,15 @@ export const usePostViewTracking = ({
     try {
       hasTracked.current = true;
 
-      const response = await fetch(apiUrl(`/api/community/posts/${postId}/view`), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        apiUrl(`/api/community/posts/${postId}/view`),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();

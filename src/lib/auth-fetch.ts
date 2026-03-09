@@ -8,7 +8,7 @@ function getSupabase() {
   if (!supabaseClient) {
     supabaseClient = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
   }
   return supabaseClient;
@@ -25,7 +25,7 @@ function getSupabase() {
  */
 export async function authFetch(
   path: string,
-  init?: RequestInit,
+  init?: RequestInit
 ): Promise<Response> {
   const supabase = getSupabase();
   const {

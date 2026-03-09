@@ -138,7 +138,9 @@ Object.defineProperty(getPlayerWithCurrentTeamPrisma, 'queryKey', {
 export const searchPlayersByNamePrisma = async (
   name: string
 ): Promise<Player[]> => {
-  const response = await fetch(apiUrl(`/api/players?name=${encodeURIComponent(name)}`));
+  const response = await fetch(
+    apiUrl(`/api/players?name=${encodeURIComponent(name)}`)
+  );
   if (!response.ok) {
     throw new Error(`Failed to search players: ${response.statusText}`);
   }

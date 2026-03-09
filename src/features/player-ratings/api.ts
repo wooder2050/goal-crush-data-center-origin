@@ -30,7 +30,9 @@ export async function getPlayerRatings({
     searchParams.append('season_id', seasonId.toString());
   }
 
-  const response = await fetch(apiUrl(`/api/player-ratings-api?${searchParams}`));
+  const response = await fetch(
+    apiUrl(`/api/player-ratings-api?${searchParams}`)
+  );
 
   if (!response.ok) {
     throw new Error('Failed to fetch player ratings');

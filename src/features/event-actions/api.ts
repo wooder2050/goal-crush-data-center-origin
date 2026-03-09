@@ -118,13 +118,16 @@ export const bulkCreateActions = async (
   matchId: number,
   actions: CreateActionData[]
 ): Promise<{ success: boolean; count: number }> => {
-  const response = await authFetch(`/api/admin/matches/${matchId}/actions/bulk`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ actions }),
-  });
+  const response = await authFetch(
+    `/api/admin/matches/${matchId}/actions/bulk`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ actions }),
+    }
+  );
 
   if (!response.ok) {
     const errorData = await response.json();

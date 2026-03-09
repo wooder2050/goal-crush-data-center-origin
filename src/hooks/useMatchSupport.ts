@@ -241,9 +241,12 @@ export const useCancelSupport = () => {
 
   return useGoalMutation<{ message: string }, Error, { matchId: number }>(
     async (data: { matchId: number }) => {
-      const response = await authFetch(`/api/supports?matchId=${data.matchId}`, {
-        method: 'DELETE',
-      });
+      const response = await authFetch(
+        `/api/supports?matchId=${data.matchId}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();

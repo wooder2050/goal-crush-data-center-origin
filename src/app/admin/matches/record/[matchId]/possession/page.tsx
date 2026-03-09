@@ -236,13 +236,16 @@ export default function PossessionRecordPage() {
         possession_time: p.possession_time,
       }));
 
-      const response = await authFetch(`/api/admin/matches/${matchId}/possession`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ possessions }),
-      });
+      const response = await authFetch(
+        `/api/admin/matches/${matchId}/possession`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ possessions }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('저장에 실패했습니다.');

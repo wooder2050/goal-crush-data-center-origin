@@ -373,18 +373,21 @@ export default function RecordMatchDetailPage() {
     onSubmitGoal: async (data: CreateGoalData) => {
       try {
         // 즉시 서버에 골 저장
-        const response = await authFetch(`/api/admin/matches/${matchId}/goals`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            player_id: data.player_id,
-            goal_time: data.goal_time,
-            goal_type: data.goal_type || 'regular',
-            description: data.description || null,
-          }),
-        });
+        const response = await authFetch(
+          `/api/admin/matches/${matchId}/goals`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              player_id: data.player_id,
+              goal_time: data.goal_time,
+              goal_type: data.goal_type || 'regular',
+              description: data.description || null,
+            }),
+          }
+        );
 
         if (!response.ok) {
           throw new Error('골 저장에 실패했습니다.');
@@ -402,17 +405,20 @@ export default function RecordMatchDetailPage() {
     onSubmitAssist: async (data: CreateAssistData) => {
       try {
         // 즉시 서버에 어시스트 저장
-        const response = await authFetch(`/api/admin/matches/${matchId}/assists`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            player_id: data.player_id,
-            goal_id: data.goal_id,
-            description: data.description || null,
-          }),
-        });
+        const response = await authFetch(
+          `/api/admin/matches/${matchId}/assists`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              player_id: data.player_id,
+              goal_id: data.goal_id,
+              description: data.description || null,
+            }),
+          }
+        );
 
         if (!response.ok) {
           throw new Error('어시스트 저장에 실패했습니다.');
@@ -430,22 +436,25 @@ export default function RecordMatchDetailPage() {
     onSubmitLineup: async (data: CreateLineupData) => {
       try {
         // 즉시 서버에 라인업 저장 (player_match_stats와 player_season_stats 업데이트)
-        const response = await authFetch(`/api/admin/matches/${matchId}/lineups`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            player_id: data.player_id,
-            team_id: data.team_id,
-            position: data.position || null,
-            secondary_position: data.secondary_position || null,
-            position_change_minute: data.position_change_minute ?? null,
-            jersey_number: data.jersey_number,
-            minutes_played: data.minutes_played ?? 24,
-            goals_conceded: data.goals_conceded,
-          }),
-        });
+        const response = await authFetch(
+          `/api/admin/matches/${matchId}/lineups`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              player_id: data.player_id,
+              team_id: data.team_id,
+              position: data.position || null,
+              secondary_position: data.secondary_position || null,
+              position_change_minute: data.position_change_minute ?? null,
+              jersey_number: data.jersey_number,
+              minutes_played: data.minutes_played ?? 24,
+              goals_conceded: data.goals_conceded,
+            }),
+          }
+        );
 
         if (!response.ok) {
           throw new Error('라인업 저장에 실패했습니다.');

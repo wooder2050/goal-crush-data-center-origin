@@ -483,7 +483,9 @@ export interface Substitution {
 export const getSubstitutions = async (
   matchId: number
 ): Promise<Substitution[]> => {
-  const response = await authFetch(`/api/admin/matches/${matchId}/substitutions`);
+  const response = await authFetch(
+    `/api/admin/matches/${matchId}/substitutions`
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to fetch substitutions: ${response.statusText}`);
@@ -497,13 +499,16 @@ export const createSubstitution = async (
   matchId: number,
   data: CreateSubstitutionData
 ): Promise<Substitution> => {
-  const response = await authFetch(`/api/admin/matches/${matchId}/substitutions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
+  const response = await authFetch(
+    `/api/admin/matches/${matchId}/substitutions`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }
+  );
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -605,7 +610,9 @@ export interface Player {
 
 // 팀별 선수 목록 조회 (현재 소속 선수만 - is_active = true)
 export const getTeamPlayers = async (teamId: number): Promise<Player[]> => {
-  const response = await authFetch(`/api/teams/${teamId}/players?scope=current`);
+  const response = await authFetch(
+    `/api/teams/${teamId}/players?scope=current`
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to fetch team players: ${response.statusText}`);
@@ -722,7 +729,9 @@ export interface DetailedStats {
 export const getDetailedStats = async (
   matchId: number
 ): Promise<DetailedStats[]> => {
-  const response = await authFetch(`/api/admin/matches/${matchId}/detailed-stats`);
+  const response = await authFetch(
+    `/api/admin/matches/${matchId}/detailed-stats`
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to fetch detailed stats: ${response.statusText}`);
@@ -736,13 +745,16 @@ export const saveDetailedStats = async (
   matchId: number,
   data: CreateDetailedStatsData
 ): Promise<DetailedStats> => {
-  const response = await authFetch(`/api/admin/matches/${matchId}/detailed-stats`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
+  const response = await authFetch(
+    `/api/admin/matches/${matchId}/detailed-stats`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }
+  );
 
   if (!response.ok) {
     const errorData = await response.json();
