@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:all": "concurrently -n front,back -c blue,green \"pnpm dev\" \"npm --prefix backend run dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -68,6 +69,7 @@
     "@typescript-eslint/parser": "^8.3.0",
     "@vitest/browser": "^3.2.4",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.2.1",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.7",
     "eslint-config-prettier": "^9.1.0",

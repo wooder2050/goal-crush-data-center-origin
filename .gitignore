@@ -82,3 +82,8 @@ CLAUDE.md
 
 # Google Cloud service account keys
 gtndatacenter-*.json
+
+# Backend
+backend/dist
+backend/node_modules
+backend/prisma/schema.prisma
