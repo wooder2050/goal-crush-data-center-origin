@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useGoalMutation } from '@/hooks/useGoalMutation';
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 // 폼 검증 스키마
 const createPostSchema = z.object({
@@ -38,7 +38,7 @@ type CreatePostForm = z.infer<typeof createPostSchema>;
 const createPost = async (
   formData: CreatePostForm
 ): Promise<{ post_id: number }> => {
-  const response = await fetch(apiUrl('/api/community/posts'), {
+  const response = await authFetch('/api/community/posts', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

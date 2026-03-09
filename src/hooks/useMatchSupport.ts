@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 
 import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 import { useGoalMutation } from './useGoalMutation';
 import { useGoalSuspenseQuery } from './useGoalQuery';
@@ -128,7 +129,7 @@ export const useUserMatchSupport = (matchId: number) => {
   const fetchUserSupport = async (): Promise<{
     support: MatchSupportData | null;
   }> => {
-    const response = await fetch(apiUrl(`/api/supports?matchId=${matchId}`));
+    const response = await authFetch(`/api/supports?matchId=${matchId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch user support');
     }
@@ -169,7 +170,7 @@ export const useUserSupports = () => {
   const fetchUserSupports = async (): Promise<{
     supports: MatchSupportData[];
   }> => {
-    const response = await fetch(apiUrl('/api/supports'));
+    const response = await authFetch('/api/supports');
     if (!response.ok) {
       throw new Error('Failed to fetch user supports');
     }
@@ -196,7 +197,7 @@ export const useCreateSupport = () => {
     CreateSupportData
   >(
     async (data: CreateSupportData) => {
-      const response = await fetch(apiUrl('/api/supports'), {
+      const response = await authFetch('/api/supports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -240,7 +241,7 @@ export const useCancelSupport = () => {
 
   return useGoalMutation<{ message: string }, Error, { matchId: number }>(
     async (data: { matchId: number }) => {
-      const response = await fetch(apiUrl(`/api/supports?matchId=${data.matchId}`), {
+      const response = await authFetch(`/api/supports?matchId=${data.matchId}`, {
         method: 'DELETE',
       });
 
@@ -330,7 +331,7 @@ export const useDeleteSupportMessage = () => {
 
   return useGoalMutation<{ message: string }, Error, { supportId: number }>(
     async (data: { supportId: number }) => {
-      const response = await fetch(apiUrl(`/api/supports/${data.supportId}`), {
+      const response = await authFetch(`/api/supports/${data.supportId}`, {
         method: 'DELETE',
       });
 

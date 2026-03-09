@@ -17,7 +17,7 @@ import { H1, H2 } from '@/components/ui/typography';
 import { getAllSeasonsPrisma } from '@/features/seasons/api-prisma';
 import { useGoalMutation } from '@/hooks/useGoalMutation';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,8 +38,8 @@ export default function AdminStatsPage() {
           ? `?season_id=${params.season_id}&type=${params.type}`
           : `?type=${params.type}`;
 
-      const response = await fetch(
-        apiUrl(`/api/admin/stats/regenerate${queryParams}`),
+      const response = await authFetch(
+        `/api/admin/stats/regenerate${queryParams}`,
         {
           method: 'POST',
         }
@@ -61,8 +61,8 @@ export default function AdminStatsPage() {
           ? `?season_id=${params.season_id}&type=${params.type}`
           : `?type=${params.type}`;
 
-      const response = await fetch(
-        apiUrl(`/api/admin/stats/regenerate${queryParams}`),
+      const response = await authFetch(
+        `/api/admin/stats/regenerate${queryParams}`,
         {
           method: 'POST',
         }
@@ -81,7 +81,7 @@ export default function AdminStatsPage() {
     const queryParams =
       season_id && season_id !== 'all' ? `?season_id=${season_id}` : '';
 
-    const response = await fetch(apiUrl(`/api/admin/stats/validate${queryParams}`));
+    const response = await authFetch(`/api/admin/stats/validate${queryParams}`);
 
     if (!response.ok) {
       throw new Error('통계 검증에 실패했습니다.');
@@ -92,7 +92,7 @@ export default function AdminStatsPage() {
 
   // H2H 통계 복구 mutation
   const restoreH2hMutation = useGoalMutation(async () => {
-    const response = await fetch(apiUrl(`/api/admin/stats/restore-h2h`), {
+    const response = await authFetch(`/api/admin/stats/restore-h2h`, {
       method: 'POST',
     });
 
@@ -108,8 +108,8 @@ export default function AdminStatsPage() {
     async (season_id?: string) => {
       const queryParams =
         season_id && season_id !== 'all' ? `?season_id=${season_id}` : '';
-      const response = await fetch(
-        apiUrl(`/api/admin/stats/player-stats-debug${queryParams}`)
+      const response = await authFetch(
+        `/api/admin/stats/player-stats-debug${queryParams}`
       );
 
       if (!response.ok) {

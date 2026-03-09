@@ -35,7 +35,7 @@ import {
   PlayerSelector,
   ResultSelector,
 } from '@/features/event-actions/components';
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 export const dynamic = 'force-dynamic';
 
@@ -127,7 +127,7 @@ export default function EventRecordPage() {
     const newValue = !isSidesSwapped;
     setIsUpdatingSides(true);
     try {
-      const response = await fetch(apiUrl(`/api/admin/matches/${matchId}`), {
+      const response = await authFetch(`/api/admin/matches/${matchId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_sides_swapped: newValue }),

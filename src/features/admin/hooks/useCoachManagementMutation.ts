@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useGoalMutation } from '@/hooks/useGoalMutation';
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 // Coach API 타입 정의
 export type CreateCoachData = {
@@ -17,7 +17,7 @@ export type UpdateCoachData = CreateCoachData;
 
 // 감독 생성 API 함수
 const createCoachApi = async (data: CreateCoachData) => {
-  const response = await fetch(apiUrl('/api/admin/coaches'), {
+  const response = await authFetch('/api/admin/coaches', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ const updateCoachApi = async ({
   coachId: number;
   data: UpdateCoachData;
 }) => {
-  const response = await fetch(apiUrl(`/api/admin/coaches/${coachId}`), {
+  const response = await authFetch(`/api/admin/coaches/${coachId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ const updateCoachApi = async ({
 
 // 감독 삭제 API 함수
 const deleteCoachApi = async (coachId: number) => {
-  const response = await fetch(apiUrl(`/api/admin/coaches/${coachId}`), {
+  const response = await authFetch(`/api/admin/coaches/${coachId}`, {
     method: 'DELETE',
   });
 

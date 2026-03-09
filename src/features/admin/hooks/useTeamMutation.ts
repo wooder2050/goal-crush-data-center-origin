@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useGoalMutation } from '@/hooks/useGoalMutation';
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 // Team API 타입 정의
 export type CreateTeamData = {
@@ -19,7 +19,7 @@ export type UpdateTeamData = CreateTeamData;
 
 // 팀 생성 API 함수
 const createTeamApi = async (data: CreateTeamData) => {
-  const response = await fetch(apiUrl('/api/admin/teams'), {
+  const response = await authFetch('/api/admin/teams', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ const updateTeamApi = async ({
   teamId: number;
   data: UpdateTeamData;
 }) => {
-  const response = await fetch(apiUrl(`/api/admin/teams/${teamId}`), {
+  const response = await authFetch(`/api/admin/teams/${teamId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ const updateTeamApi = async ({
 
 // 팀 삭제 API 함수
 const deleteTeamApi = async (teamId: number) => {
-  const response = await fetch(apiUrl(`/api/admin/teams/${teamId}`), {
+  const response = await authFetch(`/api/admin/teams/${teamId}`, {
     method: 'DELETE',
   });
 

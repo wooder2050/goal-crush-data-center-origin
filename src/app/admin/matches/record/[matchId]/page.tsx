@@ -40,7 +40,7 @@ import { useMatchDetail } from '@/features/admin/hooks/useMatchQuery';
 import { useMatchPenalties } from '@/features/admin/hooks/usePenaltyQuery';
 import { useTeamPlayers } from '@/features/admin/hooks/usePlayersQuery';
 import { useMatchSubstitutions } from '@/features/admin/hooks/useSubstitutionQuery';
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 export const dynamic = 'force-dynamic';
 
@@ -309,7 +309,7 @@ export default function RecordMatchDetailPage() {
 
     try {
       // 즉시 서버에 스코어 저장
-      const response = await fetch(apiUrl(`/api/admin/matches/${matchId}`), {
+      const response = await authFetch(`/api/admin/matches/${matchId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -344,8 +344,8 @@ export default function RecordMatchDetailPage() {
       }
 
       // 2. 순위표 및 통계 업데이트 (standing, team_season_stats, team_seasons, h2h_pair_stats)
-      const statsResponse = await fetch(
-        apiUrl(`/api/admin/matches/${matchId}/update-stats`),
+      const statsResponse = await authFetch(
+        `/api/admin/matches/${matchId}/update-stats`,
         {
           method: 'POST',
           headers: {
@@ -373,7 +373,7 @@ export default function RecordMatchDetailPage() {
     onSubmitGoal: async (data: CreateGoalData) => {
       try {
         // 즉시 서버에 골 저장
-        const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/goals`), {
+        const response = await authFetch(`/api/admin/matches/${matchId}/goals`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -402,7 +402,7 @@ export default function RecordMatchDetailPage() {
     onSubmitAssist: async (data: CreateAssistData) => {
       try {
         // 즉시 서버에 어시스트 저장
-        const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/assists`), {
+        const response = await authFetch(`/api/admin/matches/${matchId}/assists`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -430,7 +430,7 @@ export default function RecordMatchDetailPage() {
     onSubmitLineup: async (data: CreateLineupData) => {
       try {
         // 즉시 서버에 라인업 저장 (player_match_stats와 player_season_stats 업데이트)
-        const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/lineups`), {
+        const response = await authFetch(`/api/admin/matches/${matchId}/lineups`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -465,8 +465,8 @@ export default function RecordMatchDetailPage() {
     onSubmitSubstitution: async (data: CreateSubstitutionData) => {
       try {
         // 즉시 서버에 교체 저장
-        const response = await fetch(
-          apiUrl(`/api/admin/matches/${matchId}/substitutions`),
+        const response = await authFetch(
+          `/api/admin/matches/${matchId}/substitutions`,
           {
             method: 'POST',
             headers: {
@@ -498,8 +498,8 @@ export default function RecordMatchDetailPage() {
     onSubmitPenalty: async (data: CreatePenaltyData) => {
       try {
         // 즉시 서버에 승부차기 저장
-        const response = await fetch(
-          apiUrl(`/api/admin/matches/${matchId}/penalties`),
+        const response = await authFetch(
+          `/api/admin/matches/${matchId}/penalties`,
           {
             method: 'POST',
             headers: {

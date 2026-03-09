@@ -1,12 +1,12 @@
 'use client';
 
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 import { CreateActionData, MatchAction, UpdateActionData } from './types';
 
 // 액션 목록 조회
 export const getActions = async (matchId: number): Promise<MatchAction[]> => {
-  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/actions`));
+  const response = await authFetch(`/api/admin/matches/${matchId}/actions`);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch actions: ${response.statusText}`);
@@ -20,8 +20,8 @@ export const getAction = async (
   matchId: number,
   actionId: number
 ): Promise<MatchAction> => {
-  const response = await fetch(
-    apiUrl(`/api/admin/matches/${matchId}/actions/${actionId}`)
+  const response = await authFetch(
+    `/api/admin/matches/${matchId}/actions/${actionId}`
   );
 
   if (!response.ok) {
@@ -36,7 +36,7 @@ export const createAction = async (
   matchId: number,
   data: CreateActionData
 ): Promise<MatchAction> => {
-  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/actions`), {
+  const response = await authFetch(`/api/admin/matches/${matchId}/actions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -58,8 +58,8 @@ export const updateAction = async (
   actionId: number,
   data: UpdateActionData
 ): Promise<MatchAction> => {
-  const response = await fetch(
-    apiUrl(`/api/admin/matches/${matchId}/actions/${actionId}`),
+  const response = await authFetch(
+    `/api/admin/matches/${matchId}/actions/${actionId}`,
     {
       method: 'PATCH',
       headers: {
@@ -82,8 +82,8 @@ export const deleteAction = async (
   matchId: number,
   actionId: number
 ): Promise<{ success: boolean }> => {
-  const response = await fetch(
-    apiUrl(`/api/admin/matches/${matchId}/actions/${actionId}`),
+  const response = await authFetch(
+    `/api/admin/matches/${matchId}/actions/${actionId}`,
     {
       method: 'DELETE',
     }
@@ -101,7 +101,7 @@ export const deleteAction = async (
 export const undoLastAction = async (
   matchId: number
 ): Promise<{ success: boolean; deleted_action_id?: number }> => {
-  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/actions`), {
+  const response = await authFetch(`/api/admin/matches/${matchId}/actions`, {
     method: 'DELETE',
   });
 
@@ -118,7 +118,7 @@ export const bulkCreateActions = async (
   matchId: number,
   actions: CreateActionData[]
 ): Promise<{ success: boolean; count: number }> => {
-  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/actions/bulk`), {
+  const response = await authFetch(`/api/admin/matches/${matchId}/actions/bulk`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -139,8 +139,8 @@ export const getActionsByPeriod = async (
   matchId: number,
   periodId: number
 ): Promise<MatchAction[]> => {
-  const response = await fetch(
-    apiUrl(`/api/admin/matches/${matchId}/actions?period_id=${periodId}`)
+  const response = await authFetch(
+    `/api/admin/matches/${matchId}/actions?period_id=${periodId}`
   );
 
   if (!response.ok) {
@@ -155,8 +155,8 @@ export const getActionsByPlayer = async (
   matchId: number,
   playerId: number
 ): Promise<MatchAction[]> => {
-  const response = await fetch(
-    apiUrl(`/api/admin/matches/${matchId}/actions?player_id=${playerId}`)
+  const response = await authFetch(
+    `/api/admin/matches/${matchId}/actions?player_id=${playerId}`
   );
 
   if (!response.ok) {

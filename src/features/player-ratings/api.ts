@@ -1,4 +1,5 @@
 import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 import type { PlayerRatingsResponse } from './types';
 
@@ -50,7 +51,7 @@ export async function createRatingReview({
   reviewType: 'helpful' | 'not_helpful' | 'comment';
   comment?: string;
 }): Promise<unknown> {
-  const response = await fetch(apiUrl(`/api/ratings/${ratingId}/reviews`), {
+  const response = await authFetch(`/api/ratings/${ratingId}/reviews`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -75,7 +76,7 @@ export async function createRatingReview({
 export async function createPlayerRating(
   ratingData: import('./types').CreateRatingRequest
 ): Promise<unknown> {
-  const response = await fetch(apiUrl('/api/ratings'), {
+  const response = await authFetch('/api/ratings', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

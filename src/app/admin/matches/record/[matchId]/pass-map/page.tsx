@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PassMap } from '@/features/event-actions/components/PassMap';
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 interface PlayerPosition {
   player_id: number;
@@ -59,7 +59,7 @@ export default function PassMapPage() {
         setIsLoading(true);
 
         // 경기 정보 가져오기
-        const matchRes = await fetch(apiUrl(`/api/admin/matches/${matchId}`));
+        const matchRes = await authFetch(`/api/admin/matches/${matchId}`);
         if (!matchRes.ok) throw new Error('경기 정보를 불러올 수 없습니다.');
         const matchData = await matchRes.json();
         setMatchInfo({
@@ -71,8 +71,8 @@ export default function PassMapPage() {
         });
 
         // 패스 네트워크 데이터 가져오기
-        const passRes = await fetch(
-          apiUrl(`/api/admin/matches/${matchId}/actions/pass-map`)
+        const passRes = await authFetch(
+          `/api/admin/matches/${matchId}/actions/pass-map`
         );
         if (!passRes.ok) throw new Error('패스 데이터를 불러올 수 없습니다.');
         const passData = await passRes.json();

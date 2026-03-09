@@ -12,7 +12,7 @@ import MatchErrorState from '@/features/admin/components/MatchErrorState';
 import { MatchDetailPageSkeleton } from '@/features/admin/components/skeletons';
 import { useMatchLineups } from '@/features/admin/hooks/useLineupQuery';
 import { useMatchDetail } from '@/features/admin/hooks/useMatchQuery';
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,7 +93,7 @@ export default function PossessionRecordPage() {
   useEffect(() => {
     if (matchId && !dataLoadedRef.current) {
       dataLoadedRef.current = true;
-      fetch(apiUrl(`/api/admin/matches/${matchId}/possession`))
+      authFetch(`/api/admin/matches/${matchId}/possession`)
         .then((res) => res.json())
         .then((data: PossessionApiResponse[]) => {
           if (Array.isArray(data) && data.length > 0) {
@@ -236,7 +236,7 @@ export default function PossessionRecordPage() {
         possession_time: p.possession_time,
       }));
 
-      const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/possession`), {
+      const response = await authFetch(`/api/admin/matches/${matchId}/possession`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

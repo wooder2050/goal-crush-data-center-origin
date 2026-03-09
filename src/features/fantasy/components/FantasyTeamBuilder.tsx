@@ -29,7 +29,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGoalMutation } from '@/hooks/useGoalMutation';
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 import {
   type PlayerSelection,
   type PlayerWithPosition,
@@ -106,7 +106,7 @@ export default function FantasyTeamBuilder({
         position: 'GK' | 'DF' | 'MF' | 'FW';
       }>;
     }) => {
-      const response = await fetch(apiUrl('/api/fantasy/teams'), {
+      const response = await authFetch('/api/fantasy/teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -152,7 +152,7 @@ export default function FantasyTeamBuilder({
         throw new Error('팀 ID가 필요합니다.');
       }
 
-      const response = await fetch(apiUrl(`/api/fantasy/teams/${teamId}`), {
+      const response = await authFetch(`/api/fantasy/teams/${teamId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

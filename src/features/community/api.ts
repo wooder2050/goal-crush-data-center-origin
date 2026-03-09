@@ -1,6 +1,7 @@
 // 커뮤니티 관련 API 함수들
 
 import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 import { MVPVotingData } from '@/types';
 import { MVPVoteResult } from '@/types/community';
 
@@ -29,7 +30,7 @@ export const voteForMVP = async (data: {
   season_id: number;
   vote_type: string;
 }): Promise<{ success: boolean; message: string }> => {
-  const response = await fetch(apiUrl('/api/community/mvp-votes'), {
+  const response = await authFetch('/api/community/mvp-votes', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

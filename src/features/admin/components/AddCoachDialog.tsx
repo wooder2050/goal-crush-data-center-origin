@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
-import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 import { useCreateMatchCoachMutation } from '../hooks/useCoachMutation';
 
@@ -39,7 +39,7 @@ interface AddCoachDialogProps {
 // 실제 데이터를 가져오는 훅
 const useCoaches = () =>
   useGoalQuery(async () => {
-    const response = await fetch(apiUrl('/api/coaches'));
+    const response = await authFetch('/api/coaches');
     if (!response.ok) {
       throw new Error('감독 목록을 불러올 수 없습니다.');
     }
