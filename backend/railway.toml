@@ -1,9 +1,0 @@
-[build]
-buildCommand = "mkdir -p prisma && cp ../prisma/schema.prisma prisma/schema.prisma && npx prisma generate && npx nest build"
-
-[deploy]
-startCommand = "node dist/main"
-healthcheckPath = "/api/health"
-healthcheckTimeout = 120
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 3
