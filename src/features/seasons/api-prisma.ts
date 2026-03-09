@@ -220,7 +220,7 @@ Object.defineProperty(updateSeasonPrisma, 'queryKey', {
 
 // Delete season
 export const deleteSeasonPrisma = async (seasonId: number): Promise<void> => {
-  const response = await fetch(apiUrl(`/api/seasons?id=${seasonId}`), {
+  const response = await fetch(apiUrl(`/api/seasons/${seasonId}`), {
     method: 'DELETE',
   });
 

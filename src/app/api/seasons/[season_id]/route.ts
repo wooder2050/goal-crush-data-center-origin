@@ -126,6 +126,85 @@ export async function PUT(
   }
 }
 
+// DELETE /api/seasons/[season_id] - 시즌 삭제
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { season_id: string } }
+) {
+  try {
+    const seasonId = parseInt(params.season_id);
+
+    if (isNaN(seasonId)) {
+      return NextResponse.json(
+        { error: '유효하지 않은 시즌 ID입니다.' },
+        { status: 400 }
+      );
+    }
+
+    const existingSeason = await prisma.season.findUnique({
+      where: { season_id: seasonId },
+    });
+
+    if (!existingSeason) {
+      return NextResponse.json(
+        { error: '존재하지 않는 시즌입니다.' },
+        { status: 404 }
+      );
+    }
+
+    const matchCount = await prisma.match.count({
+      where: { season_id: seasonId },
+    });
+
+    if (matchCount > 0) {
+      return NextResponse.json(
+        {
+          error: '경기가 있는 시즌은 삭제할 수 없습니다.',
+          matchCount,
+          seasonName: existingSeason.season_name,
+        },
+        { status: 400 }
+      );
+    }
+
+    const relatedDataCount = await prisma.standing.count({
+      where: { season_id: seasonId },
+    });
+
+    if (relatedDataCount > 0) {
+      return NextResponse.json(
+        {
+          error: '순위 데이터가 있는 시즌은 삭제할 수 없습니다.',
+          relatedDataCount,
+          seasonName: existingSeason.season_name,
+        },
+        { status: 400 }
+      );
+    }
+
+    await prisma.season.delete({
+      where: { season_id: seasonId },
+    });
+
+    return NextResponse.json({
+      message: '시즌이 삭제되었습니다.',
+      deletedSeason: {
+        id: seasonId,
+        name: existingSeason.season_name,
+      },
+    });
+  } catch (error) {
+    console.error('Error deleting season:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to delete season',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}
+
 // GET /api/seasons/[season_id] - 시즌 상세 조회
 export async function GET(
   request: NextRequest,
