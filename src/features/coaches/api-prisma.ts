@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 
+import { apiUrl } from '@/lib/api-url';
 import type {
   CoachDetail,
   CoachFull,
@@ -434,7 +435,7 @@ export async function fetchCoaches(): Promise<{
   coaches: CoachWithHistory[];
   total: number;
 }> {
-  const response = await fetch('/api/coaches');
+  const response = await fetch(apiUrl('/api/coaches'));
   if (!response.ok) {
     throw new Error('Failed to fetch coaches');
   }
@@ -444,7 +445,7 @@ export async function fetchCoaches(): Promise<{
 export async function fetchCoachDetail(
   coachId: number
 ): Promise<CoachDetail | null> {
-  const response = await fetch(`/api/coaches/${coachId}`);
+  const response = await fetch(apiUrl(`/api/coaches/${coachId}`));
   if (!response.ok) {
     throw new Error('Failed to fetch coach detail');
   }
@@ -454,7 +455,7 @@ export async function fetchCoachDetail(
 export async function fetchCoachStats(
   coachId: number
 ): Promise<{ season_stats: CoachSeasonStats[] }> {
-  const response = await fetch(`/api/coaches/${coachId}/stats`);
+  const response = await fetch(apiUrl(`/api/coaches/${coachId}/stats`));
   if (!response.ok) {
     throw new Error('Failed to fetch coach stats');
   }
@@ -464,7 +465,7 @@ export async function fetchCoachStats(
 export async function fetchCoachCurrentTeam(
   coachId: number
 ): Promise<TeamCurrentHeadCoach | null> {
-  const res = await fetch(`/api/coaches/${coachId}/current-team`);
+  const res = await fetch(apiUrl(`/api/coaches/${coachId}/current-team`));
   if (!res.ok) return null;
   return res.json();
 }
@@ -472,7 +473,7 @@ export async function fetchCoachCurrentTeam(
 export async function fetchCoachTrophies(
   coachId: number
 ): Promise<CoachTrophies> {
-  const res = await fetch(`/api/coaches/${coachId}/trophies`);
+  const res = await fetch(apiUrl(`/api/coaches/${coachId}/trophies`));
   if (!res.ok) {
     throw new Error('Failed to fetch trophies');
   }
@@ -482,7 +483,7 @@ export async function fetchCoachTrophies(
 export async function fetchCoachOverview(
   coachId: number
 ): Promise<CoachOverview> {
-  const res = await fetch(`/api/coaches/${coachId}/overview`);
+  const res = await fetch(apiUrl(`/api/coaches/${coachId}/overview`));
   if (!res.ok) {
     throw new Error('Failed to fetch coach overview');
   }
@@ -490,7 +491,7 @@ export async function fetchCoachOverview(
 }
 
 export async function fetchCoachFull(coachId: number): Promise<CoachFull> {
-  const res = await fetch(`/api/coaches/${coachId}/full`);
+  const res = await fetch(apiUrl(`/api/coaches/${coachId}/full`));
   if (!res.ok) {
     throw new Error('Failed to fetch full coach data');
   }
@@ -524,7 +525,7 @@ export async function getCoachesPagePrisma(
     offset: String(offset),
   });
   if (opts?.order) params.set('order', opts.order);
-  const res = await fetch(`/api/coaches?${params.toString()}`);
+  const res = await fetch(apiUrl(`/api/coaches?${params.toString()}`));
   if (!res.ok) {
     throw new Error('Failed to fetch coaches page');
   }

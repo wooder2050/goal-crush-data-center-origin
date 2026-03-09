@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/api-url';
 import {
   PlayerMatchStats,
   PlayerSeasonStats,
@@ -15,7 +16,7 @@ import {
 export const getPlayerMatchStatsPrisma = async (
   matchId: number
 ): Promise<PlayerMatchStats[]> => {
-  const response = await fetch(`/api/stats/player-match?match_id=${matchId}`);
+  const response = await fetch(apiUrl(`/api/stats/player-match?match_id=${matchId}`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch player match statistics: ${response.statusText}`
@@ -28,7 +29,7 @@ export const getPlayerMatchStatsPrisma = async (
 export const getPlayerMatchStatsByPlayerPrisma = async (
   playerId: number
 ): Promise<PlayerMatchStats[]> => {
-  const response = await fetch(`/api/stats/player-match?player_id=${playerId}`);
+  const response = await fetch(apiUrl(`/api/stats/player-match?player_id=${playerId}`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch player match statistics: ${response.statusText}`
@@ -44,7 +45,7 @@ export const getPlayerSeasonStatsPrisma = async (
   seasonId: number
 ): Promise<PlayerSeasonStats[]> => {
   const response = await fetch(
-    `/api/stats/player-season?season_id=${seasonId}`
+    apiUrl(`/api/stats/player-season?season_id=${seasonId}`)
   );
   if (!response.ok) {
     throw new Error(
@@ -59,7 +60,7 @@ export const getPlayerSeasonStatsByPlayerPrisma = async (
   playerId: number
 ): Promise<PlayerSeasonStats[]> => {
   const response = await fetch(
-    `/api/stats/player-season?player_id=${playerId}`
+    apiUrl(`/api/stats/player-season?player_id=${playerId}`)
   );
   if (!response.ok) {
     throw new Error(
@@ -75,7 +76,7 @@ export const getTopScorersPrisma = async (
   limit: number = 10
 ): Promise<PlayerSeasonStatsWithNames[]> => {
   const response = await fetch(
-    `/api/stats/player-season/top-scorers?season_id=${seasonId}&limit=${limit}`
+    apiUrl(`/api/stats/player-season/top-scorers?season_id=${seasonId}&limit=${limit}`)
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch top scorers: ${response.statusText}`);
@@ -89,7 +90,7 @@ export const getTopAppearancesPrisma = async (
   limit: number = 10
 ): Promise<PlayerSeasonStatsWithNames[]> => {
   const response = await fetch(
-    `/api/stats/player-season/top-appearances?season_id=${seasonId}&limit=${limit}`
+    apiUrl(`/api/stats/player-season/top-appearances?season_id=${seasonId}&limit=${limit}`)
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch top appearances: ${response.statusText}`);
@@ -103,7 +104,7 @@ export const getTopAssistsPrisma = async (
   limit: number = 10
 ): Promise<PlayerSeasonStatsWithNames[]> => {
   const response = await fetch(
-    `/api/stats/player-season/top-assists?season_id=${seasonId}&limit=${limit}`
+    apiUrl(`/api/stats/player-season/top-assists?season_id=${seasonId}&limit=${limit}`)
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch top assists: ${response.statusText}`);
@@ -130,7 +131,7 @@ export const getTopRatingsPrisma = async (
   limit: number = 10
 ): Promise<TopRatedPlayerRow[]> => {
   const response = await fetch(
-    `/api/stats/player-match/top-ratings?season_id=${seasonId}&limit=${limit}`
+    apiUrl(`/api/stats/player-match/top-ratings?season_id=${seasonId}&limit=${limit}`)
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch top ratings: ${response.statusText}`);
@@ -144,7 +145,7 @@ export const getTopXtRatingsPrisma = async (
   limit: number = 10
 ): Promise<TopRatedPlayerRow[]> => {
   const response = await fetch(
-    `/api/stats/player-match/top-xt-ratings?season_id=${seasonId}&limit=${limit}`
+    apiUrl(`/api/stats/player-match/top-xt-ratings?season_id=${seasonId}&limit=${limit}`)
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch top xT ratings: ${response.statusText}`);
@@ -158,7 +159,7 @@ export const getTopXtRatingsPrisma = async (
 export const getTeamSeasonStatsPrisma = async (
   seasonId: number
 ): Promise<TeamSeasonStats[]> => {
-  const response = await fetch(`/api/stats/team-season?season_id=${seasonId}`);
+  const response = await fetch(apiUrl(`/api/stats/team-season?season_id=${seasonId}`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch team season statistics: ${response.statusText}`
@@ -171,7 +172,7 @@ export const getTeamSeasonStatsPrisma = async (
 export const getTeamSeasonStatsByTeamPrisma = async (
   teamId: number
 ): Promise<TeamSeasonStats[]> => {
-  const response = await fetch(`/api/stats/team-season?team_id=${teamId}`);
+  const response = await fetch(apiUrl(`/api/stats/team-season?team_id=${teamId}`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch team season statistics: ${response.statusText}`
@@ -186,7 +187,7 @@ export const getTeamSeasonStatsByTeamPrisma = async (
 export const getStandingsPrisma = async (
   seasonId: number
 ): Promise<Standing[]> => {
-  const response = await fetch(`/api/seasons/${seasonId}/standing`);
+  const response = await fetch(apiUrl(`/api/seasons/${seasonId}/standing`));
   if (!response.ok) {
     throw new Error(`Failed to fetch standings: ${response.statusText}`);
   }
@@ -199,7 +200,7 @@ Object.defineProperty(getStandingsPrisma, 'queryKey', {
 
 // Get standings with team name by season
 export const getStandingsWithTeamPrisma = async (seasonId: number) => {
-  const response = await fetch(`/api/seasons/${seasonId}/standing`);
+  const response = await fetch(apiUrl(`/api/seasons/${seasonId}/standing`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch standings with team: ${response.statusText}`
@@ -232,7 +233,7 @@ export const getGroupLeagueStandingsPrisma = async (
     params.append('group_stage', groupStage);
   }
 
-  const response = await fetch(`/api/stats/group-league-standings?${params}`);
+  const response = await fetch(apiUrl(`/api/stats/group-league-standings?${params}`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch group league standings: ${response.statusText}`

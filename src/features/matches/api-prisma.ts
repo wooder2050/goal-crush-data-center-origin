@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/api-url';
 import {
   Assist,
   Goal,
@@ -50,7 +51,7 @@ interface SeasonSummary {
 
 // Get all matches
 export const getMatchesPrisma = async (): Promise<MatchWithTeams[]> => {
-  const response = await fetch('/api/matches');
+  const response = await fetch(apiUrl('/api/matches'));
   if (!response.ok) {
     throw new Error(`Failed to fetch matches: ${response.statusText}`);
   }
@@ -61,7 +62,7 @@ export const getMatchesPrisma = async (): Promise<MatchWithTeams[]> => {
 export const getMatchByIdPrisma = async (
   matchId: number
 ): Promise<MatchWithTeams | null> => {
-  const response = await fetch(`/api/matches/${matchId}`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}`));
   if (response.status === 404) {
     return null; // Match not found
   }
@@ -99,7 +100,7 @@ export const getHeadToHeadByMatchIdPrisma = async (
     };
   };
 }> => {
-  const response = await fetch(`/api/matches/${matchId}/head-to-head`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/head-to-head`));
   if (!response.ok) {
     throw new Error(`Failed to fetch head-to-head: ${response.statusText}`);
   }
@@ -141,7 +142,7 @@ export const getHeadToHeadListByMatchIdPrisma = async (
   }>;
 }> => {
   const response = await fetch(
-    `/api/matches/${matchId}/head-to-head/list?scope=${scope}`
+    apiUrl(`/api/matches/${matchId}/head-to-head/list?scope=${scope}`)
   );
   if (!response.ok) {
     throw new Error(
@@ -155,7 +156,7 @@ export const getHeadToHeadListByMatchIdPrisma = async (
 export const getMatchesBySeasonIdPrisma = async (
   seasonId: number
 ): Promise<MatchWithTeams[]> => {
-  const response = await fetch(`/api/matches/season/${seasonId}`);
+  const response = await fetch(apiUrl(`/api/matches/season/${seasonId}`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch matches by season: ${response.statusText}`
@@ -197,7 +198,7 @@ export const getSeasonMatchesPagePrisma = async (
   }
 
   const response = await fetch(
-    `/api/matches/season/${seasonId}?${params.toString()}`
+    apiUrl(`/api/matches/season/${seasonId}?${params.toString()}`)
   );
   if (!response.ok) {
     throw new Error(
@@ -213,7 +214,7 @@ export const getSeasonMatchesPagePrisma = async (
 export const getMatchGoalsPrisma = async (
   matchId: number
 ): Promise<GoalWithTeam[]> => {
-  const response = await fetch(`/api/matches/${matchId}/goals`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/goals`));
   if (!response.ok) {
     throw new Error(`Failed to fetch match goals: ${response.statusText}`);
   }
@@ -224,7 +225,7 @@ export const getMatchGoalsPrisma = async (
 export const getMatchGoalsWithAssistsPrisma = async (
   matchId: number
 ): Promise<GoalWithTeam[]> => {
-  const response = await fetch(`/api/matches/${matchId}/goals`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/goals`));
   if (!response.ok) {
     throw new Error(`Failed to fetch match goals: ${response.statusText}`);
   }
@@ -235,7 +236,7 @@ export const getMatchGoalsWithAssistsPrisma = async (
 export const getMatchAssistsPrisma = async (
   matchId: number
 ): Promise<Assist[]> => {
-  const response = await fetch(`/api/matches/${matchId}/assists`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/assists`));
   if (!response.ok) {
     throw new Error(`Failed to fetch match assists: ${response.statusText}`);
   }
@@ -269,7 +270,7 @@ export const getKeyPlayersByMatchIdPrisma = async (
     profile_image_url: string | null;
   }>;
 }> => {
-  const response = await fetch(`/api/matches/${matchId}/key-players`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/key-players`));
   if (!response.ok) {
     throw new Error(`Failed to fetch key players: ${response.statusText}`);
   }
@@ -287,7 +288,7 @@ export const createAssistPrisma = async (
     description?: string;
   }
 ): Promise<Assist> => {
-  const response = await fetch(`/api/matches/${matchId}/assists`, {
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/assists`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -305,7 +306,7 @@ export const createAssistPrisma = async (
 export const getMatchLineupsPrisma = async (
   matchId: number
 ): Promise<Record<string, LineupPlayer[]>> => {
-  const response = await fetch(`/api/matches/${matchId}/lineups`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/lineups`));
   if (!response.ok) {
     throw new Error(`Failed to fetch match lineups: ${response.statusText}`);
   }
@@ -315,7 +316,7 @@ export const getMatchLineupsPrisma = async (
 export const getPredictedMatchLineupsPrisma = async (
   matchId: number
 ): Promise<Record<string, LineupPlayer[]>> => {
-  const response = await fetch(`/api/matches/${matchId}/predicted-lineups`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/predicted-lineups`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch predicted match lineups: ${response.statusText}`
@@ -328,7 +329,7 @@ export const getPredictedMatchLineupsPrisma = async (
 export const getPenaltyShootoutDetailsPrisma = async (
   matchId: number
 ): Promise<PenaltyShootoutDetailWithPlayers[]> => {
-  const response = await fetch(`/api/matches/${matchId}/penalties`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/penalties`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch penalty shootout details: ${response.statusText}`
@@ -362,7 +363,7 @@ export const getUpcomingMatchesPrisma = async (filters?: {
   if (filters?.limit) q.set('limit', String(filters.limit));
   if (filters?.offset) q.set('offset', String(filters.offset));
   const qs = q.toString();
-  const response = await fetch(`/api/matches/upcoming${qs ? `?${qs}` : ''}`);
+  const response = await fetch(apiUrl(`/api/matches/upcoming${qs ? `?${qs}` : ''}`));
   if (!response.ok) {
     throw new Error(`Failed to fetch upcoming matches: ${response.statusText}`);
   }
@@ -398,7 +399,7 @@ export const getUpcomingMatchesPagePrisma = async (
   if (filters?.teamId) q.set('teamId', String(filters.teamId));
   if (filters?.seasonId) q.set('seasonId', String(filters.seasonId));
 
-  const response = await fetch(`/api/matches/upcoming?${q.toString()}`);
+  const response = await fetch(apiUrl(`/api/matches/upcoming?${q.toString()}`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch upcoming matches page: ${response.statusText}`
@@ -454,7 +455,7 @@ export const getCoachHeadToHeadListByMatchIdPrisma = async (
   };
 }> => {
   const response = await fetch(
-    `/api/matches/${matchId}/head-to-head/coaches/list?scope=${scope}`
+    apiUrl(`/api/matches/${matchId}/head-to-head/coaches/list?scope=${scope}`)
   );
   if (!response.ok) {
     throw new Error(
@@ -471,7 +472,7 @@ export const createSubstitutionPrisma = async (
   matchId: number,
   substitution: SubstitutionInput
 ): Promise<Substitution> => {
-  const response = await fetch(`/api/matches/${matchId}/substitutions`, {
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/substitutions`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -489,7 +490,7 @@ export const createSubstitutionPrisma = async (
 export const getSubstitutionsPrisma = async (
   matchId: number
 ): Promise<Substitution[]> => {
-  const response = await fetch(`/api/matches/${matchId}/substitutions`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/substitutions`));
   if (!response.ok) {
     throw new Error(`Failed to fetch substitutions: ${response.statusText}`);
   }
@@ -500,7 +501,7 @@ export const getSubstitutionsPrisma = async (
 
 // Get all season summaries
 export const getSeasonSummariesPrisma = async (): Promise<SeasonSummary[]> => {
-  const response = await fetch('/api/seasons/summary');
+  const response = await fetch(apiUrl('/api/seasons/summary'));
   if (!response.ok) {
     throw new Error(`Failed to fetch season summaries: ${response.statusText}`);
   }
@@ -511,7 +512,7 @@ export const getSeasonSummariesPrisma = async (): Promise<SeasonSummary[]> => {
 export const getSeasonSummaryBySeasonIdPrisma = async (
   seasonId: number
 ): Promise<SeasonSummary[]> => {
-  const response = await fetch(`/api/seasons/${seasonId}/summary`);
+  const response = await fetch(apiUrl(`/api/seasons/${seasonId}/summary`));
   if (!response.ok) {
     throw new Error(`Failed to fetch season summary: ${response.statusText}`);
   }
@@ -547,7 +548,7 @@ export const getTeamRecentFormPrisma = async (
   }>
 > => {
   const response = await fetch(
-    `/api/teams/${teamId}/recent-form?before=${beforeDate}`
+    apiUrl(`/api/teams/${teamId}/recent-form?before=${beforeDate}`)
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch team recent form: ${response.statusText}`);
@@ -567,7 +568,7 @@ export const getSeasonPlayersPrisma = async (
   }>
 > => {
   const response = await fetch(
-    `/api/seasons/${season_id}/teams/${teamId}/players`
+    apiUrl(`/api/seasons/${season_id}/teams/${teamId}/players`)
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch season players: ${response.statusText}`);
@@ -588,7 +589,7 @@ export const getLastMatchLineupsPrisma = async (
   }>
 > => {
   const response = await fetch(
-    `/api/teams/${teamId}/last-match-lineups?before=${beforeDate}`
+    apiUrl(`/api/teams/${teamId}/last-match-lineups?before=${beforeDate}`)
   );
   if (!response.ok) {
     throw new Error(
@@ -647,7 +648,7 @@ export interface MatchDetailedStats {
 export const getMatchDetailedStatsPrisma = async (
   matchId: number
 ): Promise<MatchDetailedStats[]> => {
-  const response = await fetch(`/api/matches/${matchId}/detailed-stats`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/detailed-stats`));
   if (!response.ok) {
     throw new Error(
       `Failed to fetch match detailed stats: ${response.statusText}`
@@ -692,7 +693,7 @@ export const getMatchPassMapPrisma = async (
   matchId: number
 ): Promise<TeamPassNetworkData[]> => {
   const response = await fetch(
-    `/api/admin/matches/${matchId}/actions/pass-map`
+    apiUrl(`/api/admin/matches/${matchId}/actions/pass-map`)
   );
   if (!response.ok) {
     // Return empty array if not found or error
@@ -719,7 +720,7 @@ export interface RawMatchAction {
 export const getMatchActionsPrisma = async (
   matchId: number
 ): Promise<RawMatchAction[]> => {
-  const response = await fetch(`/api/admin/matches/${matchId}/actions`);
+  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/actions`));
   if (!response.ok) {
     // Return empty array if not found or error
     return [];
@@ -754,7 +755,7 @@ export interface MatchRatingsResponse {
 export const getMatchRatingsPrisma = async (
   matchId: number
 ): Promise<MatchRatingsResponse> => {
-  const response = await fetch(`/api/matches/${matchId}/ratings`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/ratings`));
   if (!response.ok) {
     return { match_id: matchId, ratings: [] };
   }
@@ -791,7 +792,7 @@ export interface MatchXtRatingsResponse {
 export const getMatchXtRatingsPrisma = async (
   matchId: number
 ): Promise<MatchXtRatingsResponse> => {
-  const response = await fetch(`/api/matches/${matchId}/xt-ratings`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/xt-ratings`));
   if (!response.ok) {
     return { match_id: matchId, ratings: [] };
   }
