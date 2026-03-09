@@ -17,6 +17,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGoalMutation } from '@/hooks/useGoalMutation';
 import { useGoalQuery, useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import { usePostViewTracking } from '@/hooks/usePostViewTracking';
+import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 interface CommunityPost {
   post_id: string;
@@ -52,7 +54,7 @@ interface PostDetailResponse {
 
 // API 함수들
 const getPostDetail = async (postId: string): Promise<PostDetailResponse> => {
-  const response = await fetch(`/api/community/posts/${postId}`);
+  const response = await fetch(apiUrl(`/api/community/posts/${postId}`));
 
   if (!response.ok) {
     throw new Error('게시글을 불러오는데 실패했습니다.');
@@ -66,7 +68,7 @@ const getLikeStatus = async (
   postId: string,
   userId: string
 ): Promise<{ liked: boolean }> => {
-  const response = await fetch(
+  const response = await authFetch(
     `/api/community/posts/${postId}/like?userId=${userId}`
   );
 
@@ -83,16 +85,19 @@ const toggleLike = async (params: {
   userId: string;
   action: 'like' | 'unlike';
 }): Promise<{ liked: boolean }> => {
-  const response = await fetch(`/api/community/posts/${params.postId}/like`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      user_id: params.userId,
-      action: params.action,
-    }),
-  });
+  const response = await authFetch(
+    `/api/community/posts/${params.postId}/like`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: params.userId,
+        action: params.action,
+      }),
+    }
+  );
 
   if (!response.ok) {
     throw new Error('좋아요 처리에 실패했습니다.');
@@ -107,7 +112,7 @@ const createComment = async (params: {
   userId: string;
   content: string;
 }): Promise<Comment> => {
-  const response = await fetch(
+  const response = await authFetch(
     `/api/community/posts/${params.postId}/comments`,
     {
       method: 'POST',
@@ -130,7 +135,7 @@ const createComment = async (params: {
 };
 
 const getUserPoints = async (userId: string): Promise<number> => {
-  const response = await fetch(`/api/user/points?userId=${userId}`);
+  const response = await authFetch(`/api/user/points?userId=${userId}`);
 
   if (!response.ok) {
     throw new Error('포인트 정보를 가져올 수 없습니다.');

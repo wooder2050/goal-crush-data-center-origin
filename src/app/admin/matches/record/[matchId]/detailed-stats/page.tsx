@@ -18,6 +18,7 @@ import { DetailedStatsTab } from '@/features/admin/components/tabs';
 import { useMatchDetailedStats } from '@/features/admin/hooks/useDetailedStatsQuery';
 import { useMatchLineups } from '@/features/admin/hooks/useLineupQuery';
 import { useMatchDetail } from '@/features/admin/hooks/useMatchQuery';
+import { authFetch } from '@/lib/auth-fetch';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,7 +82,7 @@ export default function DetailedStatsRecordPage() {
   const handleGenerateRatings = async () => {
     setIsGeneratingRatings(true);
     try {
-      const res = await fetch(`/api/admin/matches/${matchId}/ratings`, {
+      const res = await authFetch(`/api/admin/matches/${matchId}/ratings`, {
         method: 'POST',
       });
 
@@ -113,7 +114,7 @@ export default function DetailedStatsRecordPage() {
   const handleGenerateXtRatings = async () => {
     setIsGeneratingXtRatings(true);
     try {
-      const res = await fetch(`/api/admin/matches/${matchId}/xt-ratings`, {
+      const res = await authFetch(`/api/admin/matches/${matchId}/xt-ratings`, {
         method: 'POST',
       });
 

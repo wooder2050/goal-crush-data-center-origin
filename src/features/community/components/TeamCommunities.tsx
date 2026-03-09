@@ -9,11 +9,14 @@ import Link from 'next/link';
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 import { TeamCommunity } from '@/types';
 
 // API 함수
 const getTeamCommunities = async (): Promise<TeamCommunity[]> => {
-  const response = await fetch('/api/community/team-communities?limit=20');
+  const response = await fetch(
+    apiUrl('/api/community/team-communities?limit=20')
+  );
 
   if (!response.ok) {
     throw new Error('팀 커뮤니티 정보를 불러오는데 실패했습니다.');

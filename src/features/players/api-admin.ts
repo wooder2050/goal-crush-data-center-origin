@@ -1,4 +1,5 @@
 import { PlayerFormValues } from '@/common/form/fields/player';
+import { apiUrl } from '@/lib/api-url';
 
 export interface CreatePlayerData {
   name: string;
@@ -65,7 +66,7 @@ export const getAllPlayersPrisma = async (params?: {
 
   const url = `/api/players${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
 
-  const response = await fetch(url, {
+  const response = await fetch(apiUrl(url), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -82,7 +83,7 @@ export const getAllPlayersPrisma = async (params?: {
 
 // GET /api/players/[player_id] - 특정 선수 조회
 export const getPlayerPrisma = async (playerId: number) => {
-  const response = await fetch(`/api/players/${playerId}`, {
+  const response = await fetch(apiUrl(`/api/players/${playerId}`), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -99,7 +100,7 @@ export const getPlayerPrisma = async (playerId: number) => {
 
 // POST /api/players - 새 선수 생성
 export const createPlayerPrisma = async (data: CreatePlayerData) => {
-  const response = await fetch('/api/players', {
+  const response = await fetch(apiUrl('/api/players'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -120,7 +121,7 @@ export const updatePlayerPrisma = async (
   playerId: number,
   data: UpdatePlayerData
 ) => {
-  const response = await fetch(`/api/players/${playerId}`, {
+  const response = await fetch(apiUrl(`/api/players/${playerId}`), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -138,7 +139,7 @@ export const updatePlayerPrisma = async (
 
 // DELETE /api/players/[player_id] - 선수 삭제
 export const deletePlayerPrisma = async (playerId: number) => {
-  const response = await fetch(`/api/players/${playerId}`, {
+  const response = await fetch(apiUrl(`/api/players/${playerId}`), {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

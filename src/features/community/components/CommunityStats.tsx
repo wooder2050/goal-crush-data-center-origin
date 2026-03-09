@@ -5,6 +5,7 @@ import { MessageCircle, TrendingUp, Trophy, Users } from 'lucide-react';
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 import { CommunityStats as CommunityStatsType } from '@/types';
 
 interface CommunityStatsData extends CommunityStatsType {
@@ -15,7 +16,7 @@ interface CommunityStatsData extends CommunityStatsType {
 
 // API 함수들
 const getCommunityStats = async (): Promise<CommunityStatsData> => {
-  const response = await fetch('/api/community/stats');
+  const response = await fetch(apiUrl('/api/community/stats'));
 
   if (!response.ok) {
     throw new Error('커뮤니티 통계를 불러오는데 실패했습니다.');
@@ -25,8 +26,8 @@ const getCommunityStats = async (): Promise<CommunityStatsData> => {
 
   // 추가 통계 데이터 조회
   const [todayPostsResponse, weeklyGrowthResponse] = await Promise.all([
-    fetch('/api/community/stats/today-posts'),
-    fetch('/api/community/stats/weekly-growth'),
+    fetch(apiUrl('/api/community/stats/today-posts')),
+    fetch(apiUrl('/api/community/stats/weekly-growth')),
   ]);
 
   const todayPostsData = todayPostsResponse.ok

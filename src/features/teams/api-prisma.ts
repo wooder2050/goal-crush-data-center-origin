@@ -1,4 +1,5 @@
 import type { TeamWithExtras } from '@/features/teams/types';
+import { apiUrl } from '@/lib/api-url';
 import { Player, PlayerTeamHistory, Team } from '@/lib/types';
 
 // Additional type definitions
@@ -38,7 +39,7 @@ export type TeamSeasonStandingRow = {
 
 // Get all teams
 export const getTeamsPrisma = async (): Promise<TeamWithExtras[]> => {
-  const response = await fetch('/api/teams');
+  const response = await fetch(apiUrl('/api/teams'));
   if (!response.ok) {
     throw new Error(`Failed to fetch teams: ${response.statusText}`);
   }
@@ -50,7 +51,7 @@ Object.defineProperty(getTeamsPrisma, 'queryKey', { value: 'teamsAll' });
 
 // Get team by ID (throws on not found)
 export const getTeamByIdPrisma = async (teamId: number): Promise<Team> => {
-  const response = await fetch(`/api/teams/${teamId}`);
+  const response = await fetch(apiUrl(`/api/teams/${teamId}`));
   if (!response.ok) {
     throw new Error(
       response.status === 404
@@ -67,7 +68,7 @@ Object.defineProperty(getTeamByIdPrisma, 'queryKey', { value: 'teamById' });
 export const getTeamsBySeasonPrisma = async (
   seasonId: number
 ): Promise<Team[]> => {
-  const response = await fetch(`/api/teams?season_id=${seasonId}`);
+  const response = await fetch(apiUrl(`/api/teams?season_id=${seasonId}`));
   if (!response.ok) {
     throw new Error(`Failed to fetch teams by season: ${response.statusText}`);
   }
@@ -84,7 +85,7 @@ export const getTeamPlayersPrisma = async (
   scope: 'current' | 'all' = 'all'
 ): Promise<PlayerWithTeamHistory[]> => {
   const qs = `?scope=${scope}&order=stats`;
-  const response = await fetch(`/api/teams/${teamId}/players${qs}`);
+  const response = await fetch(apiUrl(`/api/teams/${teamId}/players${qs}`));
   if (!response.ok) {
     throw new Error(`Failed to fetch team players: ${response.statusText}`);
   }
@@ -101,7 +102,7 @@ export const getTeamStatsPrisma = async (
   seasonId?: number
 ): Promise<TeamStats> => {
   const qs = seasonId ? `?season_id=${seasonId}` : '';
-  const response = await fetch(`/api/teams/${teamId}/stats${qs}`);
+  const response = await fetch(apiUrl(`/api/teams/${teamId}/stats${qs}`));
   if (!response.ok) {
     throw new Error(`Failed to fetch team stats: ${response.statusText}`);
   }
@@ -113,7 +114,7 @@ Object.defineProperty(getTeamStatsPrisma, 'queryKey', { value: 'teamStats' });
 export const getTeamSeasonStandingsPrisma = async (
   teamId: number
 ): Promise<TeamSeasonStandingRow[]> => {
-  const res = await fetch(`/api/teams/${teamId}/season-standings`);
+  const res = await fetch(apiUrl(`/api/teams/${teamId}/season-standings`));
   if (!res.ok) {
     throw new Error(`Failed to fetch team season standings: ${res.statusText}`);
   }
@@ -153,7 +154,7 @@ export const getTeamHighlightsPrisma = async (
   };
   best_position: number | null;
 }> => {
-  const res = await fetch(`/api/teams/${teamId}/highlights`);
+  const res = await fetch(apiUrl(`/api/teams/${teamId}/highlights`));
   if (!res.ok)
     throw new Error(`Failed to fetch team highlights: ${res.statusText}`);
   return res.json();

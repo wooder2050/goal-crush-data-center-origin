@@ -32,6 +32,7 @@ import {
 import { H1 } from '@/components/ui/typography';
 import { useDeleteSeasonMutation } from '@/features/admin/hooks/useSeasonMutation';
 import { getSeasonsPaginatedPrisma } from '@/features/seasons/api-prisma';
+import { authFetch } from '@/lib/auth-fetch';
 
 export const dynamic = 'force-dynamic';
 
@@ -348,7 +349,8 @@ function EditSeasonForm({
   // 시즌 데이터 로드
   const { data: season } = useQuery({
     queryKey: ['season', seasonId],
-    queryFn: () => fetch(`/api/seasons/${seasonId}`).then((res) => res.json()),
+    queryFn: () =>
+      authFetch(`/api/seasons/${seasonId}`).then((res) => res.json()),
   });
 
   // 시즌 데이터가 로드되면 폼에 설정
@@ -390,7 +392,7 @@ function EditSeasonForm({
     }
 
     try {
-      const response = await fetch(`/api/seasons/${seasonId}`, {
+      const response = await authFetch(`/api/seasons/${seasonId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -601,7 +603,7 @@ function CreateSeasonForm({ onSuccess }: { onSuccess: () => void }) {
     }
 
     try {
-      const response = await fetch('/api/seasons', {
+      const response = await authFetch('/api/seasons', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

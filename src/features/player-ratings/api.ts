@@ -1,3 +1,6 @@
+import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
+
 import type { PlayerRatingsResponse } from './types';
 
 /**
@@ -27,7 +30,9 @@ export async function getPlayerRatings({
     searchParams.append('season_id', seasonId.toString());
   }
 
-  const response = await fetch(`/api/player-ratings-api?${searchParams}`);
+  const response = await fetch(
+    apiUrl(`/api/player-ratings-api?${searchParams}`)
+  );
 
   if (!response.ok) {
     throw new Error('Failed to fetch player ratings');
@@ -48,7 +53,7 @@ export async function createRatingReview({
   reviewType: 'helpful' | 'not_helpful' | 'comment';
   comment?: string;
 }): Promise<unknown> {
-  const response = await fetch(`/api/ratings/${ratingId}/reviews`, {
+  const response = await authFetch(`/api/ratings/${ratingId}/reviews`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -73,7 +78,7 @@ export async function createRatingReview({
 export async function createPlayerRating(
   ratingData: import('./types').CreateRatingRequest
 ): Promise<unknown> {
-  const response = await fetch('/api/ratings', {
+  const response = await authFetch('/api/ratings', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

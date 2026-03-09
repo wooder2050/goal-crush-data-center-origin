@@ -157,12 +157,11 @@ export async function POST(request: NextRequest) {
           awayStats.points += 3;
           homeStats.losses++;
         } else {
-          // 정규시간 무승부 - 승부차기 확인
+          // 정규시간 동점 - 승부차기로 승패 결정 (골때녀에는 무승부 없음)
           if (
             match.penalty_home_score !== null &&
             match.penalty_away_score !== null
           ) {
-            // 승부차기 결과로 승부 결정
             if (
               (match.penalty_home_score || 0) > (match.penalty_away_score || 0)
             ) {
@@ -175,11 +174,10 @@ export async function POST(request: NextRequest) {
               homeStats.losses++;
             }
           } else {
-            // 진짜 무승부 (승부차기가 없는 경우)
-            homeStats.draws++;
-            awayStats.draws++;
-            homeStats.points += 1;
-            awayStats.points += 1;
+            // 승부차기 데이터 미입력 - 로그 경고 (무승부 처리하지 않음)
+            console.warn(
+              `Match ${match.match_id}: 정규시간 동점이나 승부차기 데이터 없음. 승부 미결정.`
+            );
           }
         }
 
@@ -538,12 +536,11 @@ export async function POST(request: NextRequest) {
         } else if (team1Score < team2Score) {
           stats.team2_wins++;
         } else {
-          // 정규시간 무승부 - 승부차기 확인
+          // 정규시간 동점 - 승부차기로 승패 결정 (골때녀에는 무승부 없음)
           if (
             match.penalty_home_score !== null &&
             match.penalty_away_score !== null
           ) {
-            // 승부차기 결과로 승부 결정
             let team1PenaltyScore, team2PenaltyScore;
             if (match.home_team_id === team1) {
               team1PenaltyScore = match.penalty_home_score || 0;
@@ -559,8 +556,9 @@ export async function POST(request: NextRequest) {
               stats.team2_wins++;
             }
           } else {
-            // 진짜 무승부 (승부차기가 없는 경우)
-            stats.draws++;
+            console.warn(
+              `Match ${match.match_id}: 정규시간 동점이나 승부차기 데이터 없음. 승부 미결정.`
+            );
           }
         }
       });

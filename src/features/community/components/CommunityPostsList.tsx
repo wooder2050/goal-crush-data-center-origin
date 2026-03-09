@@ -14,6 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGoalInfiniteQuery, useGoalQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 interface CommunityPost {
   post_id: string;
@@ -70,7 +72,7 @@ const getCommunityPosts = async (
     searchParams.append('season_id', params.seasonId.toString());
   }
 
-  const response = await fetch(`/api/community/posts?${searchParams}`);
+  const response = await fetch(apiUrl(`/api/community/posts?${searchParams}`));
 
   if (!response.ok) {
     throw new Error('게시글을 불러오는데 실패했습니다.');
@@ -99,7 +101,7 @@ const getLikeStatus = async (
   postId: string,
   userId: string
 ): Promise<{ liked: boolean }> => {
-  const response = await fetch(
+  const response = await authFetch(
     `/api/community/posts/${postId}/like?userId=${userId}`
   );
 

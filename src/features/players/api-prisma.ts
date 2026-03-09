@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/api-url';
 import { Player, PlayerWithTeam } from '@/lib/types';
 
 // Prisma 기반 Players API 클라이언트 함수들
@@ -7,7 +8,7 @@ import { Player, PlayerWithTeam } from '@/lib/types';
 
 // Get all players
 export const getPlayersPrisma = async (): Promise<Player[]> => {
-  const response = await fetch('/api/players');
+  const response = await fetch(apiUrl('/api/players'));
   if (!response.ok) {
     throw new Error(`Failed to fetch players: ${response.statusText}`);
   }
@@ -59,7 +60,7 @@ export const getPlayersPagePrisma = async (
   if (opts?.name) qs.set('name', opts.name);
   if (opts?.order) qs.set('order', opts.order);
   if (opts?.position) qs.set('position', opts.position);
-  const response = await fetch(`/api/players?${qs.toString()}`);
+  const response = await fetch(apiUrl(`/api/players?${qs.toString()}`));
   if (!response.ok) {
     throw new Error(`Failed to fetch players (page): ${response.statusText}`);
   }
@@ -87,7 +88,7 @@ export const getPlayersSummariesPrisma = async (
   >
 > => {
   const ids = playerIds.join(',');
-  const res = await fetch(`/api/players/summaries?ids=${ids}`);
+  const res = await fetch(apiUrl(`/api/players/summaries?ids=${ids}`));
   if (!res.ok)
     throw new Error(`Failed to fetch players summaries: ${res.statusText}`);
   return res.json();
@@ -101,7 +102,7 @@ Object.defineProperty(getPlayersSummariesPrisma, 'queryKey', {
 export const getPlayerByIdPrisma = async (
   playerId: number
 ): Promise<Player | null> => {
-  const response = await fetch(`/api/players/${playerId}`);
+  const response = await fetch(apiUrl(`/api/players/${playerId}`));
   if (!response.ok) {
     if (response.status === 404) {
       return null; // Player not found
@@ -119,7 +120,7 @@ Object.defineProperty(getPlayerByIdPrisma, 'queryKey', {
 export const getPlayerWithCurrentTeamPrisma = async (
   playerId: number
 ): Promise<PlayerWithTeam | null> => {
-  const response = await fetch(`/api/players/${playerId}/team`);
+  const response = await fetch(apiUrl(`/api/players/${playerId}/team`));
   if (!response.ok) {
     if (response.status === 404) {
       return null;
@@ -137,7 +138,9 @@ Object.defineProperty(getPlayerWithCurrentTeamPrisma, 'queryKey', {
 export const searchPlayersByNamePrisma = async (
   name: string
 ): Promise<Player[]> => {
-  const response = await fetch(`/api/players?name=${encodeURIComponent(name)}`);
+  const response = await fetch(
+    apiUrl(`/api/players?name=${encodeURIComponent(name)}`)
+  );
   if (!response.ok) {
     throw new Error(`Failed to search players: ${response.statusText}`);
   }
@@ -153,7 +156,7 @@ export const getPlayersByPositionPrisma = async (
   position: string
 ): Promise<Player[]> => {
   const response = await fetch(
-    `/api/players?position=${encodeURIComponent(position)}`
+    apiUrl(`/api/players?position=${encodeURIComponent(position)}`)
   );
   if (!response.ok) {
     throw new Error(
@@ -240,7 +243,7 @@ export const getPlayerSummaryPrisma = async (
   }>;
 }> => {
   const qs = teamId ? `?team_id=${teamId}` : '';
-  const response = await fetch(`/api/players/${playerId}/summary${qs}`);
+  const response = await fetch(apiUrl(`/api/players/${playerId}/summary${qs}`));
   if (!response.ok) {
     if (response.status === 404) {
       return {

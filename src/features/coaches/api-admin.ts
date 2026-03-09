@@ -1,4 +1,5 @@
 // Admin용 감독 API 함수들
+import { apiUrl } from '@/lib/api-url';
 
 export type CoachWithStats = {
   coach_id: number;
@@ -17,7 +18,7 @@ export type CoachWithStats = {
 
 // 모든 감독 목록 조회 (관리자용)
 export const getCoachesForAdmin = async (): Promise<CoachWithStats[]> => {
-  const response = await fetch('/api/coaches?limit=1000');
+  const response = await fetch(apiUrl('/api/coaches?limit=1000'));
   if (!response.ok) {
     throw new Error(`Failed to fetch coaches: ${response.statusText}`);
   }

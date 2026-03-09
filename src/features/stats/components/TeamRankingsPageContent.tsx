@@ -20,6 +20,7 @@ import {
 } from '@/components/ui';
 import InfiniteSeasonSelect from '@/features/stats/components/InfiniteSeasonSelect';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 import { shortenSeasonName } from '@/lib/utils';
 
 interface TeamRankingsResponse {
@@ -65,7 +66,7 @@ async function getTeamRankings(
     params.append('season_id', seasonId.toString());
   }
 
-  const response = await fetch(`/api/stats/team-rankings?${params}`);
+  const response = await fetch(apiUrl(`/api/stats/team-rankings?${params}`));
   if (!response.ok) {
     throw new Error('Failed to fetch team rankings');
   }

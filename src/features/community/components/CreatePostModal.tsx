@@ -29,12 +29,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useGoalMutation } from '@/hooks/useGoalMutation';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 
 // API 함수들
 const getTeams = async (): Promise<{
   data: Array<{ team_id: number; team_name: string }>;
 }> => {
-  const response = await fetch('/api/teams');
+  const response = await fetch(apiUrl('/api/teams'));
 
   if (!response.ok) {
     throw new Error('팀 목록을 불러오는데 실패했습니다.');
@@ -51,7 +53,7 @@ const createPost = async (data: {
   team_id?: number;
   match_id?: number;
 }): Promise<{ success: boolean; data: { post_id: string } }> => {
-  const response = await fetch('/api/community/posts', {
+  const response = await authFetch('/api/community/posts', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -71,7 +73,7 @@ const createPost = async (data: {
 const getSeasons = async (): Promise<{
   data: Array<{ season_id: number; season_name: string; year: number }>;
 }> => {
-  const response = await fetch('/api/seasons/simple');
+  const response = await fetch(apiUrl('/api/seasons/simple'));
 
   if (!response.ok) {
     throw new Error('시즌 목록을 불러오는데 실패했습니다.');
@@ -97,7 +99,7 @@ const getCompletedMatches = async (
     throw new Error('유효한 시즌 ID가 필요합니다.');
   }
 
-  const response = await fetch(`/api/matches/season/${seasonId}`);
+  const response = await fetch(apiUrl(`/api/matches/season/${seasonId}`));
 
   if (!response.ok) {
     throw new Error('완료된 경기 목록을 불러오는데 실패했습니다.');
@@ -126,7 +128,7 @@ const getUpcomingMatches = async (): Promise<{
     match_date: string;
   }>;
 }> => {
-  const response = await fetch('/api/matches/upcoming?limit=20');
+  const response = await fetch(apiUrl('/api/matches/upcoming?limit=20'));
 
   if (!response.ok) {
     throw new Error('다가오는 경기 목록을 불러오는데 실패했습니다.');

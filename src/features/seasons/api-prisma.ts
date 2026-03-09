@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/api-url';
 import { Season } from '@/lib/types';
 
 // Extended season type definition
@@ -22,7 +23,7 @@ export interface SeasonWithStats extends Season {
 
 // Get all seasons
 export const getAllSeasonsPrisma = async (): Promise<SeasonWithStats[]> => {
-  const response = await fetch('/api/seasons');
+  const response = await fetch(apiUrl('/api/seasons'));
   if (!response.ok) {
     throw new Error(`Failed to fetch seasons: ${response.statusText}`);
   }
@@ -46,7 +47,9 @@ export const getSeasonsPaginatedPrisma = async ({
   totalPages: number;
   currentPage: number;
 }> => {
-  const response = await fetch(`/api/seasons?page=${page}&limit=${limit}`);
+  const response = await fetch(
+    apiUrl(`/api/seasons?page=${page}&limit=${limit}`)
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch seasons: ${response.statusText}`);
   }
@@ -68,7 +71,9 @@ export const getSeasonsPagePrisma = async (
   hasNextPage: boolean;
   currentPage: number;
 }> => {
-  const response = await fetch(`/api/seasons?page=${page}&limit=${limit}`);
+  const response = await fetch(
+    apiUrl(`/api/seasons?page=${page}&limit=${limit}`)
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch seasons page: ${response.statusText}`);
   }
@@ -79,7 +84,7 @@ export const getSeasonsPagePrisma = async (
 export const getSeasonByIdPrisma = async (
   seasonId: number
 ): Promise<Season | null> => {
-  const response = await fetch(`/api/seasons/${seasonId}`);
+  const response = await fetch(apiUrl(`/api/seasons/${seasonId}`));
   if (!response.ok) {
     if (response.status === 404) {
       return null; // Season not found
@@ -97,7 +102,7 @@ Object.defineProperty(getSeasonByIdPrisma, 'queryKey', {
 export const getSeasonsByYearPrisma = async (
   year: number
 ): Promise<Season[]> => {
-  const response = await fetch(`/api/seasons?year=${year}`);
+  const response = await fetch(apiUrl(`/api/seasons?year=${year}`));
   if (!response.ok) {
     throw new Error(`Failed to fetch seasons by year: ${response.statusText}`);
   }
@@ -110,7 +115,7 @@ Object.defineProperty(getSeasonsByYearPrisma, 'queryKey', {
 
 // Get latest season
 export const getLatestSeasonPrisma = async (): Promise<Season | null> => {
-  const response = await fetch('/api/seasons/latest');
+  const response = await fetch(apiUrl('/api/seasons/latest'));
   if (!response.ok) {
     if (response.status === 404) {
       return null;
@@ -128,7 +133,9 @@ Object.defineProperty(getLatestSeasonPrisma, 'queryKey', {
 export const searchSeasonsByNamePrisma = async (
   name: string
 ): Promise<Season[]> => {
-  const response = await fetch(`/api/seasons?name=${encodeURIComponent(name)}`);
+  const response = await fetch(
+    apiUrl(`/api/seasons?name=${encodeURIComponent(name)}`)
+  );
   if (!response.ok) {
     throw new Error(`Failed to search seasons: ${response.statusText}`);
   }
@@ -144,7 +151,7 @@ export const getSeasonByNamePrisma = async (
   seasonName: string
 ): Promise<Season | null> => {
   const response = await fetch(
-    `/api/seasons?name=${encodeURIComponent(seasonName)}`
+    apiUrl(`/api/seasons?name=${encodeURIComponent(seasonName)}`)
   );
   if (!response.ok) {
     if (response.status === 404) {
@@ -163,7 +170,7 @@ export const createSeasonPrisma = async (seasonData: {
   start_date?: string;
   end_date?: string;
 }): Promise<Season> => {
-  const response = await fetch('/api/seasons', {
+  const response = await fetch(apiUrl('/api/seasons'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -195,7 +202,7 @@ export const updateSeasonPrisma = async (
     end_date?: string;
   }
 ): Promise<Season> => {
-  const response = await fetch(`/api/seasons/${seasonId}`, {
+  const response = await fetch(apiUrl(`/api/seasons/${seasonId}`), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -219,7 +226,7 @@ Object.defineProperty(updateSeasonPrisma, 'queryKey', {
 
 // Delete season
 export const deleteSeasonPrisma = async (seasonId: number): Promise<void> => {
-  const response = await fetch(`/api/seasons?id=${seasonId}`, {
+  const response = await fetch(apiUrl(`/api/seasons/${seasonId}`), {
     method: 'DELETE',
   });
 

@@ -2,6 +2,8 @@
 
 import { FantasySeason, FantasyTeam } from '@prisma/client';
 
+import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 import { Position } from '@/types/fantasy';
 
 export interface MyTeamResponse {
@@ -54,7 +56,7 @@ export interface MyTeamResponse {
 export async function getMyTeam(
   fantasySeasonId: number
 ): Promise<MyTeamResponse> {
-  const response = await fetch(
+  const response = await authFetch(
     `/api/fantasy/teams/my-team?fantasy_season_id=${fantasySeasonId}`
   );
 
@@ -72,7 +74,7 @@ export async function getMyTeam(
 getMyTeam.queryKey = 'fantasy-my-team';
 
 export async function getUserFantasyTeams(): Promise<FantasyTeam[] | null> {
-  const response = await fetch(`/api/fantasy/teams`);
+  const response = await authFetch(`/api/fantasy/teams`);
   if (response.status === 404) {
     return null; // Match not found
   }
@@ -88,7 +90,7 @@ getUserFantasyTeams.queryKey = 'fantasy-user-teams';
 export async function getActiveFantasySeasons(): Promise<
   FantasySeason[] | null
 > {
-  const response = await fetch(`/api/fantasy/seasons?active=true`);
+  const response = await fetch(apiUrl(`/api/fantasy/seasons?active=true`));
   if (response.status === 404) {
     return null; // Match not found
   }

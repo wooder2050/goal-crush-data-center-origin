@@ -21,6 +21,7 @@ import {
 import InfiniteSeasonSelect from '@/features/stats/components/InfiniteSeasonSelect';
 import type { AppearanceType, WinRateResponse } from '@/features/stats/types';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 
 const APPEARANCE_TYPE_LABELS: Record<AppearanceType, string> = {
   starter: '선발',
@@ -48,7 +49,7 @@ async function getWinRateRankings(
     params.append('season_id', seasonId.toString());
   }
 
-  const response = await fetch(`/api/stats/starter-win-rate?${params}`);
+  const response = await fetch(apiUrl(`/api/stats/starter-win-rate?${params}`));
   if (!response.ok) {
     throw new Error('Failed to fetch win rate rankings');
   }

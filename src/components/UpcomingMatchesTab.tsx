@@ -8,6 +8,7 @@ import { SupportMatchCardSkeleton } from '@/components/skeletons/SupportMatchCar
 import { SupportMatchCard } from '@/components/SupportMatchCard';
 import { Card, CardContent } from '@/components/ui';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 
 interface UpcomingMatch {
   match_id: number;
@@ -33,7 +34,7 @@ interface UpcomingMatch {
 export function UpcomingMatchesTab() {
   // 다가오는 경기 목록 조회
   const fetchUpcomingMatches = async (): Promise<UpcomingMatch[]> => {
-    const response = await fetch('/api/matches/upcoming');
+    const response = await fetch(apiUrl('/api/matches/upcoming'));
     if (!response.ok) {
       throw new Error('Failed to fetch upcoming matches');
     }

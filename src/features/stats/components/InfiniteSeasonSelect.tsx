@@ -4,6 +4,7 @@ import { Check, ChevronDown } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { useGoalInfiniteQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 import { shortenSeasonName } from '@/lib/utils';
 
 interface Season {
@@ -28,7 +29,9 @@ async function getSeasonsPaginated(
   page: number,
   limit: number = 7
 ): Promise<SeasonsResponse> {
-  const response = await fetch(`/api/seasons?page=${page}&limit=${limit}`);
+  const response = await fetch(
+    apiUrl(`/api/seasons?page=${page}&limit=${limit}`)
+  );
   if (!response.ok) {
     throw new Error('Failed to fetch seasons');
   }

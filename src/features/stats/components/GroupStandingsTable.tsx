@@ -92,7 +92,6 @@ function GroupStandingsTableInner({
             <TableHead>팀명</TableHead>
             <TableHead>경기</TableHead>
             <TableHead>승</TableHead>
-            <TableHead>무</TableHead>
             <TableHead>패</TableHead>
             <TableHead>득점</TableHead>
             <TableHead>실점</TableHead>
@@ -143,9 +142,6 @@ function GroupStandingsTableInner({
                 <TableCell>{standing.matches_played || 0}</TableCell>
                 <TableCell className="text-green-600 font-semibold">
                   {standing.wins || 0}
-                </TableCell>
-                <TableCell className="text-yellow-600 font-semibold">
-                  {standing.draws || 0}
                 </TableCell>
                 <TableCell className="text-red-600 font-semibold">
                   {standing.losses || 0}
@@ -243,7 +239,6 @@ function GroupStandingsTableInner({
                         {[
                           { label: '경기', value: row.matches_played ?? '-' },
                           { label: '승', value: row.wins ?? '-' },
-                          { label: '무', value: row.draws ?? '-' },
                           { label: '패', value: row.losses ?? '-' },
                           {
                             label: '득실차',
@@ -318,7 +313,6 @@ function GroupStandingsTableInner({
                         {[
                           { label: '경기', value: row.matches_played ?? '-' },
                           { label: '승', value: row.wins ?? '-' },
-                          { label: '무', value: row.draws ?? '-' },
                           { label: '패', value: row.losses ?? '-' },
                           {
                             label: '득실차',

@@ -1,6 +1,7 @@
 'use client';
 
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { apiUrl } from '@/lib/api-url';
 
 // API 함수
 async function getAllRatings({
@@ -24,7 +25,7 @@ async function getAllRatings({
     searchParams.append('season_id', seasonId);
   }
 
-  const response = await fetch(`/api/all-ratings?${searchParams}`);
+  const response = await fetch(apiUrl(`/api/all-ratings?${searchParams}`));
 
   if (!response.ok) {
     throw new Error('Failed to fetch all ratings');
