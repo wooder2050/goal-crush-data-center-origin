@@ -1,5 +1,5 @@
 [build]
-buildCommand = "cp ../prisma/schema.prisma prisma/schema.prisma && npx prisma generate && npx nest build"
+buildCommand = "mkdir -p prisma && cp ../prisma/schema.prisma prisma/schema.prisma && npx prisma generate && npx nest build"
 
 [deploy]
 startCommand = "node dist/main"

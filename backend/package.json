@@ -15,7 +15,7 @@
     "prisma:sync": "mkdir -p prisma && cp ../prisma/schema.prisma prisma/schema.prisma",
     "prisma:generate": "npm run prisma:sync && prisma generate",
     "prisma:migrate": "prisma migrate dev --schema=../prisma/schema.prisma",
-    "postinstall": "npm run prisma:generate"
+    "postinstall": "npm run prisma:generate || true"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
