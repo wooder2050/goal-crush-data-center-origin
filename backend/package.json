@@ -12,7 +12,7 @@
     "format:check": "prettier --check \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "knip": "knip",
-    "prisma:sync": "cp ../prisma/schema.prisma prisma/schema.prisma",
+    "prisma:sync": "mkdir -p prisma && cp ../prisma/schema.prisma prisma/schema.prisma",
     "prisma:generate": "npm run prisma:sync && prisma generate",
     "prisma:migrate": "prisma migrate dev --schema=../prisma/schema.prisma",
     "postinstall": "npm run prisma:generate"
