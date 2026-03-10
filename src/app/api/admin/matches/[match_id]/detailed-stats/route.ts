@@ -84,6 +84,8 @@ export async function POST(
       throw_ins,
       corner_kicks,
       penalty_goals,
+      penalty_misses,
+      penalty_saves,
       own_goals,
     } = data;
 
@@ -155,6 +157,8 @@ export async function POST(
       throw_ins: throw_ins ?? 0,
       corner_kicks: corner_kicks ?? 0,
       penalty_goals: penalty_goals ?? 0,
+      penalty_misses: penalty_misses ?? 0,
+      penalty_saves: penalty_saves ?? 0,
       own_goals: own_goals ?? 0,
     };
 

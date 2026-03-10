@@ -10,6 +10,8 @@ export interface PlayerMatchRatingInput {
   yellow_cards: number;
   red_cards: number;
   penalty_goals: number;
+  penalty_misses: number;
+  penalty_saves: number;
   own_goals: number;
   minutes_played: number | null; // null = unknown (still rated if detailed stats exist)
 
@@ -181,6 +183,9 @@ function calcFW(
   bd.pass_accuracy = (input.pass_accuracy ?? 0) >= 70 ? 0.2 : 0;
   bonus += bd.pass_accuracy;
 
+  bd.penalty_misses = input.penalty_misses * -0.5;
+  bonus += bd.penalty_misses;
+
   // Penalties
   bd.fouls = input.fouls * -0.15;
   bonus += bd.fouls;
@@ -225,6 +230,9 @@ function calcMF(
 
   bd.dribbles = input.dribbles * 0.15;
   bonus += bd.dribbles;
+
+  bd.penalty_misses = input.penalty_misses * -0.5;
+  bonus += bd.penalty_misses;
 
   bd.fouls = input.fouls * -0.15;
   bonus += bd.fouls;
@@ -278,6 +286,9 @@ function calcDF(
       : 0;
   bonus += bd.shot_accuracy;
 
+  bd.penalty_misses = input.penalty_misses * -0.5;
+  bonus += bd.penalty_misses;
+
   bd.fouls = input.fouls * -0.15;
   bonus += bd.fouls;
   bd.yellow_cards = input.yellow_cards * -0.5;
@@ -311,6 +322,9 @@ function calcGK(
   bd.saves = input.saves * 0.3;
   bonus += bd.saves;
 
+  bd.penalty_saves = input.penalty_saves * 0.8;
+  bonus += bd.penalty_saves;
+
   bd.goals_conceded = input.goals_conceded * -0.2;
   bonus += bd.goals_conceded;
 
@@ -329,6 +343,9 @@ function calcGK(
   const pa = input.pass_accuracy ?? 0;
   bd.pass_accuracy = Math.min(0.2, (pa / 100) * 0.2);
   bonus += bd.pass_accuracy;
+
+  bd.penalty_misses = input.penalty_misses * -0.5;
+  bonus += bd.penalty_misses;
 
   return bonus;
 }

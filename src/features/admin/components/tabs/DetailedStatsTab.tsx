@@ -54,6 +54,8 @@ interface PlayerStats {
   throw_ins: number;
   corner_kicks: number;
   penalty_goals: number;
+  penalty_misses: number;
+  penalty_saves: number;
   own_goals: number;
 }
 
@@ -126,6 +128,8 @@ const STAT_GROUPS = [
       { key: 'corner_kicks', label: '코너킥' },
       { key: 'throw_ins', label: '킥인' },
       { key: 'penalty_goals', label: 'PK골' },
+      { key: 'penalty_misses', label: 'PK실축' },
+      { key: 'penalty_saves', label: 'PK선방' },
     ],
   },
 ] as const;
@@ -161,6 +165,8 @@ function createInitialStats(lineup: PlayerLineup): PlayerStats {
     throw_ins: 0,
     corner_kicks: 0,
     penalty_goals: 0,
+    penalty_misses: 0,
+    penalty_saves: 0,
     own_goals: 0,
   };
 }
@@ -199,6 +205,8 @@ function existingToPlayerStats(
     throw_ins: existing.throw_ins,
     corner_kicks: existing.corner_kicks,
     penalty_goals: existing.penalty_goals,
+    penalty_misses: existing.penalty_misses ?? 0,
+    penalty_saves: existing.penalty_saves ?? 0,
     own_goals: existing.own_goals ?? 0,
   };
 }
@@ -395,6 +403,8 @@ export default function DetailedStatsTab({
         throw_ins: stats.throw_ins,
         corner_kicks: stats.corner_kicks,
         penalty_goals: stats.penalty_goals,
+        penalty_misses: stats.penalty_misses,
+        penalty_saves: stats.penalty_saves,
         own_goals: stats.own_goals,
         player_name: stats.player_name,
         jersey_number: stats.jersey_number,

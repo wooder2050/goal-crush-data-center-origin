@@ -1066,6 +1066,8 @@ model PlayerMatchDetailedStats {
   throw_ins           Int      @default(0)
   corner_kicks        Int      @default(0)
   penalty_goals       Int      @default(0)
+  penalty_misses      Int      @default(0)
+  penalty_saves       Int      @default(0)
   own_goals           Int      @default(0)
   goals               Int      @default(0)
   assists             Int      @default(0)

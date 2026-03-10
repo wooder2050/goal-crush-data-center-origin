@@ -36,6 +36,8 @@ export const detailedStatsFormSchema = z.object({
   throw_ins: z.string().optional(),
   corner_kicks: z.string().optional(),
   penalty_goals: z.string().optional(),
+  penalty_misses: z.string().optional(),
+  penalty_saves: z.string().optional(),
   own_goals: z.string().optional(),
 });
 

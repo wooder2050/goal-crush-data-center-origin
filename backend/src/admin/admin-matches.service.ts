@@ -83,6 +83,8 @@ export interface DetailedStatData {
   throw_ins?: number;
   corner_kicks?: number;
   penalty_goals?: number;
+  penalty_misses?: number;
+  penalty_saves?: number;
   own_goals?: number;
   goals?: number;
   assists?: number;
@@ -862,6 +864,8 @@ export class AdminMatchesService {
       throw_ins: data.throw_ins ?? 0,
       corner_kicks: data.corner_kicks ?? 0,
       penalty_goals: data.penalty_goals ?? 0,
+      penalty_misses: data.penalty_misses ?? 0,
+      penalty_saves: data.penalty_saves ?? 0,
       own_goals: data.own_goals ?? 0,
     };
 
@@ -932,6 +936,8 @@ export class AdminMatchesService {
           throw_ins: stat.throw_ins ?? 0,
           corner_kicks: stat.corner_kicks ?? 0,
           penalty_goals: stat.penalty_goals ?? 0,
+          penalty_misses: stat.penalty_misses ?? 0,
+          penalty_saves: stat.penalty_saves ?? 0,
           own_goals: stat.own_goals ?? 0,
           goals: stat.goals ?? 0,
           assists: stat.assists ?? 0,
