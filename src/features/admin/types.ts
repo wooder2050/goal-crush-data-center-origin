@@ -116,6 +116,8 @@ export interface MatchDetailedStats {
   throw_ins: number;
   corner_kicks: number;
   penalty_goals: number;
+  penalty_misses: number;
+  penalty_saves: number;
   // UI 표시용
   player_name?: string;
   jersey_number?: number | null;

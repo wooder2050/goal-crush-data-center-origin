@@ -633,6 +633,8 @@ export interface MatchDetailedStats {
   throw_ins: number;
   corner_kicks: number;
   penalty_goals: number;
+  penalty_misses: number;
+  penalty_saves: number;
   goals: number;
   assists: number;
   yellow_cards: number;

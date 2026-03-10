@@ -131,6 +131,8 @@ const STAT_CATEGORIES: StatCategory[] = [
       { key: 'corner_kicks', label: '코너킥' },
       { key: 'throw_ins', label: '킥인' },
       { key: 'penalty_goals', label: 'PK 골' },
+      { key: 'penalty_misses', label: 'PK 실축' },
+      { key: 'penalty_saves', label: 'PK 선방' },
     ],
   },
 ];
@@ -181,6 +183,8 @@ function calculateTeamTotals(
     corner_kicks: 0,
     throw_ins: 0,
     penalty_goals: 0,
+    penalty_misses: 0,
+    penalty_saves: 0,
     possession_time: 0,
   };
 
@@ -209,6 +213,8 @@ function calculateTeamTotals(
     totals.corner_kicks += player.corner_kicks;
     totals.throw_ins += player.throw_ins;
     totals.penalty_goals += player.penalty_goals;
+    totals.penalty_misses += player.penalty_misses ?? 0;
+    totals.penalty_saves += player.penalty_saves ?? 0;
     totals.possession_time += player.possession_time ?? 0;
   }
 
