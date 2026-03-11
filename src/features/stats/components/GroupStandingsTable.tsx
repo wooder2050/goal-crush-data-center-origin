@@ -88,15 +88,15 @@ function GroupStandingsTableInner({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>순위</TableHead>
-            <TableHead>팀명</TableHead>
-            <TableHead>경기</TableHead>
-            <TableHead>승</TableHead>
-            <TableHead>패</TableHead>
-            <TableHead>득점</TableHead>
-            <TableHead>실점</TableHead>
-            <TableHead>득실차</TableHead>
-            <TableHead>승점</TableHead>
+            <TableHead className="whitespace-nowrap">순위</TableHead>
+            <TableHead className="whitespace-nowrap">팀명</TableHead>
+            <TableHead className="whitespace-nowrap">경기</TableHead>
+            <TableHead className="whitespace-nowrap">승</TableHead>
+            <TableHead className="whitespace-nowrap">패</TableHead>
+            <TableHead className="whitespace-nowrap">득점</TableHead>
+            <TableHead className="whitespace-nowrap">실점</TableHead>
+            <TableHead className="whitespace-nowrap">득실</TableHead>
+            <TableHead className="whitespace-nowrap">승점</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -241,7 +241,7 @@ function GroupStandingsTableInner({
                           { label: '승', value: row.wins ?? '-' },
                           { label: '패', value: row.losses ?? '-' },
                           {
-                            label: '득실차',
+                            label: '득실',
                             value: row.goal_difference ?? '-',
                           },
                           { label: '승점', value: row.points ?? '-' },
@@ -250,7 +250,7 @@ function GroupStandingsTableInner({
                             key={i}
                             className="rounded bg-gray-50 border border-gray-200 px-2 py-1 text-center"
                           >
-                            <div className="text-[11px] text-gray-600">
+                            <div className="text-[11px] text-gray-600 whitespace-nowrap">
                               {stat.label}
                             </div>
                             <div className="text-sm font-semibold text-gray-900">
@@ -315,7 +315,7 @@ function GroupStandingsTableInner({
                           { label: '승', value: row.wins ?? '-' },
                           { label: '패', value: row.losses ?? '-' },
                           {
-                            label: '득실차',
+                            label: '득실',
                             value: row.goal_difference ?? '-',
                           },
                           { label: '승점', value: row.points ?? '-' },
@@ -324,7 +324,7 @@ function GroupStandingsTableInner({
                             key={i}
                             className="rounded bg-gray-50 border border-gray-200 px-2 py-1 text-center"
                           >
-                            <div className="text-[11px] text-gray-600">
+                            <div className="text-[11px] text-gray-600 whitespace-nowrap">
                               {stat.label}
                             </div>
                             <div className="text-sm font-semibold text-gray-900">
@@ -386,14 +386,14 @@ function GroupStandingsTableInner({
                     { label: '승', value: row.wins ?? '-' },
                     { label: '무', value: row.draws ?? '-' },
                     { label: '패', value: row.losses ?? '-' },
-                    { label: '득실차', value: row.goal_difference ?? '-' },
+                    { label: '득실', value: row.goal_difference ?? '-' },
                     { label: '승점', value: row.points ?? '-' },
                   ].map((stat, i) => (
                     <div
                       key={i}
                       className="rounded bg-gray-50 border border-gray-200 px-2 py-1 text-center"
                     >
-                      <div className="text-[11px] text-gray-600">
+                      <div className="text-[11px] text-gray-600 whitespace-nowrap">
                         {stat.label}
                       </div>
                       <div className="text-sm font-semibold text-gray-900">
