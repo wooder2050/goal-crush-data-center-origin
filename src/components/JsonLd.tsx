@@ -11,7 +11,8 @@ interface JsonLdProps {
 }
 
 export function JsonLd({ data, id }: JsonLdProps & { id?: string }) {
-  const scriptId = id || `json-ld-${data['@type']?.toString().toLowerCase() || 'default'}`;
+  const scriptId =
+    id || `json-ld-${data['@type']?.toString().toLowerCase() || 'default'}`;
   return (
     <Script
       id={scriptId}
