@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { SportsTeamJsonLd } from '@/components/JsonLd';
 import { getInitialTeamDetailData } from '@/features/teams/server';
 import { prisma } from '@/lib/prisma';
 
@@ -95,5 +96,13 @@ export default async function Page({ params }: Props) {
     notFound();
   }
 
-  return <TeamDetailPageContent teamId={teamId} initialData={initialData} />;
+  return (
+    <>
+      <SportsTeamJsonLd
+        name={initialData.team.team_name}
+        description={`골 때리는 그녀들 ${initialData.team.team_name}`}
+      />
+      <TeamDetailPageContent teamId={teamId} initialData={initialData} />
+    </>
+  );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { SportsEventJsonLd } from '@/components/JsonLd';
 import { getInitialMatchDetailData } from '@/features/matches/server';
 import { prisma } from '@/lib/prisma';
 
@@ -114,5 +115,22 @@ export default async function Page({ params }: Props) {
   const initialData = await getInitialMatchDetailData(id);
   if (!initialData) notFound();
 
-  return <MatchDetailPageContent matchId={matchId} initialData={initialData} />;
+  const match = initialData.match;
+  const homeTeamName = match.home_team?.team_name || '홈팀';
+  const awayTeamName = match.away_team?.team_name || '원정팀';
+  const matchDate = match.match_date
+    ? new Date(match.match_date).toISOString()
+    : undefined;
+
+  return (
+    <>
+      <SportsEventJsonLd
+        name={`${homeTeamName} vs ${awayTeamName}`}
+        startDate={matchDate || ''}
+        homeTeam={homeTeamName}
+        awayTeam={awayTeamName}
+      />
+      <MatchDetailPageContent matchId={matchId} initialData={initialData} />
+    </>
+  );
 }

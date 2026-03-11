@@ -10,10 +10,12 @@ interface JsonLdProps {
   data: JsonLdData;
 }
 
-export function JsonLd({ data }: JsonLdProps) {
+export function JsonLd({ data, id }: JsonLdProps & { id?: string }) {
+  const scriptId =
+    id || `json-ld-${data['@type']?.toString().toLowerCase() || 'default'}`;
   return (
     <Script
-      id="json-ld"
+      id={scriptId}
       type="application/ld+json"
       dangerouslySetInnerHTML={{
         __html: JSON.stringify(data),
