@@ -79,9 +79,11 @@ function StandingsTable({ standings }: { standings: HomeStanding[] }) {
             </th>
             <th className="text-center py-2.5 px-2 hidden sm:table-cell">승</th>
             <th className="text-center py-2.5 px-2 hidden sm:table-cell">패</th>
-            <th className="text-center py-2.5 px-2">득실</th>
-            <th className="text-center py-2.5 px-2 font-bold">승점</th>
-            <th className="text-left py-2.5 px-2">최근</th>
+            <th className="text-center py-2.5 px-2 whitespace-nowrap">득실</th>
+            <th className="text-center py-2.5 px-2 font-bold whitespace-nowrap">
+              승점
+            </th>
+            <th className="text-left py-2.5 px-2 whitespace-nowrap">최근</th>
           </tr>
         </thead>
         <tbody>
