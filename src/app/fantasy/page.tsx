@@ -12,27 +12,28 @@ import FantasyTeams from '@/features/fantasy/components/FantasyTeams';
 import { getCurrentUser } from '@/lib/auth';
 
 export const metadata: Metadata = {
-  title: '골때녀 판타지 리그 - 나만의 드림팀',
+  title: '골때녀 판타지 리그 - 드림팀 만들고 팬 순위 경쟁',
   description:
-    '골 때리는 그녀들 판타지 리그! 5명의 선수를 선택해 실제 경기 성과로 점수를 얻고 다른 팬들과 순위를 겨뤄보세요.',
+    '골 때리는 그녀들 판타지 리그에서 5명의 선수를 골라 나만의 드림팀을 구성! 실제 경기 성과 기반 점수로 다른 팬들과 순위를 겨뤄보세요.',
   keywords: [
     '골때녀 판타지',
     '골때녀 판타지 리그',
     '골때리는 그녀들 판타지',
     '골때녀 드림팀',
+    '골때녀 팬 게임',
   ],
   alternates: { canonical: '/fantasy' },
   openGraph: {
-    title: '골때녀 판타지 리그 - 나만의 드림팀 | 골때녀 데이터 센터',
+    title: '골때녀 판타지 리그 - 드림팀 만들고 팬 순위 경쟁',
     description:
-      '골 때리는 그녀들 판타지 리그! 5명의 선수를 선택해 실제 경기 성과로 점수를 얻고 다른 팬들과 순위를 겨뤄보세요.',
+      '골 때리는 그녀들 판타지 리그에서 5명의 선수를 골라 나만의 드림팀을 구성! 실제 경기 성과 기반 점수로 다른 팬들과 순위를 겨뤄보세요.',
     url: 'https://www.gtndatacenter.com/fantasy',
   },
   twitter: {
     card: 'summary',
-    title: '골때녀 판타지 리그 - 나만의 드림팀 | 골때녀 데이터 센터',
+    title: '골때녀 판타지 리그 - 드림팀 만들고 팬 순위 경쟁',
     description:
-      '골 때리는 그녀들 판타지 리그! 5명의 선수를 선택해 실제 경기 성과로 점수를 얻고 다른 팬들과 순위를 겨뤄보세요.',
+      '골 때리는 그녀들 판타지 리그에서 5명의 선수를 골라 나만의 드림팀을 구성!',
   },
 };
 

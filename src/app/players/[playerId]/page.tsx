@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { PersonJsonLd } from '@/components/JsonLd';
 import { getInitialPlayerDetailData } from '@/features/players/server';
 import { prisma } from '@/lib/prisma';
 
@@ -99,5 +100,16 @@ export default async function Page({ params }: Props) {
   const initialData = await getInitialPlayerDetailData(id);
   if (!initialData) notFound();
 
-  return <PlayerDetailContent playerId={playerId} initialData={initialData} />;
+  const player = initialData.player;
+
+  return (
+    <>
+      <PersonJsonLd
+        name={player.name}
+        description={`골 때리는 그녀들 ${player.name} 선수`}
+        nationality="대한민국"
+      />
+      <PlayerDetailContent playerId={playerId} initialData={initialData} />
+    </>
+  );
 }
