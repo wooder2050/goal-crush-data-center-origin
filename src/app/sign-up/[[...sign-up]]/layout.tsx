@@ -7,6 +7,9 @@ export const metadata: Metadata = {
     index: false,
     follow: false,
   },
+  alternates: {
+    canonical: '/sign-up',
+  },
 };
 
 export default function SignUpLayout({
