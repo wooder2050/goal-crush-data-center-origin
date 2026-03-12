@@ -7,6 +7,9 @@ export const metadata: Metadata = {
     index: false,
     follow: false,
   },
+  alternates: {
+    canonical: '/community/posts/create',
+  },
 };
 
 export default function CreatePostLayout({
