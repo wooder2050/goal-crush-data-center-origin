@@ -10,6 +10,7 @@ export {
   CardHeader,
   CardTitle,
 } from './card';
+export { CollapsibleFilter } from './collapsible-filter';
 export { Input } from './input';
 export { Pagination } from './pagination';
 export { Progress } from './progress';

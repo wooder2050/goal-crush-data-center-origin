@@ -7,6 +7,7 @@ import { useState } from 'react';
 import {
   Card,
   CardContent,
+  CollapsibleFilter,
   Pagination,
   Section,
   Select,
@@ -163,9 +164,8 @@ export default function GoalkeeperRankingsPageContent() {
           </div>
 
           {/* 필터 */}
-          <Card className="mb-6">
-            <CardContent className="px-4 py-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <CollapsibleFilter>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 {/* 출전 유형 */}
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -271,8 +271,7 @@ export default function GoalkeeperRankingsPageContent() {
                   </Select>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </CollapsibleFilter>
 
           {/* 통계 요약 */}
           <div className="mb-6 grid  gap-4 grid-cols-3">

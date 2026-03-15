@@ -60,14 +60,6 @@ export default function Footer() {
                   통계 분석
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/community"
-                  className="text-gray-300 hover:text-[#ff4800] transition-colors"
-                >
-                  커뮤니티
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -101,7 +93,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/community"
+                  href="/support"
                   className="text-gray-300 hover:text-[#ff4800] transition-colors"
                 >
                   고객지원

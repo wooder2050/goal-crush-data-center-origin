@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   CardContent,
+  CollapsibleFilter,
   H1,
   Pagination,
   Section,
@@ -108,75 +109,73 @@ function ScoringRankingsPageContentInner() {
         </div>
 
         {/* 필터 */}
-        <Card className="mb-6">
-          <CardContent className="px-4 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* 시즌 필터 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  시즌
-                </label>
-                <InfiniteSeasonSelect
-                  value={seasonId}
-                  onValueChange={handleSeasonChange}
-                  placeholder="시즌 선택"
-                />
-              </div>
-
-              {/* 정렬 기준 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  정렬 기준
-                </label>
-                <Select value={sortBy} onValueChange={handleSortChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="정렬 기준 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="attack_points">
-                      공격포인트 많은 순
-                    </SelectItem>
-                    <SelectItem value="goals">득점 많은 순</SelectItem>
-                    <SelectItem value="assists">도움 많은 순</SelectItem>
-                    <SelectItem value="matches_played">
-                      출전경기 많은 순
-                    </SelectItem>
-                    <SelectItem value="attack_points_per_match">
-                      경기당 공격포인트 많은 순
-                    </SelectItem>
-                    <SelectItem value="goals_per_match">
-                      경기당 골 많은 순
-                    </SelectItem>
-                    <SelectItem value="assists_per_match">
-                      경기당 도움 많은 순
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* 최소 경기 수 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  최소 경기 수
-                </label>
-                <Select
-                  value={minMatches.toString()}
-                  onValueChange={handleMinMatchesChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1경기</SelectItem>
-                    <SelectItem value="3">3경기</SelectItem>
-                    <SelectItem value="5">5경기</SelectItem>
-                    <SelectItem value="10">10경기</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        <CollapsibleFilter>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* 시즌 필터 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                시즌
+              </label>
+              <InfiniteSeasonSelect
+                value={seasonId}
+                onValueChange={handleSeasonChange}
+                placeholder="시즌 선택"
+              />
             </div>
-          </CardContent>
-        </Card>
+
+            {/* 정렬 기준 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                정렬 기준
+              </label>
+              <Select value={sortBy} onValueChange={handleSortChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="정렬 기준 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="attack_points">
+                    공격포인트 많은 순
+                  </SelectItem>
+                  <SelectItem value="goals">득점 많은 순</SelectItem>
+                  <SelectItem value="assists">도움 많은 순</SelectItem>
+                  <SelectItem value="matches_played">
+                    출전경기 많은 순
+                  </SelectItem>
+                  <SelectItem value="attack_points_per_match">
+                    경기당 공격포인트 많은 순
+                  </SelectItem>
+                  <SelectItem value="goals_per_match">
+                    경기당 골 많은 순
+                  </SelectItem>
+                  <SelectItem value="assists_per_match">
+                    경기당 도움 많은 순
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 최소 경기 수 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                최소 경기 수
+              </label>
+              <Select
+                value={minMatches.toString()}
+                onValueChange={handleMinMatchesChange}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1경기</SelectItem>
+                  <SelectItem value="3">3경기</SelectItem>
+                  <SelectItem value="5">5경기</SelectItem>
+                  <SelectItem value="10">10경기</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CollapsibleFilter>
 
         {/* 통계 요약 */}
         <div className="mb-6 grid gap-4 grid-cols-3">
