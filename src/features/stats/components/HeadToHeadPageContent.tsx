@@ -250,7 +250,8 @@ function HeadToHeadPageContentInner({
                 팀을 선택해주세요
               </h3>
               <p className="text-sm text-gray-500 max-w-sm mx-auto">
-                위에서 비교할 두 팀을 선택하면 상대 전적, 득점 현황, 최근 경기 결과를 확인할 수 있습니다
+                위에서 비교할 두 팀을 선택하면 상대 전적, 득점 현황, 최근 경기
+                결과를 확인할 수 있습니다
               </p>
             </CardContent>
           </Card>

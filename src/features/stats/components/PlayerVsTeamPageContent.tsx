@@ -464,7 +464,8 @@ export function PlayerVsTeamPageContent() {
                 선수를 선택해주세요
               </h3>
               <p className="text-sm text-gray-500 max-w-sm mx-auto">
-                위의 검색창에서 선수 이름을 검색하고 선택하면 해당 선수의 팀별 상대 기록을 확인할 수 있습니다
+                위의 검색창에서 선수 이름을 검색하고 선택하면 해당 선수의 팀별
+                상대 기록을 확인할 수 있습니다
               </p>
             </CardContent>
           </Card>

@@ -166,111 +166,111 @@ export default function GoalkeeperRankingsPageContent() {
           {/* 필터 */}
           <CollapsibleFilter>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                {/* 출전 유형 */}
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    출전 유형
-                  </label>
-                  <Select
-                    value={filters.appearance_type}
-                    onValueChange={(value: string) =>
-                      handleFilterChange('appearance_type', value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">전체 출전</SelectItem>
-                      <SelectItem value="starter">선발 출전</SelectItem>
-                      <SelectItem value="substitute">교체 출전</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* 시즌 선택 */}
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    시즌
-                  </label>
-                  <InfiniteSeasonSelect
-                    value={filters.season_id}
-                    onValueChange={(value: number | undefined) =>
-                      handleFilterChange('season_id', value)
-                    }
-                    placeholder="전체 시즌"
-                  />
-                </div>
-
-                {/* 정렬 기준 */}
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    정렬 기준
-                  </label>
-                  <Select
-                    value={filters.sort_by}
-                    onValueChange={(value: string) =>
-                      handleFilterChange('sort_by', value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sortOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* 최소 경기 수 */}
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    최소 경기 수
-                  </label>
-                  <Select
-                    value={filters.min_matches.toString()}
-                    onValueChange={(value: string) =>
-                      handleFilterChange('min_matches', Number(value))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1경기</SelectItem>
-                      <SelectItem value="3">3경기</SelectItem>
-                      <SelectItem value="5">5경기</SelectItem>
-                      <SelectItem value="10">10경기</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* 페이지당 표시 개수 */}
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    표시 개수
-                  </label>
-                  <Select
-                    value={filters.limit.toString()}
-                    onValueChange={(value: string) =>
-                      handleFilterChange('limit', Number(value))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10개</SelectItem>
-                      <SelectItem value="20">20개</SelectItem>
-                      <SelectItem value="50">50개</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* 출전 유형 */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  출전 유형
+                </label>
+                <Select
+                  value={filters.appearance_type}
+                  onValueChange={(value: string) =>
+                    handleFilterChange('appearance_type', value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">전체 출전</SelectItem>
+                    <SelectItem value="starter">선발 출전</SelectItem>
+                    <SelectItem value="substitute">교체 출전</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+
+              {/* 시즌 선택 */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  시즌
+                </label>
+                <InfiniteSeasonSelect
+                  value={filters.season_id}
+                  onValueChange={(value: number | undefined) =>
+                    handleFilterChange('season_id', value)
+                  }
+                  placeholder="전체 시즌"
+                />
+              </div>
+
+              {/* 정렬 기준 */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  정렬 기준
+                </label>
+                <Select
+                  value={filters.sort_by}
+                  onValueChange={(value: string) =>
+                    handleFilterChange('sort_by', value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 최소 경기 수 */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  최소 경기 수
+                </label>
+                <Select
+                  value={filters.min_matches.toString()}
+                  onValueChange={(value: string) =>
+                    handleFilterChange('min_matches', Number(value))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1경기</SelectItem>
+                    <SelectItem value="3">3경기</SelectItem>
+                    <SelectItem value="5">5경기</SelectItem>
+                    <SelectItem value="10">10경기</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 페이지당 표시 개수 */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  표시 개수
+                </label>
+                <Select
+                  value={filters.limit.toString()}
+                  onValueChange={(value: string) =>
+                    handleFilterChange('limit', Number(value))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10개</SelectItem>
+                    <SelectItem value="20">20개</SelectItem>
+                    <SelectItem value="50">50개</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CollapsibleFilter>
 
           {/* 통계 요약 */}
