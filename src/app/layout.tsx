@@ -22,11 +22,7 @@ const NAV_ITEMS = [
   { href: '/teams', label: '팀', requireAuth: false },
   { href: '/players', label: '선수', requireAuth: false },
   { href: '/coaches', label: '감독', requireAuth: false },
-  { href: '/ratings', label: '평가', requireAuth: false },
   { href: '/stats', label: '통계', requireAuth: false },
-  { href: '/fantasy', label: '판타지', requireAuth: false },
-  { href: '/community', label: '커뮤니티', requireAuth: false },
-  { href: '/supports', label: '응원하기', requireAuth: true },
 ] as const;
 
 export const metadata: Metadata = {

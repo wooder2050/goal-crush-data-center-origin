@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   CardContent,
+  CollapsibleFilter,
   H1,
   Pagination,
   Section,
@@ -184,79 +185,77 @@ function PenaltyShootoutPageContentInner() {
         </div>
 
         {/* 필터 */}
-        <Card className="mb-6">
-          <CardContent className="px-4 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* 시즌 필터 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  시즌
-                </label>
-                <InfiniteSeasonSelect
-                  value={seasonId}
-                  onValueChange={handleSeasonChange}
-                  placeholder="시즌 선택"
-                />
-              </div>
-
-              {/* 정렬 기준 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  정렬 기준
-                </label>
-                <Select value={sortBy} onValueChange={handleSortChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="정렬 기준 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isKicker ? (
-                      <>
-                        <SelectItem value="total">많이 찬 순</SelectItem>
-                        <SelectItem value="success_rate_high">
-                          성공률 높은 순
-                        </SelectItem>
-                        <SelectItem value="success_rate_low">
-                          성공률 낮은 순
-                        </SelectItem>
-                      </>
-                    ) : (
-                      <>
-                        <SelectItem value="total">많이 상대한 순</SelectItem>
-                        <SelectItem value="save_rate_high">
-                          선방율 높은 순
-                        </SelectItem>
-                        <SelectItem value="save_rate_low">
-                          선방율 낮은 순
-                        </SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* 최소 횟수 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {isKicker ? '최소 킥 수' : '최소 상대 수'}
-                </label>
-                <Select
-                  value={minAttempts.toString()}
-                  onValueChange={handleMinAttemptsChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1회</SelectItem>
-                    <SelectItem value="3">3회</SelectItem>
-                    <SelectItem value="5">5회</SelectItem>
-                    <SelectItem value="10">10회</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        <CollapsibleFilter>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* 시즌 필터 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                시즌
+              </label>
+              <InfiniteSeasonSelect
+                value={seasonId}
+                onValueChange={handleSeasonChange}
+                placeholder="시즌 선택"
+              />
             </div>
-          </CardContent>
-        </Card>
+
+            {/* 정렬 기준 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                정렬 기준
+              </label>
+              <Select value={sortBy} onValueChange={handleSortChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="정렬 기준 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isKicker ? (
+                    <>
+                      <SelectItem value="total">많이 찬 순</SelectItem>
+                      <SelectItem value="success_rate_high">
+                        성공률 높은 순
+                      </SelectItem>
+                      <SelectItem value="success_rate_low">
+                        성공률 낮은 순
+                      </SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="total">많이 상대한 순</SelectItem>
+                      <SelectItem value="save_rate_high">
+                        선방율 높은 순
+                      </SelectItem>
+                      <SelectItem value="save_rate_low">
+                        선방율 낮은 순
+                      </SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 최소 횟수 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {isKicker ? '최소 킥 수' : '최소 상대 수'}
+              </label>
+              <Select
+                value={minAttempts.toString()}
+                onValueChange={handleMinAttemptsChange}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1회</SelectItem>
+                  <SelectItem value="3">3회</SelectItem>
+                  <SelectItem value="5">5회</SelectItem>
+                  <SelectItem value="10">10회</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CollapsibleFilter>
 
         {/* 통계 요약 */}
         <div className="mb-6 grid gap-4 grid-cols-3">

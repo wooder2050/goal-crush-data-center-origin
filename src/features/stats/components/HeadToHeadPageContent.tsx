@@ -242,13 +242,16 @@ function HeadToHeadPageContentInner({
 
         {!team1Id || !team2Id ? (
           <Card>
-            <CardContent className="px-6 py-12 text-center">
-              <Swords className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <CardContent className="px-6 py-10 text-center">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 mb-4">
+                <Swords className="h-7 w-7 text-gray-400" />
+              </div>
               <h3 className="text-lg font-semibold text-gray-700 mb-2">
                 팀을 선택해주세요
               </h3>
-              <p className="text-gray-500">
-                비교할 두 팀을 선택하면 맞대결 통계를 확인할 수 있습니다
+              <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                위에서 비교할 두 팀을 선택하면 상대 전적, 득점 현황, 최근 경기
+                결과를 확인할 수 있습니다
               </p>
             </CardContent>
           </Card>

@@ -456,15 +456,16 @@ export function PlayerVsTeamPageContent() {
         {/* 선수 미선택 상태 */}
         {!selectedPlayer && (
           <Card>
-            <CardContent className="py-16 text-center">
-              <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <CardContent className="py-10 text-center">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 mb-4">
+                <Users className="h-7 w-7 text-gray-400" />
+              </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 선수를 선택해주세요
               </h3>
-              <p className="text-gray-600">
-                위의 검색창에서 선수 이름을 검색하고 선택하면
-                <br />
-                해당 선수의 팀별 상대 기록을 확인할 수 있습니다.
+              <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                위의 검색창에서 선수 이름을 검색하고 선택하면 해당 선수의 팀별
+                상대 기록을 확인할 수 있습니다
               </p>
             </CardContent>
           </Card>

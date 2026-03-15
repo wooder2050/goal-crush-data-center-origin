@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   CardContent,
+  CollapsibleFilter,
   H1,
   Pagination,
   Section,
@@ -140,50 +141,48 @@ function TeamRankingsPageContentInner() {
         </div>
 
         {/* 필터 */}
-        <Card className="mb-6">
-          <CardContent className="px-4 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* 시즌 필터 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  시즌
-                </label>
-                <InfiniteSeasonSelect
-                  value={seasonId}
-                  onValueChange={handleSeasonChange}
-                  placeholder="시즌 선택"
-                />
-              </div>
-
-              {/* 정렬 기준 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  정렬 기준
-                </label>
-                <Select value={sortBy} onValueChange={handleSortChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="정렬 기준 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="win_rate">승률 높은 순</SelectItem>
-                    <SelectItem value="goal_difference">
-                      득실차 좋은 순
-                    </SelectItem>
-                    <SelectItem value="goals_for">득점 많은 순</SelectItem>
-                    <SelectItem value="goals_against">실점 적은 순</SelectItem>
-                    <SelectItem value="goals_for_per_match">
-                      경기당 득점 많은 순
-                    </SelectItem>
-                    <SelectItem value="goals_against_per_match">
-                      경기당 실점 적은 순
-                    </SelectItem>
-                    <SelectItem value="matches_played">경기 많은 순</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        <CollapsibleFilter>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 시즌 필터 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                시즌
+              </label>
+              <InfiniteSeasonSelect
+                value={seasonId}
+                onValueChange={handleSeasonChange}
+                placeholder="시즌 선택"
+              />
             </div>
-          </CardContent>
-        </Card>
+
+            {/* 정렬 기준 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                정렬 기준
+              </label>
+              <Select value={sortBy} onValueChange={handleSortChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="정렬 기준 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="win_rate">승률 높은 순</SelectItem>
+                  <SelectItem value="goal_difference">
+                    득실차 좋은 순
+                  </SelectItem>
+                  <SelectItem value="goals_for">득점 많은 순</SelectItem>
+                  <SelectItem value="goals_against">실점 적은 순</SelectItem>
+                  <SelectItem value="goals_for_per_match">
+                    경기당 득점 많은 순
+                  </SelectItem>
+                  <SelectItem value="goals_against_per_match">
+                    경기당 실점 적은 순
+                  </SelectItem>
+                  <SelectItem value="matches_played">경기 많은 순</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CollapsibleFilter>
 
         {/* 통계 요약 */}
         <div className="mb-6 grid gap-4 grid-cols-3">
