@@ -96,23 +96,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     // 데이터베이스에서 실제 데이터 가져오기 (모든 데이터 포함)
     const [seasons, teams, players, coaches] = await Promise.all([
-        prisma.season.findMany({
-          select: { season_id: true, updated_at: true },
-          orderBy: { updated_at: 'desc' },
-        }),
-        prisma.team.findMany({
-          select: { team_id: true, updated_at: true },
-          orderBy: { updated_at: 'desc' },
-        }),
-        prisma.player.findMany({
-          select: { player_id: true, updated_at: true },
-          orderBy: { updated_at: 'desc' },
-        }),
-        prisma.coach.findMany({
-          select: { coach_id: true, created_at: true },
-          orderBy: { created_at: 'desc' },
-        }),
-      ]);
+      prisma.season.findMany({
+        select: { season_id: true, updated_at: true },
+        orderBy: { updated_at: 'desc' },
+      }),
+      prisma.team.findMany({
+        select: { team_id: true, updated_at: true },
+        orderBy: { updated_at: 'desc' },
+      }),
+      prisma.player.findMany({
+        select: { player_id: true, updated_at: true },
+        orderBy: { updated_at: 'desc' },
+      }),
+      prisma.coach.findMany({
+        select: { coach_id: true, created_at: true },
+        orderBy: { created_at: 'desc' },
+      }),
+    ]);
 
     // 시즌 페이지들
     const seasonPages: MetadataRoute.Sitemap = seasons.map((season) => ({
