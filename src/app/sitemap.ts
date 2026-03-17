@@ -38,31 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/ratings`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
       url: `${baseUrl}/stats`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/fantasy`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/community`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/matches`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
@@ -119,34 +95,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     // 데이터베이스에서 실제 데이터 가져오기 (모든 데이터 포함)
-    const [seasons, teams, players, coaches, matches, posts] =
-      await Promise.all([
-        prisma.season.findMany({
-          select: { season_id: true, updated_at: true },
-          orderBy: { updated_at: 'desc' },
-        }),
-        prisma.team.findMany({
-          select: { team_id: true, updated_at: true },
-          orderBy: { updated_at: 'desc' },
-        }),
-        prisma.player.findMany({
-          select: { player_id: true, updated_at: true },
-          orderBy: { updated_at: 'desc' },
-        }),
-        prisma.coach.findMany({
-          select: { coach_id: true, created_at: true },
-          orderBy: { created_at: 'desc' },
-        }),
-        prisma.match.findMany({
-          select: { match_id: true, updated_at: true },
-          orderBy: { updated_at: 'desc' },
-        }),
-        prisma.communityPost.findMany({
-          select: { post_id: true, updated_at: true },
-          where: { is_deleted: false },
-          orderBy: { updated_at: 'desc' },
-        }),
-      ]);
+    const [seasons, teams, players, coaches] = await Promise.all([
+      prisma.season.findMany({
+        select: { season_id: true, updated_at: true },
+        orderBy: { updated_at: 'desc' },
+      }),
+      prisma.team.findMany({
+        select: { team_id: true, updated_at: true },
+        orderBy: { updated_at: 'desc' },
+      }),
+      prisma.player.findMany({
+        select: { player_id: true, updated_at: true },
+        orderBy: { updated_at: 'desc' },
+      }),
+      prisma.coach.findMany({
+        select: { coach_id: true, created_at: true },
+        orderBy: { created_at: 'desc' },
+      }),
+    ]);
 
     // 시즌 페이지들
     const seasonPages: MetadataRoute.Sitemap = seasons.map((season) => ({
@@ -180,30 +146,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    // 경기 페이지들
-    const matchPages: MetadataRoute.Sitemap = matches.map((match) => ({
-      url: `${baseUrl}/matches/${match.match_id}`,
-      lastModified: match.updated_at || new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    }));
-
-    // 커뮤니티 포스트 페이지들
-    const postPages: MetadataRoute.Sitemap = posts.map((post) => ({
-      url: `${baseUrl}/community/posts/${post.post_id}`,
-      lastModified: post.updated_at || new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    }));
-
     return [
       ...staticPages,
       ...seasonPages,
       ...teamPages,
       ...playerPages,
       ...coachPages,
-      ...matchPages,
-      ...postPages,
     ];
   } catch (error) {
     console.error('Sitemap 생성 중 오류 발생:', error);

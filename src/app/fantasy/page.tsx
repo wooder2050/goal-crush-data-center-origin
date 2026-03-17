@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     '골때녀 팬 게임',
   ],
   alternates: { canonical: '/fantasy' },
+  robots: { index: false, follow: true },
   openGraph: {
     title: '골때녀 판타지 리그 - 드림팀 만들고 팬 순위 경쟁',
     description:
