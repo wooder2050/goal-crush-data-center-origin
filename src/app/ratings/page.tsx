@@ -17,6 +17,7 @@ export const metadata: Metadata = {
     '골때녀 레이팅',
   ],
   alternates: { canonical: '/ratings' },
+  robots: { index: false, follow: true },
   openGraph: {
     title: '골때녀 선수 능력치 평가 - 팬 투표 레이팅 순위',
     description:
