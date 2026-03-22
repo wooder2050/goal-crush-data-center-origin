@@ -39,6 +39,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           team: true,
         },
       },
+      player_season_stats: {
+        select: { goals: true, assists: true, matches_played: true },
+      },
     },
   });
 
@@ -51,8 +54,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const playerName = player.name;
   const currentTeam = player.player_team_history[0]?.team?.team_name;
   const teamInfo = currentTeam ? ` (${currentTeam})` : '';
-  const title = `${playerName}${teamInfo} - 골때녀 선수 정보`;
-  const description = `골 때리는 그녀들 ${playerName} 선수의 프로필, 시즌별 기록, 득점, 어시스트 통계를 확인하세요.`;
+  const careerStats = player.player_season_stats.reduce(
+    (acc, s) => ({
+      goals: acc.goals + (s.goals ?? 0),
+      assists: acc.assists + (s.assists ?? 0),
+      matches: acc.matches + (s.matches_played ?? 0),
+    }),
+    { goals: 0, assists: 0, matches: 0 }
+  );
+  const statsText =
+    careerStats.matches > 0
+      ? ` 통산 ${careerStats.matches}경기 ${careerStats.goals}골 ${careerStats.assists}도움`
+      : '';
+  const title = statsText
+    ? `${playerName}${teamInfo} -${statsText} | 골때녀 선수 프로필`
+    : `${playerName}${teamInfo} | 골때녀 선수 프로필`;
+  const description = `골 때리는 그녀들 ${playerName} 선수의 프로필과 통산 기록을 확인하세요.${statsText ? ` ${statsText}.` : ''} 시즌별 득점·어시스트·출전 통계를 제공합니다.`;
 
   return {
     title,
