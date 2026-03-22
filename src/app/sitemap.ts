@@ -95,7 +95,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     // 데이터베이스에서 실제 데이터 가져오기 (모든 데이터 포함)
-    const [seasons, teams, players, coaches] = await Promise.all([
+    const [seasons, teams, players, coaches, matches] = await Promise.all([
       prisma.season.findMany({
         select: { season_id: true, updated_at: true },
         orderBy: { updated_at: 'desc' },
@@ -111,6 +111,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       prisma.coach.findMany({
         select: { coach_id: true, created_at: true },
         orderBy: { created_at: 'desc' },
+      }),
+      prisma.match.findMany({
+        select: { match_id: true, updated_at: true },
+        orderBy: { updated_at: 'desc' },
       }),
     ]);
 
@@ -146,12 +150,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
+    // 경기 페이지들
+    const matchPages: MetadataRoute.Sitemap = matches.map((match) => ({
+      url: `${baseUrl}/matches/${match.match_id}`,
+      lastModified: match.updated_at || new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    }));
+
     return [
       ...staticPages,
       ...seasonPages,
       ...teamPages,
       ...playerPages,
       ...coachPages,
+      ...matchPages,
     ];
   } catch (error) {
     console.error('Sitemap 생성 중 오류 발생:', error);

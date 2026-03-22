@@ -66,7 +66,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     careerStats.matches > 0
       ? ` 통산 ${careerStats.matches}경기 ${careerStats.goals}골 ${careerStats.assists}도움`
       : '';
-  const title = `${playerName}${teamInfo} -${statsText} | 골때녀 선수 프로필`;
+  const title = statsText
+    ? `${playerName}${teamInfo} -${statsText} | 골때녀 선수 프로필`
+    : `${playerName}${teamInfo} | 골때녀 선수 프로필`;
   const description = `골 때리는 그녀들 ${playerName} 선수의 프로필과 통산 기록을 확인하세요.${statsText ? ` ${statsText}.` : ''} 시즌별 득점·어시스트·출전 통계를 제공합니다.`;
 
   return {
