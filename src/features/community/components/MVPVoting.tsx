@@ -319,7 +319,7 @@ function MVPVotingContent() {
                           </h4>
                           <div className="text-sm text-gray-500">
                             {result.team_name}
-                            {result.jersey_number &&
+                            {result.jersey_number != null &&
                               ` • ${result.jersey_number}번`}
                           </div>
                         </div>

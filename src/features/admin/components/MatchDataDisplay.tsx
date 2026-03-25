@@ -166,7 +166,8 @@ export default function MatchDataDisplay({
                       <td className="py-2 px-4">{goal.goal_time}&apos;</td>
                       <td className="py-2 px-4">
                         {goal.player_name}{' '}
-                        {goal.jersey_number && `(${goal.jersey_number})`}
+                        {goal.jersey_number != null &&
+                          `(${goal.jersey_number})`}
                       </td>
                       <td className="py-2 px-4">
                         {goal.goal_type === 'own_goal'

@@ -94,7 +94,7 @@ export default function FantasyPlayerCard({
             </div>
 
             {/* 등번호 */}
-            {player.jersey_number && (
+            {player.jersey_number != null && (
               <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
                 {player.jersey_number}
               </div>

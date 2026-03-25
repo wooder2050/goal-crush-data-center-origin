@@ -316,7 +316,7 @@ export default function FeaturedPlayersSection({ match }: Props) {
                   >
                     {homePick.name}
                   </Link>
-                  {homePick.jersey_number && (
+                  {homePick.jersey_number != null && (
                     <span className="text-[11px] text-gray-500">
                       #{homePick.jersey_number}
                     </span>
@@ -387,7 +387,7 @@ export default function FeaturedPlayersSection({ match }: Props) {
                   >
                     {awayPick.name}
                   </Link>
-                  {awayPick.jersey_number && (
+                  {awayPick.jersey_number != null && (
                     <span className="text-[11px] text-gray-500">
                       #{awayPick.jersey_number}
                     </span>

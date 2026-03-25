@@ -330,7 +330,7 @@ export default function FootballPitch({
               </div>
 
               {/* 등번호 */}
-              {player.jersey_number && (
+              {player.jersey_number != null && (
                 <div className="absolute -bottom-0.5 -right-0.5 bg-white text-black text-xs font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 flex items-center justify-center shadow-md border border-gray-300">
                   {player.jersey_number}
                 </div>

@@ -83,7 +83,7 @@ export function ActionHistory({
 
                 {/* 선수 */}
                 <span className="font-medium min-w-[60px]">
-                  {action.player?.jersey_number && (
+                  {action.player?.jersey_number != null && (
                     <span className="text-gray-400 mr-1">
                       {action.player.jersey_number}
                     </span>
