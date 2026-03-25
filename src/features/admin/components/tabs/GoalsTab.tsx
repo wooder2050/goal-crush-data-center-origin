@@ -77,7 +77,7 @@ export default function GoalsTab({
                     <td className="py-2 px-4">{goal.goal_time}&apos;</td>
                     <td className="py-2 px-4">
                       {goal.player_name || '알 수 없음'}
-                      {goal.jersey_number && ` (${goal.jersey_number})`}
+                      {goal.jersey_number != null && ` (${goal.jersey_number})`}
                     </td>
                     <td className="py-2 px-4">
                       {getGoalTypeLabel(goal.goal_type)}
@@ -103,7 +103,7 @@ export default function GoalsTab({
                     <td className="py-2 px-4">{goal.goal_time}&apos;</td>
                     <td className="py-2 px-4">
                       {goal.player?.name || '알 수 없음'}
-                      {goal.player?.jersey_number &&
+                      {goal.player?.jersey_number != null &&
                         ` (${goal.player.jersey_number})`}
                     </td>
                     <td className="py-2 px-4">

@@ -131,7 +131,7 @@ export default function AddAssistDialog({
                               value={player.player_id.toString()}
                             >
                               {player.name}{' '}
-                              {player.jersey_number &&
+                              {player.jersey_number != null &&
                                 `(${player.jersey_number})`}
                             </SelectItem>
                           ))}

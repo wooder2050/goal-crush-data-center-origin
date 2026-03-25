@@ -182,7 +182,7 @@ export default function AddPenaltyDialog({
                             value={player.player_id.toString()}
                           >
                             {player.name}{' '}
-                            {player.jersey_number &&
+                            {player.jersey_number != null &&
                               `(${player.jersey_number})`}
                           </SelectItem>
                         ))
@@ -247,7 +247,7 @@ export default function AddPenaltyDialog({
                             value={player.player_id.toString()}
                           >
                             {player.name}{' '}
-                            {player.jersey_number &&
+                            {player.jersey_number != null &&
                               `(${player.jersey_number})`}
                           </SelectItem>
                         ))
