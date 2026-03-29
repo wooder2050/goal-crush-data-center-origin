@@ -7,6 +7,7 @@ import { fetchHomePageData } from '../api-prisma';
 import type { HomePageData } from '../types';
 import CareerStatsWidget from './CareerStatsWidget';
 import MatchesWidget from './MatchesWidget';
+import PlayerCompareBanner from './PlayerCompareBanner';
 import PlayerStatsWidget from './PlayerStatsWidget';
 import StandingsWidget from './StandingsWidget';
 
@@ -55,6 +56,10 @@ export default function HomePageDashboard({
             seasonId={pageData.currentSeason.season_id}
             recentMatches={pageData.recentMatches}
             upcomingMatches={pageData.upcomingMatches}
+          />
+          <PlayerCompareBanner
+            topScorers={pageData.topScorers}
+            topAssists={pageData.topAssists}
           />
           <CareerStatsWidget
             careerTopScorers={pageData.careerTopScorers}

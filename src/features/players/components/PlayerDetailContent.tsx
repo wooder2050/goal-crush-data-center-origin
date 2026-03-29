@@ -1,6 +1,8 @@
 'use client';
 import { format } from 'date-fns';
+import { Users } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCallback, useMemo } from 'react';
 
 import { Card, CardContent, Grid } from '@/components/ui';
@@ -325,6 +327,15 @@ function PlayerDetailContentInner({
                 </div>
               )}
             </div>
+
+            {/* Compare with another player */}
+            <Link
+              href={`/stats/player-compare?player1=${playerId}`}
+              className="flex items-center justify-center gap-2 rounded-md border py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+            >
+              <Users className="h-4 w-4" />
+              다른 선수와 비교
+            </Link>
 
             {/* Participated seasons */}
             <div>
