@@ -27,10 +27,11 @@ const DEFENSIVE_ACTIONS = new Set([
 const FAIL_PENALTY_FACTOR = 0.5;
 const SHOT_MISS_FACTOR = 0.3;
 
-// 베이지안 수축: 액션 수가 적은 선수의 평점을 평균(7.5)으로 수축
+// 베이지안 수축: 액션 수가 적은 선수의 평점을 SHRINKAGE_CENTER로 수축
 // shrinkage = actions / (actions + SHRINKAGE_K)
-// 4액션 → 17% 원래값, 20액션 → 50%, 50액션 → 71%, 100액션 → 83%
-const SHRINKAGE_K = 20;
+// 5액션 → 11% 원래값, 20액션 → 33%, 40액션 → 50%, 80액션 → 67%
+const SHRINKAGE_K = 40;
+const SHRINKAGE_CENTER = 6.5;
 
 // 포지션별 공격xT/수비xT 가중치 (Opta 방식)
 const POSITION_WEIGHTS: Record<
@@ -369,9 +370,9 @@ function normalizeGroup(results: PlayerXtResult[]): void {
       raw = CENTER + zScore * SCALE;
     }
 
-    // 베이지안 수축: 액션 수가 적을수록 CENTER(7.5)에 가깝게
+    // 베이지안 수축: 액션 수가 적을수록 SHRINKAGE_CENTER(6.5)에 가깝게
     const shrinkage = r.actions_count / (r.actions_count + SHRINKAGE_K);
-    const shrunk = shrinkage * raw + (1 - shrinkage) * CENTER;
+    const shrunk = shrinkage * raw + (1 - shrinkage) * SHRINKAGE_CENTER;
 
     r.xt_rating =
       Math.round(Math.min(MAX_RATING, Math.max(MIN_RATING, shrunk)) * 10) / 10;
