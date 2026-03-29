@@ -12,6 +12,21 @@ export const metadata: Metadata = {
   },
   description:
     'All match results, player records, and team standings for SBS Kick a Goal (골 때리는 그녀들) at a glance. Check season standings, top scorers, and head-to-head records.',
+  openGraph: {
+    title:
+      'Kick a Goal Stats — Match Results, Player Rankings & Team Standings',
+    description:
+      'All match results, player records, and team standings for SBS Kick a Goal (골 때리는 그녀들) at a glance. Check season standings, top scorers, and head-to-head records.',
+    url: '/en',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title:
+      'Kick a Goal Stats — Match Results, Player Rankings & Team Standings',
+    description:
+      'All match results, player records, and team standings for SBS Kick a Goal (골 때리는 그녀들) at a glance. Check season standings, top scorers, and head-to-head records.',
+  },
   alternates: {
     canonical: '/en',
     languages: {
