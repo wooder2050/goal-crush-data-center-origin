@@ -84,6 +84,13 @@ export default function StatsPage() {
       gradient: 'from-purple-50 to-indigo-50',
     },
     {
+      title: '선수 비교',
+      description: '두 선수의 기록을 나란히 비교',
+      href: '/stats/player-compare',
+      icon: <Users className="h-8 w-8 text-teal-500" />,
+      gradient: 'from-teal-50 to-emerald-50',
+    },
+    {
       title: '선발 출전 승률',
       description: '선발 출전 시 팀 승률 순위',
       href: '/stats/starter-win-rate',

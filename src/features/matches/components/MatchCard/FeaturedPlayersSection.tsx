@@ -443,6 +443,16 @@ export default function FeaturedPlayersSection({ match }: Props) {
           )}
         </div>
       </div>
+
+      {/* Player Compare Link */}
+      {homePick && awayPick && (
+        <Link
+          href={`/stats/player-compare?player1=${homePick.player_id}&player2=${awayPick.player_id}`}
+          className="mt-3 flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
+        >
+          {homePick.name} vs {awayPick.name} 비교하기
+        </Link>
+      )}
     </Card>
   );
 }
