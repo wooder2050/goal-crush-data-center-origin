@@ -40,6 +40,8 @@ export async function getInitialPlayerDetailData(
       jersey_number: player.jersey_number ?? null,
       created_at: player.created_at?.toISOString() ?? null,
       updated_at: player.updated_at?.toISOString() ?? null,
+      about: player.about ?? null,
+      about_updated_at: player.about_updated_at?.toISOString() ?? null,
     },
   };
 }

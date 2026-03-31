@@ -45,3 +45,17 @@ export function getRatingBgColor(rating: number): string {
 export function getRatingTextColor(): string {
   return 'text-white';
 }
+
+/** Check if a hex color is light (brightness > threshold) */
+export function isLightColor(
+  hex: string | null | undefined,
+  threshold = 180
+): boolean {
+  if (!hex) return true;
+  const color = hex.replace('#', '');
+  if (color.length < 6) return true;
+  const r = parseInt(color.substring(0, 2), 16);
+  const g = parseInt(color.substring(2, 4), 16);
+  const b = parseInt(color.substring(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > threshold;
+}

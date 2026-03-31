@@ -1,13 +1,13 @@
 'use client';
 
+import { format } from 'date-fns';
 import Image from 'next/image';
+import { useMemo, useState } from 'react';
 
-import { Card, CardContent } from '@/components/ui';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import { apiUrl } from '@/lib/api-url';
 import { shortenSeasonName } from '@/lib/utils';
 
-// 골키퍼 통계 API 호출 함수
 async function getGoalkeeperStats(playerId: number) {
   const response = await fetch(
     apiUrl(`/api/players/${playerId}/goalkeeper-stats`)
@@ -16,6 +16,19 @@ async function getGoalkeeperStats(playerId: number) {
     throw new Error('Failed to fetch goalkeeper stats');
   }
   return response.json();
+}
+
+interface RecentMatch {
+  match_id: number;
+  match_date: string | null;
+  season_name: string | null;
+  opponent_name: string | null;
+  opponent_logo: string | null;
+  goals_conceded: number;
+  is_clean_sheet: boolean;
+  is_home: boolean;
+  home_score: number | null;
+  away_score: number | null;
 }
 
 interface SeasonGoalkeeperStats {
@@ -29,22 +42,66 @@ interface SeasonGoalkeeperStats {
   clean_sheet_percentage: string;
 }
 
-interface RecentMatch {
-  match_id: number;
-  match_date: string;
-  season_name: string | null;
-  opponent_name: string | null;
-  opponent_logo: string | null;
-  goals_conceded: number;
-  is_clean_sheet: boolean;
-  is_home: boolean;
-  home_score: number | null;
-  away_score: number | null;
-}
-
 interface GoalkeeperStatsSectionProps {
   playerId: number;
 }
+
+function MatchRow({ match }: { match: RecentMatch }) {
+  return (
+    <div className="px-4 py-3">
+      <div className="mb-1.5 flex items-center justify-between text-[12px] text-gray-500">
+        <span>
+          {match.match_date
+            ? format(new Date(match.match_date), 'M월 d일')
+            : '-'}
+        </span>
+        <span>
+          {match.season_name ? shortenSeasonName(match.season_name) : '-'}
+        </span>
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 min-w-0">
+          {match.opponent_logo ? (
+            <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full">
+              <Image
+                src={match.opponent_logo}
+                alt={match.opponent_name ?? '-'}
+                fill
+                sizes="24px"
+                className="object-cover"
+              />
+            </span>
+          ) : (
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px] text-gray-600">
+              {(match.opponent_name ?? '-').charAt(0)}
+            </span>
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-[14px] text-gray-900">
+              {match.opponent_name ?? '-'}
+            </p>
+            <p className="text-[12px] text-gray-500">
+              {match.home_score ?? '-'} - {match.away_score ?? '-'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {match.is_clean_sheet ? (
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[12px] font-medium text-green-700">
+              무실점
+            </span>
+          ) : (
+            <span className="text-[14px] font-semibold text-red-600">
+              -{match.goals_conceded}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const INITIAL_COUNT = 5;
 
 export default function GoalkeeperStatsSection({
   playerId,
@@ -53,7 +110,32 @@ export default function GoalkeeperStatsSection({
     playerId,
   ]);
 
-  // 골키퍼로 출전한 기록이 없으면 렌더링하지 않음
+  const [activeTab, setActiveTab] = useState<
+    'conceded' | 'cleansheet' | 'seasons'
+  >('conceded');
+  const [expandedConceded, setExpandedConceded] = useState(false);
+  const [expandedCleansheet, setExpandedCleansheet] = useState(false);
+
+  const recentMatches: RecentMatch[] = useMemo(
+    () => goalkeeperStats?.recent_matches ?? [],
+    [goalkeeperStats?.recent_matches]
+  );
+
+  const cleanSheetMatches = useMemo(
+    () => recentMatches.filter((m) => m.is_clean_sheet),
+    [recentMatches]
+  );
+
+  const concededMatches = useMemo(
+    () => recentMatches.filter((m) => !m.is_clean_sheet),
+    [recentMatches]
+  );
+
+  const seasonStats: SeasonGoalkeeperStats[] = useMemo(
+    () => goalkeeperStats?.season_stats ?? [],
+    [goalkeeperStats?.season_stats]
+  );
+
   if (
     !goalkeeperStats?.is_goalkeeper ||
     goalkeeperStats.total_goalkeeper_appearances === 0
@@ -61,288 +143,166 @@ export default function GoalkeeperStatsSection({
     return null;
   }
 
-  const { career_totals, career_averages, season_stats, recent_matches } =
-    goalkeeperStats;
-
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900">🥅 골키퍼 통계</h3>
-
-      {/* 커리어 통계 - 모바일에서 1줄, 데스크탑에서 분리 */}
-      <div className="space-y-4 sm:space-y-6">
-        {/* 모바일: 1줄로 커리어 총합 + 평균 */}
-        <Card className="block sm:hidden">
-          <CardContent className="px-4 py-4">
-            <h4 className="mb-3 text-sm font-medium text-gray-700">
-              커리어 기록
-            </h4>
-            <div className="grid grid-cols-5 gap-2 text-center">
-              <div>
-                <div className="text-sm font-semibold text-blue-600">
-                  {career_totals.matches_played}
-                </div>
-                <div className="text-[10px] text-gray-500">경기</div>
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-red-600">
-                  {career_totals.goals_conceded}
-                </div>
-                <div className="text-[10px] text-gray-500">실점</div>
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-purple-600">
-                  {career_totals.clean_sheets}
-                </div>
-                <div className="text-[10px] text-gray-500">CS</div>
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-orange-600">
-                  {career_averages.goals_conceded_per_match}
-                </div>
-                <div className="text-[10px] text-gray-500">실점/경기</div>
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-green-600">
-                  {career_averages.clean_sheet_percentage}%
-                </div>
-                <div className="text-[10px] text-gray-500">CS율</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 데스크탑: 분리된 카드들 */}
-        <div className="hidden sm:block space-y-4">
-          {/* 커리어 총합 */}
-          <Card>
-            <CardContent className="px-4 py-4">
-              <h4 className="mb-3 text-sm font-medium text-gray-700">
-                커리어 총합
-              </h4>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-blue-600">
-                    {career_totals.matches_played}
-                  </div>
-                  <div className="text-xs text-gray-500">경기</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-red-600">
-                    {career_totals.goals_conceded}
-                  </div>
-                  <div className="text-xs text-gray-500">실점</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-purple-600">
-                    {career_totals.clean_sheets}
-                  </div>
-                  <div className="text-xs text-gray-500">클린시트</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 커리어 평균 */}
-          <Card>
-            <CardContent className="px-4 py-4">
-              <h4 className="mb-3 text-sm font-medium text-gray-700">
-                커리어 평균
-              </h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-orange-600">
-                    {career_averages.goals_conceded_per_match}
-                  </div>
-                  <div className="text-xs text-gray-500">경기당 실점</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-green-600">
-                    {career_averages.clean_sheet_percentage}%
-                  </div>
-                  <div className="text-xs text-gray-500">클린시트율</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+    <div className="overflow-hidden rounded-2xl border border-[#F0F0F0] bg-white">
+      {/* Header */}
+      <div className="px-6 py-4">
+        <p className="text-[18px] font-medium text-gray-900">골키퍼 통계</p>
       </div>
 
-      {/* 시즌별 통계 */}
-      {season_stats && season_stats.length > 0 && (
-        <Card>
-          <CardContent className="px-0 py-4">
-            <h4 className="mb-3 px-4 text-sm font-medium text-gray-700">
-              시즌별 골키퍼 기록
-            </h4>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-medium text-gray-700">
-                      시즌
-                    </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">
-                      경기
-                    </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">
-                      실점
-                    </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">
-                      클린시트
-                    </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">
-                      경기당실점
-                    </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">
-                      클린시트율
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {season_stats.map((season: SeasonGoalkeeperStats) => (
-                    <tr
-                      key={season.season_id}
-                      className="border-t border-gray-200"
-                    >
-                      <td className="px-3 py-2">
-                        <div className="text-sm font-medium">
-                          {shortenSeasonName(
-                            season.season_name || `${season.year} 시즌`
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        {season.matches_played}
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <span className="text-red-600 font-medium">
-                          {season.goals_conceded}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <span className="text-purple-600 font-medium">
-                          {season.clean_sheets}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <span className="text-orange-600 font-medium">
-                          {season.goals_conceded_per_match}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <span className="text-green-600 font-medium">
-                          {season.clean_sheet_percentage}%
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Tabs */}
+      <div className="flex border-b border-gray-100 px-6 pt-1">
+        <button
+          onClick={() => setActiveTab('conceded')}
+          className={`relative pb-3 pr-6 text-[16px] font-medium ${
+            activeTab === 'conceded' ? 'text-gray-900' : 'text-[#9F9F9F]'
+          }`}
+        >
+          실점 ({concededMatches.length})
+          {activeTab === 'conceded' && (
+            <span
+              className="absolute bottom-0 left-0 h-[2px] w-full rounded-full"
+              style={{ backgroundColor: '#EF4444' }}
+            />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('cleansheet')}
+          className={`relative pb-3 pr-6 text-[16px] font-medium ${
+            activeTab === 'cleansheet' ? 'text-gray-900' : 'text-[#9F9F9F]'
+          }`}
+        >
+          클린시트 ({cleanSheetMatches.length})
+          {activeTab === 'cleansheet' && (
+            <span
+              className="absolute bottom-0 left-0 h-[2px] w-full rounded-full"
+              style={{ backgroundColor: '#22C55E' }}
+            />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('seasons')}
+          className={`relative pb-3 text-[16px] font-medium ${
+            activeTab === 'seasons' ? 'text-gray-900' : 'text-[#9F9F9F]'
+          }`}
+        >
+          시즌
+          {activeTab === 'seasons' && (
+            <span
+              className="absolute bottom-0 left-0 h-[2px] w-full rounded-full"
+              style={{ backgroundColor: '#3B82F6' }}
+            />
+          )}
+        </button>
+      </div>
 
-      {/* 최근 골키퍼 출전 기록 */}
-      {recent_matches && recent_matches.length > 0 && (
-        <Card>
-          <CardContent className="px-0 py-4">
-            <h4 className="mb-3 px-4 text-sm font-medium text-gray-700">
-              최근 골키퍼 출전 기록 ({recent_matches.length}경기)
-            </h4>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-medium text-gray-700">
-                      날짜
-                    </th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-700">
-                      상대
-                    </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">
-                      스코어
-                    </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">
-                      실점
-                    </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-700">
-                      결과
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recent_matches.map((match: RecentMatch, index: number) => (
-                    <tr
-                      key={match.match_id || index}
-                      className="border-t border-gray-200"
-                    >
-                      <td className="px-3 py-2">
-                        <div className="text-xs text-gray-500">
-                          {match.match_date
-                            ? new Date(match.match_date).toLocaleDateString(
-                                'ko-KR',
-                                {
-                                  month: 'short',
-                                  day: 'numeric',
-                                }
-                              )
-                            : '-'}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-2">
-                          {match.opponent_logo ? (
-                            <span className="relative h-4 w-4 overflow-hidden rounded-full flex-shrink-0">
-                              <Image
-                                src={match.opponent_logo}
-                                alt="상대팀 로고"
-                                fill
-                                sizes="16px"
-                                className="object-cover"
-                              />
-                            </span>
-                          ) : (
-                            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-gray-200 text-[9px] text-gray-700">
-                              {(match.opponent_name ?? '-').charAt(0)}
-                            </span>
-                          )}
-                          <span className="text-xs">
-                            vs {match.opponent_name ?? '-'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-2 text-center text-xs">
-                        {match.home_score !== null && match.away_score !== null
-                          ? `${match.home_score}-${match.away_score}`
-                          : '-'}
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <span
-                          className={
-                            match.goals_conceded === 0
-                              ? 'text-green-600 font-medium'
-                              : 'text-red-600'
-                          }
-                        >
-                          {match.goals_conceded}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        {match.is_clean_sheet && (
-                          <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-[10px] font-medium text-green-700">
-                            CS
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* Tab Content */}
+      <div className="divide-y divide-gray-100">
+        {activeTab === 'conceded' &&
+          (concededMatches.length > 0 ? (
+            <>
+              {(expandedConceded
+                ? concededMatches
+                : concededMatches.slice(0, INITIAL_COUNT)
+              ).map((m) => (
+                <MatchRow key={m.match_id} match={m} />
+              ))}
+              {concededMatches.length > INITIAL_COUNT && (
+                <button
+                  onClick={() => setExpandedConceded((v) => !v)}
+                  aria-expanded={expandedConceded}
+                  className="w-full py-3 text-center text-[14px] font-medium text-gray-500 transition-colors hover:text-gray-900"
+                >
+                  {expandedConceded
+                    ? '간략히 보기'
+                    : `더보기 (${concededMatches.length - INITIAL_COUNT})`}
+                </button>
+              )}
+            </>
+          ) : (
+            <p className="px-6 py-6 text-center text-[14px] text-gray-400">
+              실점 기록이 없습니다
+            </p>
+          ))}
+
+        {activeTab === 'cleansheet' &&
+          (cleanSheetMatches.length > 0 ? (
+            <>
+              {(expandedCleansheet
+                ? cleanSheetMatches
+                : cleanSheetMatches.slice(0, INITIAL_COUNT)
+              ).map((m) => (
+                <MatchRow key={m.match_id} match={m} />
+              ))}
+              {cleanSheetMatches.length > INITIAL_COUNT && (
+                <button
+                  onClick={() => setExpandedCleansheet((v) => !v)}
+                  aria-expanded={expandedCleansheet}
+                  className="w-full py-3 text-center text-[14px] font-medium text-gray-500 transition-colors hover:text-gray-900"
+                >
+                  {expandedCleansheet
+                    ? '간략히 보기'
+                    : `더보기 (${cleanSheetMatches.length - INITIAL_COUNT})`}
+                </button>
+              )}
+            </>
+          ) : (
+            <p className="px-6 py-6 text-center text-[14px] text-gray-400">
+              클린시트 기록이 없습니다
+            </p>
+          ))}
+
+        {activeTab === 'seasons' &&
+          (seasonStats.length > 0 ? (
+            <div className="px-4 py-3">
+              {/* Header row */}
+              <div className="mb-2 grid grid-cols-[1fr_40px_40px_56px_56px] items-center gap-0 px-2">
+                <span />
+                <span className="text-center text-[10px] text-gray-400">
+                  경기
+                </span>
+                <span className="text-center text-[10px] text-gray-400">
+                  실점
+                </span>
+                <span className="text-center text-[10px] text-gray-400">
+                  클린시트
+                </span>
+                <span className="text-center text-[10px] text-gray-400">
+                  클린시트율
+                </span>
+              </div>
+              {/* Season rows */}
+              <div className="space-y-1">
+                {seasonStats.map((s) => (
+                  <div
+                    key={s.season_id}
+                    className="grid grid-cols-[1fr_40px_40px_56px_56px] items-center gap-0 px-2 py-2"
+                  >
+                    <p className="truncate text-[14px] text-gray-900">
+                      {shortenSeasonName(s.season_name || `${s.year} 시즌`)}
+                    </p>
+                    <span className="text-center text-[14px] text-gray-900">
+                      {s.matches_played}
+                    </span>
+                    <span className="text-center text-[14px] text-red-600">
+                      {s.goals_conceded}
+                    </span>
+                    <span className="text-center text-[14px] text-green-600">
+                      {s.clean_sheets}
+                    </span>
+                    <span className="text-center text-[14px] text-gray-900">
+                      {s.clean_sheet_percentage}%
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <p className="px-6 py-6 text-center text-[14px] text-gray-400">
+              시즌 기록이 없습니다
+            </p>
+          ))}
+      </div>
     </div>
   );
 }
