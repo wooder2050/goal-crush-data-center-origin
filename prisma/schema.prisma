@@ -107,6 +107,8 @@ model Player {
   match_actions                       MatchAction[]
   player_match_ratings                PlayerMatchRating[]
   player_match_xt_ratings             PlayerMatchXtRating[]
+  about                               String?                    @db.Text
+  about_updated_at                    DateTime?                  @db.Timestamptz(6)
 
   @@index([jersey_number], map: "idx_players_jersey_number")
   @@index([name], map: "idx_players_name")
