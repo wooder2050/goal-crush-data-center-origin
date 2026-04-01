@@ -281,34 +281,27 @@ function IndividualAwardList({ awards }: { awards: IndividualAward[] }) {
 
             {/* Award rows */}
             <div className="divide-y divide-gray-100">
-              {items.map((award) => {
-                const categoryLabel = getCategoryLabel(award.category);
-                const seasonLabel = categoryLabel
-                  ? categoryLabel
-                  : shortenSeasonName(award.season_name);
-
-                return (
-                  <div
-                    key={`${award.award_type}-${award.season_id}`}
-                    className="flex items-center gap-3 px-4 py-2.5"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[14px] text-gray-900">
-                        {seasonLabel}
-                        {award.is_shared && (
-                          <span className="ml-1 text-[12px] text-gray-400">
-                            공동
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <p className="shrink-0 text-[12px] text-gray-500">
-                      {award.stat_value}
-                      {unit}
+              {items.map((award) => (
+                <div
+                  key={`${award.award_type}-${award.season_id}`}
+                  className="flex items-center gap-3 px-4 py-2.5"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[14px] text-gray-900">
+                      {shortenSeasonName(award.season_name)}
+                      {award.is_shared && (
+                        <span className="ml-1 text-[12px] text-gray-400">
+                          공동
+                        </span>
+                      )}
                     </p>
                   </div>
-                );
-              })}
+                  <p className="shrink-0 text-[12px] text-gray-500">
+                    {award.stat_value}
+                    {unit}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         );
