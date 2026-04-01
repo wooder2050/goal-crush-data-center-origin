@@ -2,6 +2,7 @@
 
 import { Link2, Search, Swords, X } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Suspense,
@@ -774,26 +775,30 @@ function PlayerProfile({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div
-        className="relative h-20 w-20 overflow-hidden rounded-full border-3 sm:h-28 sm:w-28"
-        style={{ borderColor: teamColor }}
-      >
-        {player.profile_image_url ? (
-          <Image
-            src={player.profile_image_url}
-            alt={player.name}
-            fill
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gray-100 text-2xl font-bold text-gray-400 sm:text-3xl">
-            {player.name[0]}
-          </div>
-        )}
-      </div>
-      <h3 className="text-center text-base font-bold text-gray-900 sm:text-lg">
-        {player.name}
-      </h3>
+      <Link href={`/players/${player.player_id}`}>
+        <div
+          className="relative h-20 w-20 overflow-hidden rounded-full border-3 transition-opacity hover:opacity-80 sm:h-28 sm:w-28"
+          style={{ borderColor: teamColor }}
+        >
+          {player.profile_image_url ? (
+            <Image
+              src={player.profile_image_url}
+              alt={player.name}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gray-100 text-2xl font-bold text-gray-400 sm:text-3xl">
+              {player.name[0]}
+            </div>
+          )}
+        </div>
+      </Link>
+      <Link href={`/players/${player.player_id}`}>
+        <h3 className="text-center text-base font-bold text-gray-900 transition-colors hover:text-gray-600 sm:text-lg">
+          {player.name}
+        </h3>
+      </Link>
       <div className="flex flex-wrap items-center justify-center gap-1">
         {player.team && (
           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">

@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
@@ -48,7 +49,10 @@ interface GoalkeeperStatsSectionProps {
 
 function MatchRow({ match }: { match: RecentMatch }) {
   return (
-    <div className="px-4 py-3">
+    <Link
+      href={`/matches/${match.match_id}`}
+      className="block px-4 py-3 transition-colors hover:bg-gray-50 active:bg-gray-50"
+    >
       <div className="mb-1.5 flex items-center justify-between text-[12px] text-gray-500">
         <span>
           {match.match_date
@@ -97,7 +101,7 @@ function MatchRow({ match }: { match: RecentMatch }) {
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

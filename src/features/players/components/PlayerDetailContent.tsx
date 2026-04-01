@@ -224,6 +224,7 @@ function PlayerDetailContentInner({
     () =>
       [...(summary?.seasons ?? [])].reverse().map((s) => ({
         key: `${s.season_id ?? ''}-${s.team_id ?? ''}`,
+        season_id: s.season_id ?? null,
         season: s.season_name ?? `시즌 ${s.year ?? ''}`,
         team: s.team_name ?? '-',
         team_logo: s?.team_logo ?? null,
@@ -524,22 +525,28 @@ function PlayerDetailContentInner({
           {/* Match Log */}
           <MatchLogCard playerId={playerId} />
 
-          {/* Pass Map */}
-          <PassMapCard
-            playerId={playerId}
-            teamColor={
-              activeTeam?.primary_color &&
-              !isNearWhite(activeTeam.primary_color)
-                ? activeTeam.primary_color
-                : teamAccent
-            }
-          />
+          {/* Pass Map — desktop only here (mobile: rendered below right column) */}
+          <div className="hidden lg:block">
+            <PassMapCard
+              playerId={playerId}
+              teamColor={
+                activeTeam?.primary_color &&
+                !isNearWhite(activeTeam.primary_color)
+                  ? activeTeam.primary_color
+                  : teamAccent
+              }
+            />
+          </div>
 
-          {/* Season Detailed Stats (bar graphs) */}
-          <SeasonDetailedStatsCard playerId={playerId} />
+          {/* Season Detailed Stats — desktop only here */}
+          <div className="hidden lg:block">
+            <SeasonDetailedStatsCard playerId={playerId} />
+          </div>
 
-          {/* About */}
-          <PlayerAboutCard about={player?.about} />
+          {/* About — desktop only here */}
+          <div className="hidden lg:block">
+            <PlayerAboutCard about={player?.about} />
+          </div>
         </div>
 
         {/* Right Column — Career + Attack Points/GK Stats + Trophies */}
@@ -580,6 +587,21 @@ function PlayerDetailContentInner({
           <PlayerTrophiesCard playerId={playerId} />
         </div>
       </div>
+
+      {/* Mobile-only: Pass Map, Season Stats, About — placed at the very bottom */}
+      <div className="mt-4 space-y-4 lg:hidden">
+        <PassMapCard
+          playerId={playerId}
+          teamColor={
+            activeTeam?.primary_color &&
+            !isNearWhite(activeTeam.primary_color)
+              ? activeTeam.primary_color
+              : teamAccent
+          }
+        />
+        <SeasonDetailedStatsCard playerId={playerId} />
+        <PlayerAboutCard about={player?.about} />
+      </div>
     </div>
   );
 }
@@ -602,6 +624,7 @@ function CareerCard({
   >;
   seasonRows: {
     key: string;
+    season_id: number | null;
     season: string;
     team: string;
     team_logo: string | null;
@@ -680,54 +703,73 @@ function CareerCard({
               </div>
             </div>
             <div className="space-y-1">
-              {visibleClubs.map((t, idx) => (
-                <div
-                  key={`${t.team_name ?? '-'}-${idx}`}
-                  className="flex items-center justify-between px-2 py-2"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {t.logo ? (
-                      <span className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full">
-                        <Image
-                          src={t.logo}
-                          alt="팀"
-                          fill
-                          sizes="28px"
-                          className="object-cover"
-                        />
-                      </span>
-                    ) : (
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-[10px]">
-                        {(t.team_name ?? '?').charAt(0)}
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate text-[14px] text-gray-900">
-                        {t.team_name ?? '-'}
-                      </p>
-                      <p className="text-[14px] text-[#9F9F9F]">
-                        {(t.start_date ?? '—').slice(0, 7)} ~{' '}
-                        {t.is_active
-                          ? '현재'
-                          : (t.end_date?.slice(0, 7) ?? '-')}
-                      </p>
-                    </div>
-                  </div>
-                  {(() => {
-                    const st = teamStats.get(t.team_id ?? 0);
-                    return st ? (
-                      <div className="flex shrink-0" style={{ width: '72px' }}>
-                        <span className="w-9 text-right text-[14px] text-gray-900">
-                          {st.appearances}
+              {visibleClubs.map((t, idx) => {
+                const content = (
+                  <>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {t.logo ? (
+                        <span className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full">
+                          <Image
+                            src={t.logo}
+                            alt="팀"
+                            fill
+                            sizes="28px"
+                            className="object-cover"
+                          />
                         </span>
-                        <span className="w-9 text-right text-[14px] text-gray-900">
-                          {st.goals}
+                      ) : (
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-[10px]">
+                          {(t.team_name ?? '?').charAt(0)}
                         </span>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-[14px] text-gray-900">
+                          {t.team_name ?? '-'}
+                        </p>
+                        <p className="text-[14px] text-[#9F9F9F]">
+                          {(t.start_date ?? '—').slice(0, 7)} ~{' '}
+                          {t.is_active
+                            ? '현재'
+                            : (t.end_date?.slice(0, 7) ?? '-')}
+                        </p>
                       </div>
-                    ) : null;
-                  })()}
-                </div>
-              ))}
+                    </div>
+                    {(() => {
+                      const st = teamStats.get(t.team_id ?? 0);
+                      return st ? (
+                        <div
+                          className="flex shrink-0"
+                          style={{ width: '72px' }}
+                        >
+                          <span className="w-9 text-right text-[14px] text-gray-900">
+                            {st.appearances}
+                          </span>
+                          <span className="w-9 text-right text-[14px] text-gray-900">
+                            {st.goals}
+                          </span>
+                        </div>
+                      ) : null;
+                    })()}
+                  </>
+                );
+                const key = `${t.team_name ?? '-'}-${idx}`;
+                return t.team_id ? (
+                  <Link
+                    key={key}
+                    href={`/teams/${t.team_id}`}
+                    className="flex items-center justify-between rounded-lg px-2 py-2 transition-colors hover:bg-gray-50 active:bg-gray-50"
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div
+                    key={key}
+                    className="flex items-center justify-between px-2 py-2"
+                  >
+                    {content}
+                  </div>
+                );
+              })}
             </div>
             {clubList.length > INITIAL_COUNT && (
               <button
@@ -758,47 +800,62 @@ function CareerCard({
               </div>
             </div>
             <div className="space-y-1">
-              {visibleSeasons.map((r) => (
-                <div
-                  key={r.key}
-                  className="flex items-center justify-between px-2 py-2"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {r.team_logo ? (
-                      <span className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full">
-                        <Image
-                          src={r.team_logo}
-                          alt="팀"
-                          fill
-                          sizes="28px"
-                          className="object-cover"
-                        />
-                      </span>
-                    ) : (
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-[10px]">
-                        {(r.team ?? '?').charAt(0)}
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate text-[14px] text-gray-900">
-                        {shortenSeasonName(r.season)}
-                      </p>
-                      <p className="text-[14px] text-[#9F9F9F]">{r.team}</p>
+              {visibleSeasons.map((r) => {
+                const content = (
+                  <>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {r.team_logo ? (
+                        <span className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full">
+                          <Image
+                            src={r.team_logo}
+                            alt="팀"
+                            fill
+                            sizes="28px"
+                            className="object-cover"
+                          />
+                        </span>
+                      ) : (
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-[10px]">
+                          {(r.team ?? '?').charAt(0)}
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-[14px] text-gray-900">
+                          {shortenSeasonName(r.season)}
+                        </p>
+                        <p className="text-[14px] text-[#9F9F9F]">{r.team}</p>
+                      </div>
                     </div>
+                    <div className="flex shrink-0" style={{ width: '108px' }}>
+                      <span className="w-9 text-right text-[14px] text-gray-900">
+                        {r.appearances}
+                      </span>
+                      <span className="w-9 text-right text-[14px] text-gray-900">
+                        {r.goals}
+                      </span>
+                      <span className="w-9 text-right text-[14px] text-gray-900">
+                        {r.assists}
+                      </span>
+                    </div>
+                  </>
+                );
+                return r.season_id ? (
+                  <Link
+                    key={r.key}
+                    href={`/seasons/${r.season_id}`}
+                    className="flex items-center justify-between rounded-lg px-2 py-2 transition-colors hover:bg-gray-50 active:bg-gray-50"
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div
+                    key={r.key}
+                    className="flex items-center justify-between px-2 py-2"
+                  >
+                    {content}
                   </div>
-                  <div className="flex shrink-0" style={{ width: '108px' }}>
-                    <span className="w-9 text-right text-[14px] text-gray-900">
-                      {r.appearances}
-                    </span>
-                    <span className="w-9 text-right text-[14px] text-gray-900">
-                      {r.goals}
-                    </span>
-                    <span className="w-9 text-right text-[14px] text-gray-900">
-                      {r.assists}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             {seasonRows.length > INITIAL_COUNT && (
               <button

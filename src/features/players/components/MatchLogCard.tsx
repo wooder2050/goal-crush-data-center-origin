@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCallback, useRef, useState } from 'react';
 
 import { useGoalQuery } from '@/hooks/useGoalQuery';
@@ -120,9 +121,12 @@ function SkeletonRows() {
   );
 }
 
+const MOBILE_PAGE_SIZE = 4;
+
 export default function MatchLogCard({ playerId }: { playerId: number }) {
   const [cursor, setCursor] = useState<string | null>(null);
   const [pageNum, setPageNum] = useState(1);
+  const [mobilePageNum, setMobilePageNum] = useState(1);
   // 이전 페이지 커서 스택 (뒤로 가기용)
   const cursorStackRef = useRef<string[]>([]);
 
@@ -135,6 +139,7 @@ export default function MatchLogCard({ playerId }: { playerId: number }) {
     cursorStackRef.current.push(cursor ?? '__first__');
     setCursor(data.nextCursor);
     setPageNum((p) => p + 1);
+    setMobilePageNum(1);
   }, [data?.nextCursor, cursor]);
 
   const goPrev = useCallback(() => {
@@ -143,13 +148,61 @@ export default function MatchLogCard({ playerId }: { playerId: number }) {
     const prev = stack.pop()!;
     setCursor(prev === '__first__' ? null : prev);
     setPageNum((p) => Math.max(1, p - 1));
+    setMobilePageNum(1);
   }, []);
+
+  const limit = data?.limit ?? 10;
+
+  // 모바일: 10개 중 4개씩 클라이언트 페이지네이션
+  const allItems = data?.items ?? [];
+  const mobileTotalPages = Math.ceil(allItems.length / MOBILE_PAGE_SIZE) || 1;
+
+  const goMobileNext = useCallback(() => {
+    if (mobilePageNum < mobileTotalPages) {
+      setMobilePageNum((p) => p + 1);
+    } else if (data?.hasNext) {
+      goNext();
+    }
+  }, [mobilePageNum, mobileTotalPages, data?.hasNext, goNext]);
+
+  const goMobilePrev = useCallback(() => {
+    if (mobilePageNum > 1) {
+      setMobilePageNum((p) => p - 1);
+    } else if (pageNum > 1) {
+      // 이전 API 페이지의 마지막 모바일 서브페이지로 이동
+      const stack = cursorStackRef.current;
+      if (stack.length === 0) return;
+      const prev = stack.pop()!;
+      setCursor(prev === '__first__' ? null : prev);
+      setPageNum((p) => Math.max(1, p - 1));
+      // 이전 페이지도 10개이므로 마지막 서브페이지
+      setMobilePageNum(Math.ceil(limit / MOBILE_PAGE_SIZE));
+    }
+  }, [mobilePageNum, pageNum, limit]);
 
   if (!data && !isLoading) return null;
   if (!isLoading && (!data || data.items.length === 0)) return null;
 
-  const limit = data?.limit ?? 10;
   const totalPages = data ? Math.ceil(data.total / limit) : 1;
+  const mobileStart = (mobilePageNum - 1) * MOBILE_PAGE_SIZE;
+  const mobileVisible = allItems.slice(mobileStart, mobileStart + MOBILE_PAGE_SIZE);
+  // 모바일 전체 페이지 수: API 페이지별 서브페이지(ceil(아이템수/4))의 합
+  const subPagesPerFullApiPage = Math.ceil(limit / MOBILE_PAGE_SIZE); // 10→3
+  const totalApiPages = data ? Math.ceil(data.total / limit) : 1;
+  const lastApiPageItems = data ? data.total - (totalApiPages - 1) * limit : 0;
+  const lastApiPageSubPages = lastApiPageItems > 0
+    ? Math.ceil(lastApiPageItems / MOBILE_PAGE_SIZE)
+    : 0;
+  const mobileTotalAllPages = totalApiPages > 1
+    ? (totalApiPages - 1) * subPagesPerFullApiPage + lastApiPageSubPages
+    : lastApiPageSubPages || 1;
+  // 모바일 전체 기준 현재 페이지
+  const mobileGlobalPageNum =
+    (pageNum - 1) * subPagesPerFullApiPage + mobilePageNum;
+
+  const hasMobileNext =
+    mobilePageNum < mobileTotalPages || !!data?.hasNext;
+  const hasMobilePrev = mobilePageNum > 1 || pageNum > 1;
 
   const currentYear = new Date().getFullYear();
 
@@ -179,8 +232,9 @@ export default function MatchLogCard({ playerId }: { playerId: number }) {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
         <span className="text-[18px] font-medium text-gray-900">경기 통계</span>
+        {/* Desktop pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 sm:flex">
             <button
               onClick={goPrev}
               disabled={pageNum <= 1 || isLoading}
@@ -195,6 +249,30 @@ export default function MatchLogCard({ playerId }: { playerId: number }) {
             <button
               onClick={goNext}
               disabled={!data?.hasNext || isLoading}
+              aria-label="다음 페이지"
+              className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+            >
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        )}
+        {/* Mobile pagination */}
+        {mobileTotalAllPages > 1 && (
+          <div className="flex items-center gap-2 sm:hidden">
+            <button
+              onClick={goMobilePrev}
+              disabled={!hasMobilePrev || isLoading}
+              aria-label="이전 페이지"
+              className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <span className="text-[12px] text-[#9F9F9F]">
+              {mobileGlobalPageNum} / {mobileTotalAllPages}
+            </span>
+            <button
+              onClick={goMobileNext}
+              disabled={!hasMobileNext || isLoading}
               aria-label="다음 페이지"
               className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
             >
@@ -218,118 +296,131 @@ export default function MatchLogCard({ playerId }: { playerId: number }) {
         <span className="w-12 text-center">xT</span>
       </div>
 
-      {/* Rows */}
-      <div className="divide-y divide-gray-100">
+      {/* Desktop rows */}
+      <div className="hidden divide-y divide-gray-100 sm:block">
         {isLoading || !data ? (
           <SkeletonRows />
         ) : (
           data.items.map((item) => (
-            <div key={item.match_id}>
-              {/* Desktop row */}
-              <div className="hidden items-center px-4 py-2.5 sm:flex">
-                <span className="w-20 truncate text-[11px] text-gray-400">
-                  {shortSeason(item.season)}
+            <Link
+              key={item.match_id}
+              href={`/matches/${item.match_id}`}
+              className="flex items-center px-4 py-2.5 transition-colors hover:bg-gray-50"
+            >
+              <span className="w-20 truncate text-[11px] text-gray-400">
+                {shortSeason(item.season)}
+              </span>
+              <span className="w-20 text-[12px] text-gray-500">
+                {formatDate(item.date)}
+              </span>
+              <div className="flex flex-1 items-center gap-2 min-w-0">
+                {item.opponent_logo ? (
+                  <span className="relative h-5 w-5 shrink-0 overflow-hidden rounded-full">
+                    <Image
+                      src={item.opponent_logo}
+                      alt={item.opponent_name}
+                      fill
+                      sizes="20px"
+                      className="object-cover"
+                    />
+                  </span>
+                ) : (
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-[9px]">
+                    {item.opponent_name.charAt(0)}
+                  </span>
+                )}
+                <span className="truncate text-[14px] text-gray-900">
+                  {item.opponent_name}
                 </span>
-                <span className="w-20 text-[12px] text-gray-500">
-                  {formatDate(item.date)}
+              </div>
+              <div className="flex w-16 items-center justify-center gap-1">
+                <ResultBadge result={item.result} />
+                <span className="text-[14px] text-gray-900">
+                  {item.home_score ?? '-'}-{item.away_score ?? '-'}
                 </span>
-                <div className="flex flex-1 items-center gap-2 min-w-0">
+              </div>
+              <span className="w-8 text-center text-[14px] text-gray-900">
+                {item.goals}
+              </span>
+              <span className="w-8 text-center text-[14px] text-gray-900">
+                {item.assists}
+              </span>
+              <span className="w-8 text-center text-[14px] text-gray-900">
+                {item.yellow_card}
+              </span>
+              <span className="w-8 text-center text-[14px] text-gray-900">
+                {item.red_card}
+              </span>
+              <span className="w-12 text-center">
+                <RatingBadge value={item.rating} />
+              </span>
+              <span className="w-12 text-center">
+                <RatingBadge value={item.xt_rating} />
+              </span>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {/* Mobile rows — 4 items per page */}
+      <div className="divide-y divide-gray-100 sm:hidden">
+        {isLoading || !data ? (
+          <SkeletonRows />
+        ) : (
+          mobileVisible.map((item) => (
+            <Link
+              key={item.match_id}
+              href={`/matches/${item.match_id}`}
+              className="block px-4 py-3 transition-colors active:bg-gray-50"
+            >
+              <div className="mb-1 flex items-center justify-between text-[12px] text-gray-500">
+                <span>{formatDate(item.date)}</span>
+                <span>{shortSeason(item.season)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
                   {item.opponent_logo ? (
-                    <span className="relative h-5 w-5 shrink-0 overflow-hidden rounded-full">
+                    <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full">
                       <Image
                         src={item.opponent_logo}
                         alt={item.opponent_name}
                         fill
-                        sizes="20px"
+                        sizes="24px"
                         className="object-cover"
                       />
                     </span>
                   ) : (
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-[9px]">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px]">
                       {item.opponent_name.charAt(0)}
                     </span>
                   )}
-                  <span className="truncate text-[14px] text-gray-900">
-                    {item.opponent_name}
-                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-[14px] text-gray-900">
+                      {item.opponent_name}
+                    </p>
+                    <p className="text-[12px] text-gray-500">
+                      <ResultBadge result={item.result} />{' '}
+                      {item.home_score ?? '-'}-{item.away_score ?? '-'}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex w-16 items-center justify-center gap-1">
-                  <ResultBadge result={item.result} />
-                  <span className="text-[14px] text-gray-900">
-                    {item.home_score ?? '-'}-{item.away_score ?? '-'}
-                  </span>
-                </div>
-                <span className="w-8 text-center text-[14px] text-gray-900">
-                  {item.goals}
-                </span>
-                <span className="w-8 text-center text-[14px] text-gray-900">
-                  {item.assists}
-                </span>
-                <span className="w-8 text-center text-[14px] text-gray-900">
-                  {item.yellow_card}
-                </span>
-                <span className="w-8 text-center text-[14px] text-gray-900">
-                  {item.red_card}
-                </span>
-                <span className="w-12 text-center">
+                <div className="flex items-center gap-3 shrink-0">
+                  {item.goals > 0 && (
+                    <span className="flex items-center gap-1 text-[14px] font-medium text-gray-800">
+                      <span>⚽</span>
+                      <span>{item.goals}</span>
+                    </span>
+                  )}
+                  {item.assists > 0 && (
+                    <span className="flex items-center gap-1 text-[14px] font-medium text-gray-800">
+                      <span>🎯</span>
+                      <span>{item.assists}</span>
+                    </span>
+                  )}
                   <RatingBadge value={item.rating} />
-                </span>
-                <span className="w-12 text-center">
-                  <RatingBadge value={item.xt_rating} />
-                </span>
-              </div>
-
-              {/* Mobile row */}
-              <div className="px-4 py-3 sm:hidden">
-                <div className="mb-1 flex items-center justify-between text-[12px] text-gray-500">
-                  <span>{formatDate(item.date)}</span>
-                  <span>{shortSeason(item.season)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {item.opponent_logo ? (
-                      <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full">
-                        <Image
-                          src={item.opponent_logo}
-                          alt={item.opponent_name}
-                          fill
-                          sizes="24px"
-                          className="object-cover"
-                        />
-                      </span>
-                    ) : (
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px]">
-                        {item.opponent_name.charAt(0)}
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate text-[14px] text-gray-900">
-                        {item.opponent_name}
-                      </p>
-                      <p className="text-[12px] text-gray-500">
-                        <ResultBadge result={item.result} />{' '}
-                        {item.home_score ?? '-'}-{item.away_score ?? '-'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    {item.goals > 0 && (
-                      <span className="flex items-center gap-1 text-[14px] font-medium text-gray-800">
-                        <span>⚽</span>
-                        <span>{item.goals}</span>
-                      </span>
-                    )}
-                    {item.assists > 0 && (
-                      <span className="flex items-center gap-1 text-[14px] font-medium text-gray-800">
-                        <span>🎯</span>
-                        <span>{item.assists}</span>
-                      </span>
-                    )}
-                    <RatingBadge value={item.rating} />
-                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState } from 'react';
 
 import { useGoalQuery } from '@/hooks/useGoalQuery';
@@ -54,7 +55,10 @@ function MatchRow({
   statValue: number;
 }) {
   return (
-    <div className="px-4 py-3">
+    <Link
+      href={`/matches/${record.match_id}`}
+      className="block px-4 py-3 transition-colors hover:bg-gray-50 active:bg-gray-50"
+    >
       <div className="mb-1.5 flex items-center justify-between text-[12px] text-gray-500">
         <span>
           {record.date ? format(new Date(record.date), 'M월 d일') : '-'}
@@ -101,7 +105,7 @@ function MatchRow({
           <ResultBadge result={record.result} />
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
