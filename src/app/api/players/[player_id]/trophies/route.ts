@@ -76,16 +76,12 @@ export async function GET(
         AND (st.season_id, st.team_id) IN (${Prisma.join(pairConditions)})
     `;
 
-    // 필터링: 조별리그, 플레이오프, 챌린지리그, GIFA_CUP 제외
+    // 필터링: 조별리그, 플레이오프, 챌린지리그 제외
     const filtered = championships.filter((c) => {
       const seasonName = c.season_name ?? '';
       const category = c.category ?? null;
       if (seasonName.includes('조별')) return false;
-      if (
-        category === 'PLAYOFF' ||
-        category === 'CHALLENGE_LEAGUE' ||
-        category === 'GIFA_CUP'
-      )
+      if (category === 'PLAYOFF' || category === 'CHALLENGE_LEAGUE')
         return false;
       return true;
     });
