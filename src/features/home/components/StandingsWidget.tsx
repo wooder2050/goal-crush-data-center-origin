@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 
@@ -57,7 +60,7 @@ export default function StandingsWidget({
                   {group.group_name}
                 </h3>
               )}
-              <StandingsTable standings={group.standings} />
+              <StandingsTable standings={group.standings} seasonId={seasonId} />
             </div>
           ))}
         </div>
@@ -66,7 +69,15 @@ export default function StandingsWidget({
   );
 }
 
-function StandingsTable({ standings }: { standings: HomeStanding[] }) {
+function StandingsTable({
+  standings,
+  seasonId,
+}: {
+  standings: HomeStanding[];
+  seasonId: number;
+}) {
+  const router = useRouter();
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -90,7 +101,8 @@ function StandingsTable({ standings }: { standings: HomeStanding[] }) {
           {standings.map((s) => (
             <tr
               key={s.standing_id}
-              className="border-b border-gray-100 last:border-0"
+              className="border-b border-gray-100 last:border-0 cursor-pointer transition-colors hover:bg-gray-50 active:bg-gray-50"
+              onClick={() => router.push(`/seasons/${seasonId}?tab=teams`)}
             >
               <td className="text-center py-2.5 px-3 text-sm font-medium text-gray-500">
                 {s.position}

@@ -22,6 +22,10 @@ export interface HeadToHeadStats {
   team2_name: string;
   team1_logo?: string;
   team2_logo?: string;
+  team1_primary_color?: string;
+  team1_secondary_color?: string;
+  team2_primary_color?: string;
+  team2_secondary_color?: string;
   total_matches: number;
   team1_wins: number;
   team2_wins: number;

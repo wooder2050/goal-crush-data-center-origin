@@ -36,11 +36,23 @@ export async function GET(request: NextRequest) {
     const [team1, team2] = await Promise.all([
       prisma.team.findUnique({
         where: { team_id: team1Id },
-        select: { team_id: true, team_name: true, logo: true },
+        select: {
+          team_id: true,
+          team_name: true,
+          logo: true,
+          primary_color: true,
+          secondary_color: true,
+        },
       }),
       prisma.team.findUnique({
         where: { team_id: team2Id },
-        select: { team_id: true, team_name: true, logo: true },
+        select: {
+          team_id: true,
+          team_name: true,
+          logo: true,
+          primary_color: true,
+          secondary_color: true,
+        },
       }),
     ]);
 
@@ -77,13 +89,17 @@ export async function GET(request: NextRequest) {
     });
 
     if (matches.length === 0) {
-      const emptyStats: HeadToHeadStats = {
+      const emptyStats = {
         team1_id: team1Id,
         team2_id: team2Id,
         team1_name: team1.team_name,
         team2_name: team2.team_name,
         team1_logo: team1.logo || undefined,
         team2_logo: team2.logo || undefined,
+        team1_primary_color: team1.primary_color || undefined,
+        team1_secondary_color: team1.secondary_color || undefined,
+        team2_primary_color: team2.primary_color || undefined,
+        team2_secondary_color: team2.secondary_color || undefined,
         total_matches: 0,
         team1_wins: 0,
         team2_wins: 0,
@@ -93,7 +109,7 @@ export async function GET(request: NextRequest) {
         recent_matches: [],
         biggest_win_team1: null,
         biggest_win_team2: null,
-      };
+      } satisfies HeadToHeadStats;
 
       return NextResponse.json(emptyStats);
     }
@@ -164,7 +180,29 @@ export async function GET(request: NextRequest) {
           };
         }
       } else {
-        draws++;
+        // 동점 → 승부차기(PK) 결과로 승패 결정
+        const pkHome = match.penalty_home_score ?? 0;
+        const pkAway = match.penalty_away_score ?? 0;
+        if (pkHome !== 0 || pkAway !== 0) {
+          let pkTeam1: number;
+          let pkTeam2: number;
+          if (match.home_team_id === team1Id) {
+            pkTeam1 = pkHome;
+            pkTeam2 = pkAway;
+          } else {
+            pkTeam1 = pkAway;
+            pkTeam2 = pkHome;
+          }
+          if (pkTeam1 > pkTeam2) {
+            team1Wins++;
+          } else if (pkTeam2 > pkTeam1) {
+            team2Wins++;
+          } else {
+            draws++;
+          }
+        } else {
+          draws++;
+        }
       }
     });
 
@@ -184,18 +222,22 @@ export async function GET(request: NextRequest) {
           away_score: awayScore,
           season_name: match.season?.season_name || 'Unknown',
           location: match.location || undefined,
-          penalty_home_score: match.penalty_home_score || undefined,
-          penalty_away_score: match.penalty_away_score || undefined,
+          penalty_home_score: match.penalty_home_score ?? undefined,
+          penalty_away_score: match.penalty_away_score ?? undefined,
         };
       });
 
-    const stats: HeadToHeadStats = {
+    const stats = {
       team1_id: team1Id,
       team2_id: team2Id,
       team1_name: team1.team_name,
       team2_name: team2.team_name,
       team1_logo: team1.logo || undefined,
       team2_logo: team2.logo || undefined,
+      team1_primary_color: team1.primary_color || undefined,
+      team1_secondary_color: team1.secondary_color || undefined,
+      team2_primary_color: team2.primary_color || undefined,
+      team2_secondary_color: team2.secondary_color || undefined,
       total_matches: matches.length,
       team1_wins: team1Wins,
       team2_wins: team2Wins,
@@ -205,7 +247,7 @@ export async function GET(request: NextRequest) {
       recent_matches: recentMatches,
       biggest_win_team1: biggestWinTeam1,
       biggest_win_team2: biggestWinTeam2,
-    };
+    } satisfies HeadToHeadStats;
 
     return NextResponse.json(stats);
   } catch (error) {
