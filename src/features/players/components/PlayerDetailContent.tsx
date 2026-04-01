@@ -336,7 +336,7 @@ function PlayerDetailContentInner({
                   </h2>
                   <div className="mt-2 flex items-center gap-1.5">
                     {activeTeam?.logo && (
-                      <span className="relative h-4 w-4 shrink-0 overflow-hidden rounded-full">
+                      <span className="relative h-4 w-4 shrink-0 overflow-hidden rounded-full ring-1 ring-white/60">
                         <Image
                           src={activeTeam.logo}
                           alt="팀"
