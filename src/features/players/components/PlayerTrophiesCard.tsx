@@ -36,6 +36,8 @@ function getCategoryLabel(category: string | null): string | null {
       return 'SBS컵';
     case 'CHAMPION_MATCH':
       return '챔피언 매치';
+    case 'GIFA_CUP':
+      return 'GIFA컵';
     default:
       return null;
   }
