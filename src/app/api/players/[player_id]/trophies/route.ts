@@ -73,6 +73,7 @@ export async function GET(
       JOIN teams t ON st.team_id = t.team_id
       LEFT JOIN team_season_names tsn ON tsn.season_id = st.season_id AND tsn.team_id = st.team_id
       WHERE st.position = 1
+        AND s.end_date IS NOT NULL
         AND (st.season_id, st.team_id) IN (${Prisma.join(pairConditions)})
     `;
 
