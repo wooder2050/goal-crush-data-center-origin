@@ -36,11 +36,23 @@ export async function GET(request: NextRequest) {
     const [team1, team2] = await Promise.all([
       prisma.team.findUnique({
         where: { team_id: team1Id },
-        select: { team_id: true, team_name: true, logo: true, primary_color: true, secondary_color: true },
+        select: {
+          team_id: true,
+          team_name: true,
+          logo: true,
+          primary_color: true,
+          secondary_color: true,
+        },
       }),
       prisma.team.findUnique({
         where: { team_id: team2Id },
-        select: { team_id: true, team_name: true, logo: true, primary_color: true, secondary_color: true },
+        select: {
+          team_id: true,
+          team_name: true,
+          logo: true,
+          primary_color: true,
+          secondary_color: true,
+        },
       }),
     ]);
 

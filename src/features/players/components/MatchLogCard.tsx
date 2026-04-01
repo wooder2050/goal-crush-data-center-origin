@@ -185,23 +185,25 @@ export default function MatchLogCard({ playerId }: { playerId: number }) {
 
   const totalPages = data ? Math.ceil(data.total / limit) : 1;
   const mobileStart = (mobilePageNum - 1) * MOBILE_PAGE_SIZE;
-  const mobileVisible = allItems.slice(mobileStart, mobileStart + MOBILE_PAGE_SIZE);
+  const mobileVisible = allItems.slice(
+    mobileStart,
+    mobileStart + MOBILE_PAGE_SIZE
+  );
   // 모바일 전체 페이지 수: API 페이지별 서브페이지(ceil(아이템수/4))의 합
   const subPagesPerFullApiPage = Math.ceil(limit / MOBILE_PAGE_SIZE); // 10→3
   const totalApiPages = data ? Math.ceil(data.total / limit) : 1;
   const lastApiPageItems = data ? data.total - (totalApiPages - 1) * limit : 0;
-  const lastApiPageSubPages = lastApiPageItems > 0
-    ? Math.ceil(lastApiPageItems / MOBILE_PAGE_SIZE)
-    : 0;
-  const mobileTotalAllPages = totalApiPages > 1
-    ? (totalApiPages - 1) * subPagesPerFullApiPage + lastApiPageSubPages
-    : lastApiPageSubPages || 1;
+  const lastApiPageSubPages =
+    lastApiPageItems > 0 ? Math.ceil(lastApiPageItems / MOBILE_PAGE_SIZE) : 0;
+  const mobileTotalAllPages =
+    totalApiPages > 1
+      ? (totalApiPages - 1) * subPagesPerFullApiPage + lastApiPageSubPages
+      : lastApiPageSubPages || 1;
   // 모바일 전체 기준 현재 페이지
   const mobileGlobalPageNum =
     (pageNum - 1) * subPagesPerFullApiPage + mobilePageNum;
 
-  const hasMobileNext =
-    mobilePageNum < mobileTotalPages || !!data?.hasNext;
+  const hasMobileNext = mobilePageNum < mobileTotalPages || !!data?.hasNext;
   const hasMobilePrev = mobilePageNum > 1 || pageNum > 1;
 
   const currentYear = new Date().getFullYear();

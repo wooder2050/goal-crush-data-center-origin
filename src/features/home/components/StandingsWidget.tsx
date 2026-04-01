@@ -69,7 +69,13 @@ export default function StandingsWidget({
   );
 }
 
-function StandingsTable({ standings, seasonId }: { standings: HomeStanding[]; seasonId: number }) {
+function StandingsTable({
+  standings,
+  seasonId,
+}: {
+  standings: HomeStanding[];
+  seasonId: number;
+}) {
   const router = useRouter();
 
   return (

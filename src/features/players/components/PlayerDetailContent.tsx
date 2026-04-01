@@ -593,8 +593,7 @@ function PlayerDetailContentInner({
         <PassMapCard
           playerId={playerId}
           teamColor={
-            activeTeam?.primary_color &&
-            !isNearWhite(activeTeam.primary_color)
+            activeTeam?.primary_color && !isNearWhite(activeTeam.primary_color)
               ? activeTeam.primary_color
               : teamAccent
           }

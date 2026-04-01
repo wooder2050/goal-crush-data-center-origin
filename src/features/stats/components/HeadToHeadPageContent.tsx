@@ -221,7 +221,8 @@ function StatCompareRow({
           className="w-12 text-right text-[15px] font-bold"
           style={{ color: is1Better ? color1 : '#9CA3AF' }}
         >
-          {fmt(value1)}{suffix}
+          {fmt(value1)}
+          {suffix}
         </span>
         <div className="flex flex-1 items-center gap-0.5">
           <div className="flex h-5 flex-1 justify-end">
@@ -250,7 +251,8 @@ function StatCompareRow({
           className="w-12 text-left text-[15px] font-bold"
           style={{ color: is2Better ? color2 : '#9CA3AF' }}
         >
-          {fmt(value2)}{suffix}
+          {fmt(value2)}
+          {suffix}
         </span>
       </div>
     </div>
@@ -428,314 +430,324 @@ function HeadToHeadPageContentInner({
       {isLoading && <LoadingSkeleton />}
 
       {/* 결과 */}
-      {data && !isLoading && (() => {
-        const color1 = pickTeamColor(
-          data.team1_primary_color,
-          data.team1_secondary_color,
-          '#3B82F6'
-        );
-        const color2 = pickTeamColor(
-          data.team2_primary_color,
-          data.team2_secondary_color,
-          '#EF4444'
-        );
-        // 두 팀 색상이 같으면 팀2를 폴백
-        const c2 = color1 === color2 ? '#EF4444' : color2;
+      {data &&
+        !isLoading &&
+        (() => {
+          const color1 = pickTeamColor(
+            data.team1_primary_color,
+            data.team1_secondary_color,
+            '#3B82F6'
+          );
+          const color2 = pickTeamColor(
+            data.team2_primary_color,
+            data.team2_secondary_color,
+            '#EF4444'
+          );
+          // 두 팀 색상이 같으면 팀2를 폴백
+          const c2 = color1 === color2 ? '#EF4444' : color2;
 
-        return (
-        <div className="space-y-4">
-          {/* === 역대 전적 요약 === */}
-          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
-            <div className="px-5 py-4">
-              <p className="mb-4 text-center text-[12px] font-medium text-gray-400">
-                역대 전적
-              </p>
+          return (
+            <div className="space-y-4">
+              {/* === 역대 전적 요약 === */}
+              <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
+                <div className="px-5 py-4">
+                  <p className="mb-4 text-center text-[12px] font-medium text-gray-400">
+                    역대 전적
+                  </p>
 
-              {/* 팀 로고 + 승수 */}
-              <div className="mb-4 flex items-center">
-                <div className="flex flex-1 flex-col items-center gap-1.5 min-w-0">
-                  <TeamLogo
-                    src={data.team1_logo}
-                    alt={data.team1_name}
-                    size={48}
-                  />
-                  <span className="max-w-[80px] truncate text-center text-[13px] font-medium text-gray-900 sm:max-w-none">
-                    {data.team1_name}
-                  </span>
-                </div>
-
-                <div className="flex shrink-0 items-center gap-6 text-center">
-                  <div>
-                    <p
-                      className="text-[28px] font-black leading-none"
-                      style={{ color: color1 }}
-                    >
-                      {data.team1_wins}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-gray-400">승</p>
-                  </div>
-                  <div>
-                    <p
-                      className="text-[28px] font-black leading-none"
-                      style={{ color: c2 }}
-                    >
-                      {data.team2_wins}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-gray-400">승</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-1 flex-col items-center gap-1.5 min-w-0">
-                  <TeamLogo
-                    src={data.team2_logo}
-                    alt={data.team2_name}
-                    size={48}
-                  />
-                  <span className="max-w-[80px] truncate text-center text-[13px] font-medium text-gray-900 sm:max-w-none">
-                    {data.team2_name}
-                  </span>
-                </div>
-              </div>
-
-              {/* 승패 바 */}
-              <WinLossBar
-                wins1={data.team1_wins}
-                wins2={data.team2_wins}
-                color1={color1}
-                color2={c2}
-              />
-              <p className="mt-2 text-center text-[11px] text-gray-400">
-                총 {data.total_matches}경기
-              </p>
-            </div>
-
-            {/* 통계 비교 바 */}
-            {data.total_matches > 0 && (() => {
-              const winRate1 = data.total_matches > 0
-                ? (data.team1_wins / data.total_matches) * 100
-                : 0;
-              const winRate2 = data.total_matches > 0
-                ? (data.team2_wins / data.total_matches) * 100
-                : 0;
-              const gpg1 = data.total_matches > 0
-                ? data.team1_goals / data.total_matches
-                : 0;
-              const gpg2 = data.total_matches > 0
-                ? data.team2_goals / data.total_matches
-                : 0;
-              const fmtPct = (v: number) => v % 1 === 0 ? String(v) : v.toFixed(1);
-              const fmtDec = (v: number) => v.toFixed(1);
-
-              return (
-                <div className="border-t border-gray-100 px-5 py-2">
-                  <StatCompareRow
-                    label="승률"
-                    value1={winRate1}
-                    value2={winRate2}
-                    color1={color1}
-                    color2={c2}
-                    format={fmtPct}
-                    suffix="%"
-                  />
-                  <StatCompareRow
-                    label="승리"
-                    value1={data.team1_wins}
-                    value2={data.team2_wins}
-                    color1={color1}
-                    color2={c2}
-                  />
-                  <StatCompareRow
-                    label="총 득점"
-                    value1={data.team1_goals}
-                    value2={data.team2_goals}
-                    color1={color1}
-                    color2={c2}
-                  />
-                  <StatCompareRow
-                    label="경기당 골"
-                    value1={gpg1}
-                    value2={gpg2}
-                    color1={color1}
-                    color2={c2}
-                    format={fmtDec}
-                  />
-                </div>
-              );
-            })()}
-          </div>
-
-          {/* === 최고 승리 기록 === */}
-          {(data.biggest_win_team1 || data.biggest_win_team2) && (
-            <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
-              <div className="border-b border-gray-100 px-5 py-3">
-                <p className="text-[14px] font-medium text-gray-900">
-                  최고 승리 기록
-                </p>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {data.biggest_win_team1 && (
-                  <div className="flex items-center gap-3 px-5 py-3.5">
-                    <TeamLogo
-                      src={data.team1_logo}
-                      alt={data.team1_name}
-                      size={32}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[14px] font-medium text-gray-900">
+                  {/* 팀 로고 + 승수 */}
+                  <div className="mb-4 flex items-center">
+                    <div className="flex flex-1 flex-col items-center gap-1.5 min-w-0">
+                      <TeamLogo
+                        src={data.team1_logo}
+                        alt={data.team1_name}
+                        size={48}
+                      />
+                      <span className="max-w-[80px] truncate text-center text-[13px] font-medium text-gray-900 sm:max-w-none">
                         {data.team1_name}
-                      </p>
-                      <p className="text-[12px] text-gray-400">
-                        {data.biggest_win_team1.season} ·{' '}
-                        {data.biggest_win_team1.match_date}
-                      </p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <span
-                        className="text-[16px] font-bold"
-                        style={{ color: color1 }}
-                      >
-                        {data.biggest_win_team1.score}
                       </span>
-                      <p className="text-[11px] text-gray-400">
-                        {data.biggest_win_team1.margin}골차
-                      </p>
                     </div>
-                  </div>
-                )}
-                {data.biggest_win_team2 && (
-                  <div className="flex items-center gap-3 px-5 py-3.5">
-                    <TeamLogo
-                      src={data.team2_logo}
-                      alt={data.team2_name}
-                      size={32}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[14px] font-medium text-gray-900">
+
+                    <div className="flex shrink-0 items-center gap-6 text-center">
+                      <div>
+                        <p
+                          className="text-[28px] font-black leading-none"
+                          style={{ color: color1 }}
+                        >
+                          {data.team1_wins}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-gray-400">승</p>
+                      </div>
+                      <div>
+                        <p
+                          className="text-[28px] font-black leading-none"
+                          style={{ color: c2 }}
+                        >
+                          {data.team2_wins}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-gray-400">승</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-1 flex-col items-center gap-1.5 min-w-0">
+                      <TeamLogo
+                        src={data.team2_logo}
+                        alt={data.team2_name}
+                        size={48}
+                      />
+                      <span className="max-w-[80px] truncate text-center text-[13px] font-medium text-gray-900 sm:max-w-none">
                         {data.team2_name}
-                      </p>
-                      <p className="text-[12px] text-gray-400">
-                        {data.biggest_win_team2.season} ·{' '}
-                        {data.biggest_win_team2.match_date}
-                      </p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <span
-                        className="text-[16px] font-bold"
-                        style={{ color: c2 }}
-                      >
-                        {data.biggest_win_team2.score}
                       </span>
-                      <p className="text-[11px] text-gray-400">
-                        {data.biggest_win_team2.margin}골차
-                      </p>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
-          )}
 
-          {/* === 최근 경기 === */}
-          {data.recent_matches.length > 0 && (
-            <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
-              <div className="border-b border-gray-100 px-5 py-3">
-                <p className="text-[14px] font-medium text-gray-900">
-                  최근 경기
-                </p>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {data.recent_matches.map((match) => {
-                  let homeWin = match.home_score > match.away_score;
-                  let awayWin = match.away_score > match.home_score;
-                  // 동점 시 승부차기 결과로 승자 결정
-                  if (
-                    !homeWin &&
-                    !awayWin &&
-                    match.penalty_home_score != null &&
-                    match.penalty_away_score != null
-                  ) {
-                    homeWin = match.penalty_home_score > match.penalty_away_score;
-                    awayWin = match.penalty_away_score > match.penalty_home_score;
-                  }
+                  {/* 승패 바 */}
+                  <WinLossBar
+                    wins1={data.team1_wins}
+                    wins2={data.team2_wins}
+                    color1={color1}
+                    color2={c2}
+                  />
+                  <p className="mt-2 text-center text-[11px] text-gray-400">
+                    총 {data.total_matches}경기
+                  </p>
+                </div>
 
-                  return (
-                    <Link
-                      key={match.match_id}
-                      href={`/matches/${match.match_id}`}
-                      className="block px-5 py-3.5 transition-colors hover:bg-gray-50 active:bg-gray-50"
-                    >
-                      {/* 날짜 + 시즌 */}
-                      <div className="mb-2 flex items-center justify-between">
-                        <span className="text-[11px] text-gray-400">
-                          {formatMatchDate(match.match_date)}
-                        </span>
-                        <span className="truncate text-[11px] text-gray-400 ml-2">
-                          {shortenSeasonName(match.season_name)}
-                        </span>
-                      </div>
-                      {/* 홈 로고 — 홈이름 — 스코어 — 원정이름 — 원정 로고 */}
-                      <div className="flex items-center gap-2">
-                        <TeamLogo
-                          src={
-                            match.home_team_name === data.team1_name
-                              ? data.team1_logo
-                              : data.team2_logo
-                          }
-                          alt={match.home_team_name}
-                          size={24}
+                {/* 통계 비교 바 */}
+                {data.total_matches > 0 &&
+                  (() => {
+                    const winRate1 =
+                      data.total_matches > 0
+                        ? (data.team1_wins / data.total_matches) * 100
+                        : 0;
+                    const winRate2 =
+                      data.total_matches > 0
+                        ? (data.team2_wins / data.total_matches) * 100
+                        : 0;
+                    const gpg1 =
+                      data.total_matches > 0
+                        ? data.team1_goals / data.total_matches
+                        : 0;
+                    const gpg2 =
+                      data.total_matches > 0
+                        ? data.team2_goals / data.total_matches
+                        : 0;
+                    const fmtPct = (v: number) =>
+                      v % 1 === 0 ? String(v) : v.toFixed(1);
+                    const fmtDec = (v: number) => v.toFixed(1);
+
+                    return (
+                      <div className="border-t border-gray-100 px-5 py-2">
+                        <StatCompareRow
+                          label="승률"
+                          value1={winRate1}
+                          value2={winRate2}
+                          color1={color1}
+                          color2={c2}
+                          format={fmtPct}
+                          suffix="%"
                         />
-                        <span
-                          className={`min-w-0 flex-1 truncate text-right text-[13px] ${homeWin ? 'font-bold text-gray-900' : 'text-gray-500'}`}
-                        >
-                          {match.home_team_name}
-                        </span>
-                        <div className="shrink-0 w-[72px] text-center">
-                          <span className="text-[15px] font-bold text-gray-900">
-                            {match.home_score} - {match.away_score}
-                          </span>
-                          {match.penalty_home_score != null &&
-                            match.penalty_away_score != null && (
-                              <p className="text-[10px] text-gray-400">
-                                PK {match.penalty_home_score}:
-                                {match.penalty_away_score}
-                              </p>
-                            )}
+                        <StatCompareRow
+                          label="승리"
+                          value1={data.team1_wins}
+                          value2={data.team2_wins}
+                          color1={color1}
+                          color2={c2}
+                        />
+                        <StatCompareRow
+                          label="총 득점"
+                          value1={data.team1_goals}
+                          value2={data.team2_goals}
+                          color1={color1}
+                          color2={c2}
+                        />
+                        <StatCompareRow
+                          label="경기당 골"
+                          value1={gpg1}
+                          value2={gpg2}
+                          color1={color1}
+                          color2={c2}
+                          format={fmtDec}
+                        />
+                      </div>
+                    );
+                  })()}
+              </div>
+
+              {/* === 최고 승리 기록 === */}
+              {(data.biggest_win_team1 || data.biggest_win_team2) && (
+                <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
+                  <div className="border-b border-gray-100 px-5 py-3">
+                    <p className="text-[14px] font-medium text-gray-900">
+                      최고 승리 기록
+                    </p>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {data.biggest_win_team1 && (
+                      <div className="flex items-center gap-3 px-5 py-3.5">
+                        <TeamLogo
+                          src={data.team1_logo}
+                          alt={data.team1_name}
+                          size={32}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[14px] font-medium text-gray-900">
+                            {data.team1_name}
+                          </p>
+                          <p className="text-[12px] text-gray-400">
+                            {data.biggest_win_team1.season} ·{' '}
+                            {data.biggest_win_team1.match_date}
+                          </p>
                         </div>
-                        <span
-                          className={`min-w-0 flex-1 truncate text-left text-[13px] ${awayWin ? 'font-bold text-gray-900' : 'text-gray-500'}`}
-                        >
-                          {match.away_team_name}
-                        </span>
-                        <TeamLogo
-                          src={
-                            match.away_team_name === data.team1_name
-                              ? data.team1_logo
-                              : data.team2_logo
-                          }
-                          alt={match.away_team_name}
-                          size={24}
-                        />
+                        <div className="shrink-0 text-right">
+                          <span
+                            className="text-[16px] font-bold"
+                            style={{ color: color1 }}
+                          >
+                            {data.biggest_win_team1.score}
+                          </span>
+                          <p className="text-[11px] text-gray-400">
+                            {data.biggest_win_team1.margin}골차
+                          </p>
+                        </div>
                       </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+                    )}
+                    {data.biggest_win_team2 && (
+                      <div className="flex items-center gap-3 px-5 py-3.5">
+                        <TeamLogo
+                          src={data.team2_logo}
+                          alt={data.team2_name}
+                          size={32}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[14px] font-medium text-gray-900">
+                            {data.team2_name}
+                          </p>
+                          <p className="text-[12px] text-gray-400">
+                            {data.biggest_win_team2.season} ·{' '}
+                            {data.biggest_win_team2.match_date}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <span
+                            className="text-[16px] font-bold"
+                            style={{ color: c2 }}
+                          >
+                            {data.biggest_win_team2.score}
+                          </span>
+                          <p className="text-[11px] text-gray-400">
+                            {data.biggest_win_team2.margin}골차
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
-          {data.total_matches === 0 && (
-            <div className="rounded-2xl border border-gray-100 bg-white px-6 py-10 text-center">
-              <p className="text-[15px] font-medium text-gray-500">
-                맞대결 기록이 없습니다
-              </p>
-              <p className="mt-1 text-[13px] text-gray-400">
-                선택한 두 팀 간의 경기 기록을 찾을 수 없습니다
-              </p>
+              {/* === 최근 경기 === */}
+              {data.recent_matches.length > 0 && (
+                <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
+                  <div className="border-b border-gray-100 px-5 py-3">
+                    <p className="text-[14px] font-medium text-gray-900">
+                      최근 경기
+                    </p>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {data.recent_matches.map((match) => {
+                      let homeWin = match.home_score > match.away_score;
+                      let awayWin = match.away_score > match.home_score;
+                      // 동점 시 승부차기 결과로 승자 결정
+                      if (
+                        !homeWin &&
+                        !awayWin &&
+                        match.penalty_home_score != null &&
+                        match.penalty_away_score != null
+                      ) {
+                        homeWin =
+                          match.penalty_home_score > match.penalty_away_score;
+                        awayWin =
+                          match.penalty_away_score > match.penalty_home_score;
+                      }
+
+                      return (
+                        <Link
+                          key={match.match_id}
+                          href={`/matches/${match.match_id}`}
+                          className="block px-5 py-3.5 transition-colors hover:bg-gray-50 active:bg-gray-50"
+                        >
+                          {/* 날짜 + 시즌 */}
+                          <div className="mb-2 flex items-center justify-between">
+                            <span className="text-[11px] text-gray-400">
+                              {formatMatchDate(match.match_date)}
+                            </span>
+                            <span className="truncate text-[11px] text-gray-400 ml-2">
+                              {shortenSeasonName(match.season_name)}
+                            </span>
+                          </div>
+                          {/* 홈 로고 — 홈이름 — 스코어 — 원정이름 — 원정 로고 */}
+                          <div className="flex items-center gap-2">
+                            <TeamLogo
+                              src={
+                                match.home_team_name === data.team1_name
+                                  ? data.team1_logo
+                                  : data.team2_logo
+                              }
+                              alt={match.home_team_name}
+                              size={24}
+                            />
+                            <span
+                              className={`min-w-0 flex-1 truncate text-right text-[13px] ${homeWin ? 'font-bold text-gray-900' : 'text-gray-500'}`}
+                            >
+                              {match.home_team_name}
+                            </span>
+                            <div className="shrink-0 w-[72px] text-center">
+                              <span className="text-[15px] font-bold text-gray-900">
+                                {match.home_score} - {match.away_score}
+                              </span>
+                              {match.penalty_home_score != null &&
+                                match.penalty_away_score != null && (
+                                  <p className="text-[10px] text-gray-400">
+                                    PK {match.penalty_home_score}:
+                                    {match.penalty_away_score}
+                                  </p>
+                                )}
+                            </div>
+                            <span
+                              className={`min-w-0 flex-1 truncate text-left text-[13px] ${awayWin ? 'font-bold text-gray-900' : 'text-gray-500'}`}
+                            >
+                              {match.away_team_name}
+                            </span>
+                            <TeamLogo
+                              src={
+                                match.away_team_name === data.team1_name
+                                  ? data.team1_logo
+                                  : data.team2_logo
+                              }
+                              alt={match.away_team_name}
+                              size={24}
+                            />
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {data.total_matches === 0 && (
+                <div className="rounded-2xl border border-gray-100 bg-white px-6 py-10 text-center">
+                  <p className="text-[15px] font-medium text-gray-500">
+                    맞대결 기록이 없습니다
+                  </p>
+                  <p className="mt-1 text-[13px] text-gray-400">
+                    선택한 두 팀 간의 경기 기록을 찾을 수 없습니다
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 }
