@@ -8,24 +8,33 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: {
     absolute:
-      'Kick a Goal Stats — Match Results, Player Rankings & Team Standings',
+      'Kick a Goal Data Center — Stats, Scores & Player Records (SBS 골때녀)',
   },
   description:
-    'All match results, player records, and team standings for SBS Kick a Goal (골 때리는 그녀들) at a glance. Check season standings, top scorers, and head-to-head records.',
+    'The ultimate stats hub for SBS Kick a Goal (골 때리는 그녀들). Browse every match score, player profile, goal rankings, and team standings across all seasons.',
+  keywords: [
+    'Kick a Goal',
+    'Kick a Goal stats',
+    'SBS Kick a Goal',
+    '골때리는 그녀들',
+    'Korean women football variety show',
+    'Kick a Goal player stats',
+    'Kick a Goal results',
+  ],
   openGraph: {
     title:
-      'Kick a Goal Stats — Match Results, Player Rankings & Team Standings',
+      'Kick a Goal Data Center — Stats, Scores & Player Records (SBS 골때녀)',
     description:
-      'All match results, player records, and team standings for SBS Kick a Goal (골 때리는 그녀들) at a glance. Check season standings, top scorers, and head-to-head records.',
+      'The ultimate stats hub for SBS Kick a Goal (골 때리는 그녀들). Browse every match score, player profile, goal rankings, and team standings across all seasons.',
     url: '/en',
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
     title:
-      'Kick a Goal Stats — Match Results, Player Rankings & Team Standings',
+      'Kick a Goal Data Center — Stats, Scores & Player Records (SBS 골때녀)',
     description:
-      'All match results, player records, and team standings for SBS Kick a Goal (골 때리는 그녀들) at a glance. Check season standings, top scorers, and head-to-head records.',
+      'The ultimate stats hub for SBS Kick a Goal (골 때리는 그녀들). Browse every match score, player profile, goal rankings, and team standings across all seasons.',
   },
   alternates: {
     canonical: '/en',

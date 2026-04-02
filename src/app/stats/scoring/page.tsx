@@ -3,9 +3,9 @@ import { Metadata } from 'next';
 import ScoringRankingsPageContent from '@/features/stats/components/ScoringRankingsPageContent';
 
 export const metadata: Metadata = {
-  title: '골때녀 역대 득점왕·도움왕 순위 - 시즌별 득점 랭킹',
+  title: '골때녀 득점 순위 - 역대 득점왕·도움왕·공격포인트 랭킹',
   description:
-    '골 때리는 그녀들 역대 득점왕, 도움왕, 공격포인트 순위를 시즌별로 비교! 누적 득점·어시스트·공격포인트 기록과 선수별 랭킹을 확인하세요.',
+    '골 때리는 그녀들 역대 최다 득점자는 누구? 득점왕·도움왕·공격포인트 순위를 시즌별로 비교하고, 선수별 누적 기록과 랭킹 변동을 확인하세요.',
   keywords: [
     '골때녀 득점왕',
     '골때녀 도움왕',
@@ -14,19 +14,21 @@ export const metadata: Metadata = {
     '골때녀 공격포인트',
     '골때녀 어시스트 순위',
     '골때녀 골 순위',
+    '골때녀 최다골',
+    '골때녀 득점 기록',
   ],
   alternates: { canonical: '/stats/scoring' },
   openGraph: {
-    title: '골때녀 역대 득점왕·도움왕 순위 - 시즌별 득점 랭킹',
+    title: '골때녀 득점 순위 - 역대 득점왕·도움왕·공격포인트 랭킹',
     description:
-      '골 때리는 그녀들 역대 득점왕, 도움왕, 공격포인트 순위를 시즌별로 비교! 누적 득점·어시스트 기록과 선수별 랭킹을 확인하세요.',
+      '골 때리는 그녀들 역대 최다 득점자는 누구? 득점왕·도움왕·공격포인트 순위를 시즌별로 비교하고, 선수별 누적 기록과 랭킹 변동을 확인하세요.',
     url: 'https://www.gtndatacenter.com/stats/scoring',
   },
   twitter: {
     card: 'summary',
-    title: '골때녀 역대 득점왕·도움왕 순위 - 시즌별 득점 랭킹',
+    title: '골때녀 득점 순위 - 역대 득점왕·도움왕·공격포인트 랭킹',
     description:
-      '골 때리는 그녀들 역대 득점왕, 도움왕, 공격포인트 순위를 시즌별로 비교!',
+      '골 때리는 그녀들 역대 최다 득점자는 누구? 득점왕·도움왕·공격포인트 순위를 시즌별로 비교!',
   },
 };
 

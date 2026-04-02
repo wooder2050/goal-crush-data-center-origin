@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: '%s | 골때녀 데이터 센터',
   },
   description:
-    '골 때리는 그녀들 경기/선수/팀 데이터를 구조화하여 빠르게 탐색할 수 있는 데이터 아카이브',
+    '골 때리는 그녀들(골때녀) 경기 결과, 선수 기록, 팀 순위, 시즌 통계를 한눈에 확인할 수 있는 팬 데이터 센터',
   applicationName: 'Goal Crush Data Center',
   keywords: [
     '골때리는 그녀들',
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     siteName: '골 때리는 그녀들 데이터 센터',
     title: '골 때리는 그녀들 데이터 센터',
     description:
-      '골 때리는 그녀들 경기/선수/팀 데이터를 구조화하여 빠르게 탐색할 수 있는 데이터 아카이브',
+      '골 때리는 그녀들(골때녀) 경기 결과, 선수 기록, 팀 순위, 시즌 통계를 한눈에 확인할 수 있는 팬 데이터 센터',
     url: 'https://www.gtndatacenter.com',
     images: [
       {
@@ -95,7 +95,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '골 때리는 그녀들 데이터 센터',
     description:
-      '골 때리는 그녀들 경기/선수/팀 데이터를 구조화하여 빠르게 탐색할 수 있는 데이터 아카이브',
+      '골 때리는 그녀들(골때녀) 경기 결과, 선수 기록, 팀 순위, 시즌 통계를 한눈에 확인할 수 있는 팬 데이터 센터',
     images: [
       'https://ppqctvmpsmlagsmmmdee.supabase.co/storage/v1/object/sign/playerprofile/mwE1721003437663.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iZWM2YjcyNS1hYWJjLTQzOGUtODkzMi00NDU1ZmM1ZGEyY2EiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwbGF5ZXJwcm9maWxlL213RTE3MjEwMDM0Mzc2NjMuanBnIiwiaWF0IjoxNzU1MTY2Njk5LCJleHAiOjIwNzA1MjY2OTl9.c0a4K6VimPMfItbZq1rjL5TEWhcC_319UMgLRRSj9sI',
     ],
