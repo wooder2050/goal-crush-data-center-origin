@@ -200,6 +200,7 @@ model Match {
   home_coach_id               Int?
   away_coach_id               Int?
   is_sides_swapped            Boolean?                   @default(false)
+  is_date_confirmed           Boolean                    @default(true)
   assists                     Assist[]
   community_posts             CommunityPost[]
   fantasy_match_performances  FantasyMatchPerformance[]

@@ -133,6 +133,7 @@ export async function getInitialMatchDetailData(
     tournament_stage: match.tournament_stage ?? null,
     highlight_url,
     full_video_url,
+    is_date_confirmed: match.is_date_confirmed,
     created_at: match.created_at?.toISOString() ?? null,
     updated_at: match.updated_at?.toISOString() ?? null,
     home_team: match.home_team

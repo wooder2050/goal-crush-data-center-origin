@@ -166,11 +166,12 @@ export default function UpcomingMatches({
       <CardContent className="py-0 sm:py-0 md:py-0">
         <ul className="divide-y divide-gray-100">
           {allMatches.map((m) => {
-            const dateStr = format(
-              new Date(m.match_date),
-              'yy.MM.dd (EEE) HH:mm',
-              { locale: ko }
-            );
+            const dateStr =
+              m.is_date_confirmed === false
+                ? '방영일 미정'
+                : format(new Date(m.match_date), 'yy.MM.dd (EEE) HH:mm', {
+                    locale: ko,
+                  });
             const season = shortenSeasonName(m.season?.season_name ?? '');
             return (
               <li key={m.match_id} className="py-2 sm:py-2.5">
