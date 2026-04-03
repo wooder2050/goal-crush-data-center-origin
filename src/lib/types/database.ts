@@ -236,6 +236,7 @@ export interface Match {
   tournament_stage?: string | null;
   highlight_url?: string | null;
   full_video_url?: string | null;
+  is_date_confirmed?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
 }

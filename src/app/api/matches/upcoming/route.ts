@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const where: Prisma.MatchWhereInput = {
       status: 'scheduled',
       match_date: { gt: now },
+      is_date_confirmed: true,
     };
 
     if (teamId) {
@@ -57,6 +58,7 @@ export async function GET(request: NextRequest) {
       match_date: m.match_date,
       status: m.status,
       description: m.description ?? null,
+      is_date_confirmed: m.is_date_confirmed,
       season: m.season
         ? { season_id: m.season.season_id, season_name: m.season.season_name }
         : null,

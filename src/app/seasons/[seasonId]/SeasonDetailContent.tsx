@@ -4,6 +4,7 @@ import { GoalWrapper } from '@/common/GoalWrapper';
 import { Section } from '@/components/ui';
 import ChallengeResults from '@/features/matches/components/ChallengeResults';
 import GLeagueTournamentResults from '@/features/matches/components/GLeagueTournamentResults';
+import InterleagueBracket from '@/features/matches/components/InterleagueBracket';
 import OtherLeagueResults from '@/features/matches/components/OtherLeagueResults';
 import PlayoffResults from '@/features/matches/components/PlayoffResults';
 import SbsCupResults from '@/features/matches/components/SbsCupResults';
@@ -45,6 +46,9 @@ export default function SeasonDetailContent({
         <GoalWrapper fallback={<UpcomingMatchesSkeleton items={1} />}>
           <UpcomingMatches seasonId={season.season_id} limit={10} />
         </GoalWrapper>
+        {category === 'G_LEAGUE' && (
+          <InterleagueBracket seasonId={season.season_id} />
+        )}
         <Component
           seasonId={season.season_id}
           title={season.season_name}

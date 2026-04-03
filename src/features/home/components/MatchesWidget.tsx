@@ -11,15 +11,19 @@ interface MatchesWidgetProps {
   seasonId: number;
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
+  interleagueMatches?: HomeMatch[];
 }
 
 export default function MatchesWidget({
   seasonId,
   recentMatches,
   upcomingMatches,
+  interleagueMatches = [],
 }: MatchesWidgetProps) {
   const hasNoMatches =
-    recentMatches.length === 0 && upcomingMatches.length === 0;
+    recentMatches.length === 0 &&
+    upcomingMatches.length === 0 &&
+    interleagueMatches.length === 0;
 
   return (
     <Card className="shadow-sm">
@@ -61,6 +65,18 @@ export default function MatchesWidget({
                 </div>
                 {upcomingMatches.map((match) => (
                   <UpcomingMatchRow key={match.match_id} match={match} />
+                ))}
+              </>
+            )}
+
+            {/* Interleague Matches */}
+            {interleagueMatches.length > 0 && (
+              <>
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1.5 mt-2">
+                  인터리그
+                </div>
+                {interleagueMatches.map((match) => (
+                  <InterleagueMatchRow key={match.match_id} match={match} />
                 ))}
               </>
             )}
@@ -207,6 +223,96 @@ function UpcomingMatchRow({ match }: { match: HomeMatch }) {
           </div>
         )}
         <span className="text-xs sm:text-sm font-medium text-gray-800 truncate">
+          {match.away_team?.team_name}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function InterleagueMatchRow({ match }: { match: HomeMatch }) {
+  const isCompleted = match.status === 'completed';
+  const isDateConfirmed = match.is_date_confirmed !== false;
+
+  return (
+    <Link
+      href={`/matches/${match.match_id}`}
+      className="flex items-center gap-2 py-2 px-2 rounded-md hover:bg-gray-50 transition-colors"
+    >
+      {/* Home Team */}
+      <div className="flex-1 flex items-center justify-end gap-1.5 min-w-0">
+        <span
+          className={`text-xs sm:text-sm truncate ${
+            isCompleted &&
+            match.home_score != null &&
+            match.away_score != null &&
+            match.home_score > match.away_score
+              ? 'font-bold text-gray-900'
+              : isCompleted
+                ? 'text-gray-600'
+                : 'font-medium text-gray-800'
+          }`}
+        >
+          {match.home_team?.team_name}
+        </span>
+        {match.home_team?.logo && (
+          <div className="w-5 h-5 sm:w-6 sm:h-6 relative flex-shrink-0 rounded-full overflow-hidden">
+            <Image
+              src={match.home_team.logo}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="24px"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Center: Score / Time / TBD */}
+      <div className="flex-shrink-0 w-12 sm:w-14 text-center">
+        {isCompleted ? (
+          <span className="text-xs sm:text-sm font-bold text-gray-900">
+            {match.home_score ?? 0} - {match.away_score ?? 0}
+          </span>
+        ) : isDateConfirmed ? (
+          <>
+            <div className="text-[10px] sm:text-xs text-gray-400">
+              {format(new Date(match.match_date), 'M/d', { locale: ko })}
+            </div>
+            <div className="text-xs sm:text-sm font-medium text-gray-600">
+              {format(new Date(match.match_date), 'HH:mm')}
+            </div>
+          </>
+        ) : (
+          <span className="text-[11px] text-amber-600 font-medium">미정</span>
+        )}
+      </div>
+
+      {/* Away Team */}
+      <div className="flex-1 flex items-center gap-1.5 min-w-0">
+        {match.away_team?.logo && (
+          <div className="w-5 h-5 sm:w-6 sm:h-6 relative flex-shrink-0 rounded-full overflow-hidden">
+            <Image
+              src={match.away_team.logo}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="24px"
+            />
+          </div>
+        )}
+        <span
+          className={`text-xs sm:text-sm truncate ${
+            isCompleted &&
+            match.home_score != null &&
+            match.away_score != null &&
+            match.away_score > match.home_score
+              ? 'font-bold text-gray-900'
+              : isCompleted
+                ? 'text-gray-600'
+                : 'font-medium text-gray-800'
+          }`}
+        >
           {match.away_team?.team_name}
         </span>
       </div>

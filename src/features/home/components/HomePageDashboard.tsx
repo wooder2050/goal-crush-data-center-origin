@@ -55,6 +55,7 @@ export default function HomePageDashboard({
             seasonId={pageData.currentSeason.season_id}
             recentMatches={pageData.recentMatches}
             upcomingMatches={pageData.upcomingMatches}
+            interleagueMatches={pageData.interleagueMatches}
           />
           <CareerStatsWidget
             careerTopScorers={pageData.careerTopScorers}

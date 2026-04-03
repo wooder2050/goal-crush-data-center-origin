@@ -45,6 +45,7 @@ function serializeMatch(
     season_id: number | null;
     home_team_id: number | null;
     away_team_id: number | null;
+    is_date_confirmed: boolean;
     home_team: {
       team_id: number;
       team_name: string;
@@ -79,6 +80,7 @@ function serializeMatch(
     penalty_home_score: match.penalty_home_score,
     penalty_away_score: match.penalty_away_score,
     status: match.status,
+    is_date_confirmed: match.is_date_confirmed,
     season: match.season
       ? {
           season_id: match.season.season_id,
@@ -163,9 +165,30 @@ async function getRecentCompletedMatches(): Promise<HomeMatch[]> {
   return matches.map((m) => serializeMatch(m, teamNameMap));
 }
 
+async function getInterleagueMatchesList(
+  seasonId: number
+): Promise<HomeMatch[]> {
+  const matches = await prisma.match.findMany({
+    where: {
+      season_id: seasonId,
+      group_stage: null,
+      description: { contains: '인터리그' },
+    },
+    orderBy: [{ is_date_confirmed: 'desc' }, { match_date: 'asc' }],
+    include: {
+      home_team: { select: { team_id: true, team_name: true, logo: true } },
+      away_team: { select: { team_id: true, team_name: true, logo: true } },
+      season: { select: { season_id: true, season_name: true } },
+    },
+  });
+
+  const teamNameMap = await buildTeamNameMap(matches);
+  return matches.map((m) => serializeMatch(m, teamNameMap));
+}
+
 async function getUpcomingMatchesList(limit: number = 5): Promise<HomeMatch[]> {
   const matches = await prisma.match.findMany({
-    where: { match_date: { gt: new Date() } },
+    where: { match_date: { gt: new Date() }, is_date_confirmed: true },
     orderBy: { match_date: 'asc' },
     take: limit,
     include: {
@@ -859,6 +882,7 @@ export async function getHomePageData(): Promise<HomePageData> {
       currentSeason: { season_id: 0, season_name: '' },
       recentMatches: [],
       upcomingMatches: [],
+      interleagueMatches: [],
       standings: [],
       topScorers: [],
       topAssists: [],
@@ -884,6 +908,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   const [
     recentMatches,
     upcomingMatches,
+    interleagueMatches,
     standings,
     topScorers,
     topAssists,
@@ -895,6 +920,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   ] = await Promise.all([
     getRecentCompletedMatches(),
     getUpcomingMatchesList(),
+    getInterleagueMatchesList(currentSeason.season_id),
     getStandings(currentSeason.season_id),
     getTopScorersList(currentSeason.season_id),
     getTopAssistsList(currentSeason.season_id),
@@ -911,6 +937,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     currentSeason,
     recentMatches,
     upcomingMatches,
+    interleagueMatches,
     standings,
     topScorers,
     topAssists,
