@@ -208,6 +208,25 @@ export const getSeasonMatchesPagePrisma = async (
   return response.json();
 };
 
+// ============== Interleague Matches ==============
+
+// Get interleague matches for a season
+export const getInterleagueMatchesPrisma = async (
+  seasonId: number
+): Promise<MatchWithTeams[]> => {
+  const response = await fetch(
+    apiUrl(`/api/matches/interleague?seasonId=${seasonId}`)
+  );
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch interleague matches: ${response.statusText}`
+    );
+  }
+  return response.json();
+};
+
+getInterleagueMatchesPrisma.queryKey = 'interleague-matches';
+
 // ============== Match Details ==============
 
 // Get match goals
@@ -347,6 +366,7 @@ type UpcomingMatchesResponse = {
     match_id: number;
     match_date: string;
     description: string | null;
+    is_date_confirmed: boolean;
     season: { season_id: number; season_name: string } | null;
     home: { team_id: number; team_name: string; logo: string | null } | null;
     away: { team_id: number; team_name: string; logo: string | null } | null;
@@ -387,6 +407,7 @@ export const getUpcomingMatchesPagePrisma = async (
     match_id: number;
     match_date: string;
     description: string | null;
+    is_date_confirmed: boolean;
     season: { season_id: number; season_name: string } | null;
     home: { team_id: number; team_name: string; logo: string | null } | null;
     away: { team_id: number; team_name: string; logo: string | null } | null;

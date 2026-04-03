@@ -33,9 +33,18 @@ const MatchHeader: React.FC<MatchHeaderProps> = ({
           <Badge variant="secondary" className="text-[11px] sm:text-sm">
             {mobileLabel}
           </Badge>
-          <div className="text-xs sm:text-sm text-gray-500">
-            {format(matchDate, 'yyyy년 M월 d일 (EEE)', { locale: ko })}
-          </div>
+          {match.is_date_confirmed === false ? (
+            <Badge
+              variant="outline"
+              className="text-[11px] sm:text-xs text-amber-600 border-amber-300 bg-amber-50"
+            >
+              방영일 미정
+            </Badge>
+          ) : (
+            <div className="text-xs sm:text-sm text-gray-500">
+              {format(matchDate, 'yyyy년 M월 d일 (EEE)', { locale: ko })}
+            </div>
+          )}
         </div>
       </CardHeader>
     );
@@ -55,7 +64,16 @@ const MatchHeader: React.FC<MatchHeaderProps> = ({
         </Badge>
         {/* 감독 노출 제거 (요청에 따라 헤더에서는 표시하지 않음) */}
         <div className="w-full text-sm text-gray-500 flex justify-end">
-          {format(matchDate, 'yyyy년 M월 d일 (EEE)', { locale: ko })}
+          {match.is_date_confirmed === false ? (
+            <Badge
+              variant="outline"
+              className="text-xs text-amber-600 border-amber-300 bg-amber-50"
+            >
+              방영일 미정
+            </Badge>
+          ) : (
+            format(matchDate, 'yyyy년 M월 d일 (EEE)', { locale: ko })
+          )}
         </div>
       </div>
     </CardHeader>
