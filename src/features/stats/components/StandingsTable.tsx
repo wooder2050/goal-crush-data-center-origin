@@ -87,76 +87,69 @@ function StandingsTableInner({ seasonId, className }: StandingsTableProps) {
     <div className={className}>
       <h3 className="text-lg font-bold mb-2">순위표</h3>
 
-      {/* Mobile cards */}
-      <div className="sm:hidden space-y-3">
-        {hasNoData ? (
-          <div className="py-6 text-center text-gray-500 text-[12px]">
-            순위표 데이터가 없습니다.
-          </div>
-        ) : (
-          standings.map((row: StandingRow, idx: number) => (
-            <div
+      {/* Mobile table (FotMob style) */}
+      <div className="sm:hidden">
+        <div className="flex items-center text-[11px] text-gray-400 px-2 py-2">
+          <span className="w-6 text-center">#</span>
+          <span className="flex-1 pl-2"></span>
+          <span className="w-9 text-center">경기</span>
+          <span className="w-9 text-center">=</span>
+          <span className="w-9 text-center font-semibold">승점</span>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {standings.map((row: StandingRow, idx: number) => (
+            <Link
               key={row.team?.team_id ?? idx}
-              className="rounded-md border px-3 py-2"
+              href={`/teams/${row.team?.team_id}`}
+              className="flex items-center px-2 py-2.5 hover:bg-gray-50 transition-colors"
             >
-              <div className="flex items-center justify-between gap-2">
-                <div className="text-base font-bold">
-                  {getRankEmoji(row.position)}
-                </div>
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-6 h-6 relative flex-shrink-0 rounded-full overflow-hidden">
-                    {row.team?.logo ? (
-                      <Image
-                        src={row.team.logo}
-                        alt={`${row.team?.team_name ?? ''} 로고`}
-                        fill
-                        className="object-cover"
-                        sizes="24px"
-                      />
-                    ) : (
-                      <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-gray-500 font-medium">
-                          {row.team?.team_name?.charAt(0) || '?'}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <span className="truncate text-base font-semibold">
-                    <Link
-                      href={`/teams/${row.team?.team_id}`}
-                      className="hover:underline transition-colors"
-                    >
-                      {row.team?.team_name ?? '-'}
-                    </Link>
-                  </span>
-                </div>
-              </div>
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                {[
-                  { label: '경기', value: row.matches_played ?? '-' },
-                  { label: '승', value: row.wins ?? '-' },
-                  { label: '패', value: row.losses ?? '-' },
-                  { label: '득점', value: row.goals_for ?? '-' },
-                  { label: '실점', value: row.goals_against ?? '-' },
-                  { label: '득실', value: row.goal_difference ?? '-' },
-                  { label: '승점', value: row.points ?? '-' },
-                ].map((stat, i) => (
-                  <div
-                    key={i}
-                    className="rounded bg-gray-50 border border-gray-200 px-2 py-1 text-center"
-                  >
-                    <div className="text-[11px] text-gray-600 whitespace-nowrap">
-                      {stat.label}
+              <span className="w-6 text-center text-[13px] font-semibold text-gray-500">
+                {row.position}
+              </span>
+              <div className="flex-1 flex items-center gap-2 pl-2 min-w-0">
+                <div className="w-6 h-6 relative flex-shrink-0 rounded-full overflow-hidden">
+                  {row.team?.logo ? (
+                    <Image
+                      src={row.team.logo}
+                      alt={`${row.team?.team_name ?? ''} 로고`}
+                      fill
+                      className="object-cover"
+                      sizes="24px"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-[10px] text-gray-500 font-medium">
+                        {row.team?.team_name?.charAt(0) || '?'}
+                      </span>
                     </div>
-                    <div className="text-sm font-semibold text-gray-900">
-                      {stat.value}
-                    </div>
-                  </div>
-                ))}
+                  )}
+                </div>
+                <span className="text-[13px] font-medium text-gray-900 truncate">
+                  {row.team?.team_name ?? '-'}
+                </span>
               </div>
-            </div>
-          ))
-        )}
+              <span className="w-9 text-center text-[13px] text-gray-600 tabular-nums">
+                {row.matches_played ?? 0}
+              </span>
+              <span
+                className={`w-9 text-center text-[13px] tabular-nums ${
+                  (row.goal_difference ?? 0) > 0
+                    ? 'text-green-600'
+                    : (row.goal_difference ?? 0) < 0
+                      ? 'text-red-600'
+                      : 'text-gray-600'
+                }`}
+              >
+                {(row.goal_difference ?? 0) > 0
+                  ? `+${row.goal_difference}`
+                  : (row.goal_difference ?? 0)}
+              </span>
+              <span className="w-9 text-center text-[13px] font-bold text-gray-900 tabular-nums">
+                {row.points ?? 0}
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Desktop table (unchanged) */}
