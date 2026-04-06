@@ -83,7 +83,9 @@ function StandingsTable({ standings }: { standings: HomeStanding[] }) {
             <th className="text-center py-2.5 px-2 font-bold whitespace-nowrap">
               승점
             </th>
-            <th className="text-left py-2.5 px-2 whitespace-nowrap">최근</th>
+            <th className="text-left py-2.5 px-2 whitespace-nowrap hidden sm:table-cell">
+              최근
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -130,7 +132,7 @@ function StandingsTable({ standings }: { standings: HomeStanding[] }) {
               <td className="text-center py-2.5 px-2 text-sm font-bold text-gray-900">
                 {s.points ?? 0}
               </td>
-              <td className="py-2.5 px-2">
+              <td className="py-2.5 px-2 hidden sm:table-cell">
                 <RecentResults form={s.form} />
               </td>
             </tr>
