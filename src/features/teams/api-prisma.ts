@@ -132,8 +132,14 @@ export const getTeamHighlightsPrisma = async (
     player_id: number;
     name: string;
     appearances: number;
+    profile_image_url: string | null;
   } | null;
-  top_scorer: { player_id: number; name: string; goals: number } | null;
+  top_scorer: {
+    player_id: number;
+    name: string;
+    goals: number;
+    profile_image_url: string | null;
+  } | null;
   championships: {
     count: number;
     seasons: Array<{
@@ -162,4 +168,33 @@ export const getTeamHighlightsPrisma = async (
 
 Object.defineProperty(getTeamHighlightsPrisma, 'queryKey', {
   value: 'teamHighlights',
+});
+
+// Team formation (current season starting positions)
+export type TeamFormationPosition = {
+  position: string;
+  player_id: number;
+  name: string;
+  count: number;
+  jersey_number: number | null;
+  profile_image_url: string | null;
+  total_players: number;
+};
+
+export type TeamFormationData = {
+  positions: TeamFormationPosition[];
+  season_name: string | null;
+};
+
+export const getTeamFormationPrisma = async (
+  teamId: number
+): Promise<TeamFormationData> => {
+  const res = await fetch(apiUrl(`/api/teams/${teamId}/formation`));
+  if (!res.ok)
+    throw new Error(`Failed to fetch team formation: ${res.statusText}`);
+  return res.json();
+};
+
+Object.defineProperty(getTeamFormationPrisma, 'queryKey', {
+  value: 'teamFormation',
 });

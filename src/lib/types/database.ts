@@ -177,6 +177,8 @@ export interface Team {
   description?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  about?: string | null;
+  about_updated_at?: string | null;
 }
 
 export interface Season {
