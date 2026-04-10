@@ -36,16 +36,16 @@ export default function TeamSquadTable({
           {playersArray.length}명
         </span>
       </div>
-      <div className="overflow-x-auto px-4 pb-4">
+      <div className="px-4 pb-4">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[52px]">선수</TableHead>
+              <TableHead className="w-[44px]">선수</TableHead>
               <TableHead />
-              <TableHead className="text-center whitespace-nowrap">
+              <TableHead className="hidden sm:table-cell text-center whitespace-nowrap">
                 포지션
               </TableHead>
-              <TableHead className="text-center whitespace-nowrap">
+              <TableHead className="hidden sm:table-cell text-center whitespace-nowrap">
                 번호
               </TableHead>
               <TableHead className="text-center whitespace-nowrap">
