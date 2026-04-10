@@ -9,6 +9,7 @@ import CareerStatsWidget from './CareerStatsWidget';
 import MatchesWidget from './MatchesWidget';
 import PlayerCompareBanner from './PlayerCompareBanner';
 import PlayerStatsWidget from './PlayerStatsWidget';
+import PowerRankingWidget from './PowerRankingWidget';
 import StandingsWidget from './StandingsWidget';
 
 interface HomePageDashboardProps {
@@ -58,6 +59,7 @@ export default function HomePageDashboard({
             upcomingMatches={pageData.upcomingMatches}
             interleagueMatches={pageData.interleagueMatches}
           />
+          <PowerRankingWidget />
           <PlayerCompareBanner
             topScorers={pageData.topScorers}
             topAssists={pageData.topAssists}
