@@ -500,9 +500,7 @@ async function fetchTeamHighlights(teamId: number): Promise<TeamHighlights> {
   };
 }
 
-async function fetchTeamPlayers(
-  teamId: number
-): Promise<
+async function fetchTeamPlayers(teamId: number): Promise<
   Array<{
     player_id: number;
     name: string;
