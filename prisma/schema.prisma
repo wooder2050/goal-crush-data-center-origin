@@ -18,6 +18,8 @@ model Team {
   primary_color               String?                    @default("#000000") @db.VarChar(7)
   secondary_color             String?                    @default("#FFFFFF") @db.VarChar(7)
   logo                        String?                    @db.VarChar(500)
+  about                       String?                    @db.Text
+  about_updated_at            DateTime?                  @db.Timestamptz(6)
   community_posts             CommunityPost[]
   group_league_standings      GroupLeagueStanding[]
   match_coaches               MatchCoach[]
@@ -259,6 +261,7 @@ model PlayerMatchStats {
   @@index([match_id], map: "idx_player_match_stats_match")
   @@index([position], map: "idx_player_match_stats_position")
   @@index([team_id], map: "idx_player_match_stats_team")
+  @@index([team_id, match_id], map: "idx_player_match_stats_team_match")
   @@index([match_id], map: "idx_player_stats_match")
   @@index([player_id], map: "idx_player_stats_player")
   @@map("player_match_stats")
@@ -1217,6 +1220,7 @@ model PlayerMatchRating {
   @@index([match_id])
   @@index([player_id])
   @@index([team_id])
+  @@index([team_id, player_id], map: "idx_player_match_ratings_team_player")
   @@map("player_match_ratings")
 }
 

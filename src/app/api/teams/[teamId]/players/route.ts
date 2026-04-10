@@ -48,6 +48,7 @@ export async function GET(
         player_id: true,
         name: true,
         jersey_number: true,
+        profile_image_url: true,
       },
       orderBy:
         order === 'default'
@@ -55,11 +56,38 @@ export async function GET(
           : undefined,
     });
 
+    // 현재 시즌에 이 팀으로 출전한 선수 ID (is_current 판별)
+    const currentSeason = await prisma.season.findFirst({
+      orderBy: { season_id: 'desc' },
+      select: { season_id: true },
+    });
+    const currentPlayerIds = new Set<number>();
+    if (currentSeason) {
+      const pms = await prisma.playerMatchStats.findMany({
+        where: {
+          team_id: teamId,
+          player_id: { not: null },
+          minutes_played: { gt: 0 },
+          match: { season_id: currentSeason.season_id },
+        },
+        select: { player_id: true },
+        distinct: ['player_id'],
+      });
+      for (const p of pms) {
+        if (p.player_id) currentPlayerIds.add(p.player_id);
+      }
+    }
+
+    const playersWithCurrent = players.map((p) => ({
+      ...p,
+      profile_image_url: p.profile_image_url ?? null,
+      is_current: currentPlayerIds.has(p.player_id),
+    }));
+
     if (order === 'stats') {
-      // DB 사이드 정렬: 해당 팀에서의 출전/골/도움 집계 기반
       const grouped = await prisma.playerMatchStats.groupBy({
         by: ['player_id'],
-        where: { team_id: teamId },
+        where: { team_id: teamId, minutes_played: { gt: 0 } },
         _count: { match_id: true },
         _sum: { goals: true, assists: true },
       });
@@ -74,8 +102,8 @@ export async function GET(
           assists: g._sum?.assists ?? 0,
         });
       }
-      // 서버에서 소팅하여 반환 (클라 소팅 금지)
-      players.sort((a, b) => {
+      playersWithCurrent.sort((a, b) => {
+        if (a.is_current !== b.is_current) return a.is_current ? -1 : 1;
         const sa = orderMap.get(a.player_id) ?? {
           apps: 0,
           goals: 0,
@@ -93,7 +121,7 @@ export async function GET(
       });
     }
 
-    return NextResponse.json(players);
+    return NextResponse.json(playersWithCurrent);
   } catch (error) {
     console.error('Error fetching team players:', error);
     return NextResponse.json(

@@ -1,33 +1,33 @@
 'use client';
 
-import { match } from 'ts-pattern';
-
-import { Badge } from '@/components/ui/badge';
-
 interface PositionBadgeProps {
   position: number;
 }
 
 export default function PositionBadge({ position }: PositionBadgeProps) {
-  const medal = match(position)
-    .with(1, () => '🥇')
-    .with(2, () => '🥈')
-    .with(3, () => '🥉')
-    .otherwise(() => null as string | null);
+  const medal =
+    position === 1
+      ? '🥇'
+      : position === 2
+        ? '🥈'
+        : position === 3
+          ? '🥉'
+          : null;
 
-  const colorClass = match(position)
-    .with(1, () => 'bg-yellow-100 text-yellow-800')
-    .with(2, () => 'bg-gray-100 text-gray-800')
-    .with(3, () => 'bg-orange-100 text-orange-800')
-    .otherwise(() => 'bg-gray-100 text-gray-700');
+  const style =
+    position === 1
+      ? 'bg-amber-50 text-amber-800'
+      : position === 2
+        ? 'bg-gray-100 text-gray-700'
+        : position === 3
+          ? 'bg-orange-50 text-orange-800'
+          : 'bg-gray-50 text-gray-600';
 
   return (
-    <Badge
-      variant="secondary"
-      className={`px-2 py-0 text-xs ${colorClass}`}
-      title={`${position}위`}
+    <span
+      className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[11px] font-semibold ${style}`}
     >
       {medal ? `${medal} ${position}위` : `${position}위`}
-    </Badge>
+    </span>
   );
 }
