@@ -284,6 +284,8 @@ async function fetchTeamStats(teamId: number): Promise<TeamStats> {
   const matches = await prisma.match.findMany({
     where: {
       OR: [{ home_team_id: teamId }, { away_team_id: teamId }],
+      home_score: { not: null },
+      away_score: { not: null },
     },
     select: {
       home_team_id: true,

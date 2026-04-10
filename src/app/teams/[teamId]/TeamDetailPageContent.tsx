@@ -75,8 +75,8 @@ export default function TeamDetailPageContent({
       </div>
       <div className="mx-auto max-w-[1280px]">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {/* Left column (2/3) */}
-          <div className="space-y-4 lg:col-span-2">
+          {/* Header — always first */}
+          <div className="order-1 lg:order-none lg:col-span-2">
             {team && (
               <TeamHeader
                 team={team}
@@ -84,22 +84,10 @@ export default function TeamDetailPageContent({
                 stats={stats ?? null}
               />
             )}
-            <TeamSquadTable
-              players={players}
-              teamId={teamIdNumber}
-              teamColor={teamColor}
-              topAppearancesId={
-                initialData.highlights?.top_appearances?.player_id
-              }
-              topScorerId={initialData.highlights?.top_scorer?.player_id}
-              topAssistsId={initialData.topAssists?.[0]?.player_id}
-            />
-            <TeamSeasonStandings teamId={teamIdNumber} />
-            <TeamAboutCard about={team?.about} />
           </div>
 
-          {/* Right column (1/3) */}
-          <div className="space-y-4 lg:col-span-1">
+          {/* Right column — mobile: after header, before squad */}
+          <div className="order-2 space-y-4 lg:order-none lg:col-span-1 lg:row-span-3">
             <TeamFormationCard
               formation={initialData.formation}
               recentForm={initialData.recentForm}
@@ -112,6 +100,22 @@ export default function TeamDetailPageContent({
               topRated={initialData.topRated}
               teamColor={teamColor}
             />
+          </div>
+
+          {/* Left column rest — mobile: after right column */}
+          <div className="order-3 space-y-4 lg:order-none lg:col-span-2">
+            <TeamSquadTable
+              players={players}
+              teamId={teamIdNumber}
+              teamColor={teamColor}
+              topAppearancesId={
+                initialData.highlights?.top_appearances?.player_id
+              }
+              topScorerId={initialData.highlights?.top_scorer?.player_id}
+              topAssistsId={initialData.topAssists?.[0]?.player_id}
+            />
+            <TeamSeasonStandings teamId={teamIdNumber} />
+            <TeamAboutCard about={team?.about} />
           </div>
         </div>
       </div>
