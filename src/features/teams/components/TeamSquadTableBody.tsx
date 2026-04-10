@@ -132,7 +132,7 @@ function TeamSquadTableRowInner({
   return (
     <TableRow className="transition-colors hover:bg-gray-50">
       {/* Profile image */}
-      <TableCell className="w-[52px] pr-0">
+      <TableCell className="w-[44px] pr-0">
         <Link href={`/players/${player.player_id}`}>
           <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100">
             {player.profile_image_url ? (
@@ -171,11 +171,11 @@ function TeamSquadTableRowInner({
         </div>
       </TableCell>
       {/* Position */}
-      <TableCell className="text-center">
+      <TableCell className="hidden sm:table-cell text-center">
         <PlayerPositionBadge position={primaryPosition} />
       </TableCell>
       {/* Jersey number */}
-      <TableCell className="text-center text-[14px] text-[#9F9F9F]">
+      <TableCell className="hidden sm:table-cell text-center text-[14px] text-[#9F9F9F]">
         {player.jersey_number ?? '-'}
       </TableCell>
       {/* Appearances */}
