@@ -46,17 +46,34 @@ export async function GET(request: NextRequest) {
 
     const allTeamIds = baseTeams.map((t) => t.team_id);
 
-    // 배치 쿼리 1: 모든 팀의 선수별 출전 통계를 한 번에 조회
+    // 배치 쿼리 1: 모든 팀의 선수별 출전/골/도움 통계
     const allPlayerStats = await prisma.playerMatchStats.groupBy({
       by: ['team_id', 'player_id'],
-      where: { team_id: { in: allTeamIds }, player_id: { not: null } },
+      where: {
+        team_id: { in: allTeamIds },
+        player_id: { not: null },
+        minutes_played: { gt: 0 },
+      },
       _count: { player_id: true },
+      _sum: { goals: true, assists: true },
     });
 
-    // 팀별로 출전 수 상위 3명 추출
+    // 팀별 최다 출전 + 최다 골 + 최다 도움 선수 선택
+    type RepStat = {
+      player_id: number;
+      appearances: number;
+      goals: number;
+      assists: number;
+      role: 'appearances' | 'goals' | 'assists';
+    };
     const teamPlayerStatsMap = new Map<
       number,
-      { player_id: number; appearances: number }[]
+      {
+        player_id: number;
+        appearances: number;
+        goals: number;
+        assists: number;
+      }[]
     >();
     for (const stat of allPlayerStats) {
       if (stat.player_id === null || stat.team_id === null) continue;
@@ -67,17 +84,27 @@ export async function GET(request: NextRequest) {
       teamPlayerStatsMap.get(teamId)!.push({
         player_id: stat.player_id,
         appearances: stat._count.player_id,
+        goals: stat._sum?.goals ?? 0,
+        assists: stat._sum?.assists ?? 0,
       });
     }
-    // 팀별 정렬 및 상위 3명 추출
-    Array.from(teamPlayerStatsMap.entries()).forEach(([teamId, stats]) => {
-      stats.sort((a, b) => b.appearances - a.appearances);
-      teamPlayerStatsMap.set(teamId, stats.slice(0, 3));
+    const teamRepMap = new Map<number, RepStat[]>();
+    Array.from(teamPlayerStatsMap.entries()).forEach(([tid, stats]) => {
+      const topApp = [...stats].sort(
+        (a, b) => b.appearances - a.appearances
+      )[0];
+      const topGoal = [...stats].sort((a, b) => b.goals - a.goals)[0];
+      const topAssist = [...stats].sort((a, b) => b.assists - a.assists)[0];
+      const reps: RepStat[] = [];
+      if (topApp) reps.push({ ...topApp, role: 'appearances' });
+      if (topGoal) reps.push({ ...topGoal, role: 'goals' });
+      if (topAssist) reps.push({ ...topAssist, role: 'assists' });
+      teamRepMap.set(tid, reps);
     });
 
     // 배치 쿼리 2: 필요한 모든 선수 정보를 한 번에 조회
     const allPlayerIds = new Set<number>();
-    Array.from(teamPlayerStatsMap.values()).forEach((stats) => {
+    Array.from(teamRepMap.values()).forEach((stats) => {
       for (const s of stats) {
         allPlayerIds.add(s.player_id);
       }
@@ -86,7 +113,12 @@ export async function GET(request: NextRequest) {
       allPlayerIds.size > 0
         ? await prisma.player.findMany({
             where: { player_id: { in: Array.from(allPlayerIds) } },
-            select: { player_id: true, name: true, jersey_number: true },
+            select: {
+              player_id: true,
+              name: true,
+              jersey_number: true,
+              profile_image_url: true,
+            },
           })
         : [];
     const playerMap = new Map(allPlayers.map((p) => [p.player_id, p]));
@@ -124,17 +156,27 @@ export async function GET(request: NextRequest) {
     // 메모리에서 팀별 데이터 조합
     const now = new Date();
     const teamsWithReps = baseTeams.map((team) => {
-      // 대표 선수 계산
-      const teamStats = teamPlayerStatsMap.get(team.team_id) ?? [];
-      const representative_players = teamStats.map((stat) => {
+      // 대표 선수 계산 (최다 출전 + 최다 골 + 최다 도움)
+      const reps = teamRepMap.get(team.team_id) ?? [];
+      const representative_players = reps.map((stat) => {
         const player = playerMap.get(stat.player_id);
         return player
-          ? { ...player, appearances: stat.appearances }
+          ? {
+              ...player,
+              appearances: stat.appearances,
+              goals: stat.goals,
+              assists: stat.assists,
+              role: stat.role,
+            }
           : {
               player_id: stat.player_id,
               name: 'Unknown',
               jersey_number: null,
+              profile_image_url: null,
               appearances: stat.appearances,
+              goals: stat.goals,
+              assists: stat.assists,
+              role: stat.role,
             };
       });
 
