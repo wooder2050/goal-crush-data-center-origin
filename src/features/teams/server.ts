@@ -157,7 +157,12 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
     allPlayerIds.size > 0
       ? await prisma.player.findMany({
           where: { player_id: { in: Array.from(allPlayerIds) } },
-          select: { player_id: true, name: true, jersey_number: true },
+          select: {
+            player_id: true,
+            name: true,
+            jersey_number: true,
+            profile_image_url: true,
+          },
         })
       : [];
   const playerMap = new Map(allPlayers.map((p) => [p.player_id, p]));
@@ -202,6 +207,7 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
             player_id: stat.player_id,
             name: 'Unknown',
             jersey_number: null,
+            profile_image_url: null,
             appearances: stat.appearances,
           };
     });

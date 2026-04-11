@@ -18,18 +18,12 @@ export default function TeamsPageClient({
   });
 
   return (
-    <Section padding="sm" className="pt-2 sm:pt-3">
-      <div className="mb-2 flex items-center justify-between gap-4 px-3 pt-3 sm:mb-3 sm:px-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-lg font-bold sm:text-2xl">팀 목록</h1>
-          <span className="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-700">
-            총 {teams.length}팀
-          </span>
-        </div>
+    <Section padding="sm">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">팀 목록</h1>
+        <p className="mt-1 text-[14px] text-[#9F9F9F]">총 {teams.length}팀</p>
       </div>
-      <div>
-        <TeamGrid teams={teams} />
-      </div>
+      <TeamGrid teams={teams} />
     </Section>
   );
 }
