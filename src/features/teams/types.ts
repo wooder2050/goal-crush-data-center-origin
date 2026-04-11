@@ -16,6 +16,8 @@ export type TeamWithExtras = Team & {
     profile_image_url: string | null;
     appearances: number;
     goals: number;
+    assists: number;
+    role: 'appearances' | 'goals' | 'assists';
   }[];
   championships_count?: number;
   championships?: Array<{

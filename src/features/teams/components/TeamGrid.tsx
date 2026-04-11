@@ -176,16 +176,26 @@ function TeamCard({ team }: { team: TeamWithExtras }) {
 
           {/* Representative players — pushed to bottom */}
           <div className="mt-auto space-y-2 pt-3">
-            {reps.map((p, idx) => {
-              // 첫 번째: 최다 출전, 두 번째: 최다 골
-              const isTopScorer = idx === 1;
-              const statLabel = isTopScorer
-                ? `${p.goals}골`
-                : `${p.appearances}경기`;
-              const roleLabel = isTopScorer ? '최다 득점' : '최다 출전';
+            {reps.map((p) => {
+              const role = (p as { role?: string }).role ?? 'appearances';
+              const statLabel =
+                role === 'goals'
+                  ? `${p.goals}골`
+                  : role === 'assists'
+                    ? `${p.assists}도움`
+                    : `${p.appearances}경기`;
+              const roleLabel =
+                role === 'goals'
+                  ? '최다 득점'
+                  : role === 'assists'
+                    ? '최다 도움'
+                    : '최다 출전';
 
               return (
-                <div key={p.player_id} className="flex items-center gap-2.5">
+                <div
+                  key={`${p.player_id}-${role}`}
+                  className="flex items-center gap-2.5"
+                >
                   <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gray-100">
                     {p.profile_image_url ? (
                       <Image

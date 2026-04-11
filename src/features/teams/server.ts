@@ -144,7 +144,7 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
 
   const allTeamIds = baseTeams.map((t) => t.team_id);
 
-  // 배치 쿼리 1: 모든 팀의 선수별 출전/골 통계
+  // 배치 쿼리 1: 모든 팀의 선수별 출전/골/도움 통계
   const allPlayerStats = await prisma.playerMatchStats.groupBy({
     by: ['team_id', 'player_id'],
     where: {
@@ -153,13 +153,20 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
       minutes_played: { gt: 0 },
     },
     _count: { player_id: true },
-    _sum: { goals: true },
+    _sum: { goals: true, assists: true },
   });
 
-  // 팀별 최다 출전 + 최다 골 선수 선택
+  type RepStat = {
+    player_id: number;
+    appearances: number;
+    goals: number;
+    assists: number;
+    role: 'appearances' | 'goals' | 'assists';
+  };
+
   const teamPlayerStatsMap = new Map<
     number,
-    { player_id: number; appearances: number; goals: number }[]
+    { player_id: number; appearances: number; goals: number; assists: number }[]
   >();
   for (const stat of allPlayerStats) {
     if (stat.player_id === null || stat.team_id === null) continue;
@@ -171,21 +178,21 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
       player_id: stat.player_id,
       appearances: stat._count.player_id,
       goals: stat._sum?.goals ?? 0,
+      assists: stat._sum?.assists ?? 0,
     });
   }
-  // 각 팀에서 최다 출전 1명 + 최다 골 1명 (중복 제거)
-  const teamRepMap = new Map<
-    number,
-    { player_id: number; appearances: number; goals: number }[]
-  >();
+  // 각 팀에서 최다 출전 + 최다 골 + 최다 도움 (중복 제거)
+  const teamRepMap = new Map<number, RepStat[]>();
   Array.from(teamPlayerStatsMap.entries()).forEach(([tid, stats]) => {
     const topApp = [...stats].sort((a, b) => b.appearances - a.appearances)[0];
     const topGoal = [...stats].sort((a, b) => b.goals - a.goals)[0];
-    const reps: typeof stats = [];
-    if (topApp) reps.push(topApp);
-    if (topGoal && topGoal.player_id !== topApp?.player_id) {
-      reps.push(topGoal);
-    }
+    const topAssist = [...stats].sort((a, b) => b.assists - a.assists)[0];
+
+    const reps: RepStat[] = [];
+    if (topApp) reps.push({ ...topApp, role: 'appearances' });
+    if (topGoal) reps.push({ ...topGoal, role: 'goals' });
+    if (topAssist) reps.push({ ...topAssist, role: 'assists' });
+
     teamRepMap.set(tid, reps);
   });
 
@@ -245,7 +252,13 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
     const representative_players = reps.map((stat) => {
       const player = playerMap.get(stat.player_id);
       return player
-        ? { ...player, appearances: stat.appearances, goals: stat.goals }
+        ? {
+            ...player,
+            appearances: stat.appearances,
+            goals: stat.goals,
+            assists: stat.assists,
+            role: stat.role,
+          }
         : {
             player_id: stat.player_id,
             name: 'Unknown',
@@ -253,6 +266,8 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
             profile_image_url: null,
             appearances: stat.appearances,
             goals: stat.goals,
+            assists: stat.assists,
+            role: stat.role,
           };
     });
 
