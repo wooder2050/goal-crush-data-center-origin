@@ -9,6 +9,7 @@ import {
   getTeamStatsPrisma,
 } from '@/features/teams/api-prisma';
 import TeamAboutCard from '@/features/teams/components/TeamAboutCard';
+import TeamCoachStatsCard from '@/features/teams/components/TeamCoachStatsCard';
 import TeamDetailSkeleton from '@/features/teams/components/TeamDetailSkeleton';
 import TeamFormationCard from '@/features/teams/components/TeamFormationCard';
 import TeamHeader from '@/features/teams/components/TeamHeader';
@@ -104,6 +105,10 @@ export default function TeamDetailPageContent({
 
           {/* Left column rest — mobile: after right column */}
           <div className="order-3 space-y-4 lg:order-none lg:col-span-2">
+            <TeamCoachStatsCard
+              coachSeasonRecords={initialData.coachSeasonRecords}
+              teamColor={teamColor}
+            />
             <TeamSquadTable
               players={players}
               teamId={teamIdNumber}

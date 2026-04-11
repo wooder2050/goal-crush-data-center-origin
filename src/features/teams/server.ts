@@ -82,6 +82,29 @@ export type TeamPlayerStatRow = {
   value: number;
 };
 
+export type CoachRecord = {
+  coach_id: number;
+  name: string;
+  profile_image_url: string | null;
+  matches: number;
+  wins: number;
+  losses: number;
+  win_rate: number;
+  is_current: boolean;
+};
+
+export type CoachSeasonRecord = {
+  season_name: string;
+  coach_id: number;
+  coach_name: string;
+  profile_image_url: string | null;
+  matches: number;
+  wins: number;
+  losses: number;
+  win_rate: number;
+  ppg: number;
+};
+
 export type InitialTeamDetailData = {
   team: Team;
   stats: TeamStats;
@@ -98,6 +121,8 @@ export type InitialTeamDetailData = {
   topScorers: TeamPlayerStatRow[];
   topAssists: TeamPlayerStatRow[];
   topRated: TeamPlayerStatRow[];
+  coachRecords: CoachRecord[];
+  coachSeasonRecords: CoachSeasonRecord[];
 };
 
 // ─── /teams 목록 ───
@@ -119,16 +144,29 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
 
   const allTeamIds = baseTeams.map((t) => t.team_id);
 
-  // 배치 쿼리 1: 모든 팀의 선수별 출전 통계
+  // 배치 쿼리 1: 모든 팀의 선수별 출전/골/도움 통계
   const allPlayerStats = await prisma.playerMatchStats.groupBy({
     by: ['team_id', 'player_id'],
-    where: { team_id: { in: allTeamIds }, player_id: { not: null } },
+    where: {
+      team_id: { in: allTeamIds },
+      player_id: { not: null },
+      minutes_played: { gt: 0 },
+    },
     _count: { player_id: true },
+    _sum: { goals: true, assists: true },
   });
+
+  type RepStat = {
+    player_id: number;
+    appearances: number;
+    goals: number;
+    assists: number;
+    role: 'appearances' | 'goals' | 'assists';
+  };
 
   const teamPlayerStatsMap = new Map<
     number,
-    { player_id: number; appearances: number }[]
+    { player_id: number; appearances: number; goals: number; assists: number }[]
   >();
   for (const stat of allPlayerStats) {
     if (stat.player_id === null || stat.team_id === null) continue;
@@ -139,16 +177,28 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
     teamPlayerStatsMap.get(teamId)!.push({
       player_id: stat.player_id,
       appearances: stat._count.player_id,
+      goals: stat._sum?.goals ?? 0,
+      assists: stat._sum?.assists ?? 0,
     });
   }
+  // 각 팀에서 최다 출전 + 최다 골 + 최다 도움 (중복 제거)
+  const teamRepMap = new Map<number, RepStat[]>();
   Array.from(teamPlayerStatsMap.entries()).forEach(([tid, stats]) => {
-    stats.sort((a, b) => b.appearances - a.appearances);
-    teamPlayerStatsMap.set(tid, stats.slice(0, 3));
+    const topApp = [...stats].sort((a, b) => b.appearances - a.appearances)[0];
+    const topGoal = [...stats].sort((a, b) => b.goals - a.goals)[0];
+    const topAssist = [...stats].sort((a, b) => b.assists - a.assists)[0];
+
+    const reps: RepStat[] = [];
+    if (topApp) reps.push({ ...topApp, role: 'appearances' });
+    if (topGoal) reps.push({ ...topGoal, role: 'goals' });
+    if (topAssist) reps.push({ ...topAssist, role: 'assists' });
+
+    teamRepMap.set(tid, reps);
   });
 
   // 배치 쿼리 2: 필요한 모든 선수 정보
   const allPlayerIds = new Set<number>();
-  Array.from(teamPlayerStatsMap.values()).forEach((stats) => {
+  Array.from(teamRepMap.values()).forEach((stats) => {
     for (const s of stats) {
       allPlayerIds.add(s.player_id);
     }
@@ -198,17 +248,26 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
 
   const now = new Date();
   const teams = baseTeams.map((team) => {
-    const teamStats = teamPlayerStatsMap.get(team.team_id) ?? [];
-    const representative_players = teamStats.map((stat) => {
+    const reps = teamRepMap.get(team.team_id) ?? [];
+    const representative_players = reps.map((stat) => {
       const player = playerMap.get(stat.player_id);
       return player
-        ? { ...player, appearances: stat.appearances }
+        ? {
+            ...player,
+            appearances: stat.appearances,
+            goals: stat.goals,
+            assists: stat.assists,
+            role: stat.role,
+          }
         : {
             player_id: stat.player_id,
             name: 'Unknown',
             jersey_number: null,
             profile_image_url: null,
             appearances: stat.appearances,
+            goals: stat.goals,
+            assists: stat.assists,
+            role: stat.role,
           };
     });
 
@@ -259,15 +318,25 @@ export async function getInitialTeamDetailData(
 
   if (!team) return null;
 
-  const [stats, highlights, players, formation, recentForm, topPlayers] =
-    await Promise.all([
-      fetchTeamStats(teamId),
-      fetchTeamHighlights(teamId),
-      fetchTeamPlayers(teamId),
-      fetchTeamFormation(teamId),
-      fetchTeamRecentForm(teamId),
-      fetchTeamTopPlayers(teamId),
-    ]);
+  const [
+    stats,
+    highlights,
+    players,
+    formation,
+    recentForm,
+    topPlayers,
+    coachRecords,
+    coachSeasonRecords,
+  ] = await Promise.all([
+    fetchTeamStats(teamId),
+    fetchTeamHighlights(teamId),
+    fetchTeamPlayers(teamId),
+    fetchTeamFormation(teamId),
+    fetchTeamRecentForm(teamId),
+    fetchTeamTopPlayers(teamId),
+    fetchCoachRecords(teamId),
+    fetchCoachSeasonRecords(teamId),
+  ]);
 
   return {
     team: {
@@ -282,6 +351,8 @@ export async function getInitialTeamDetailData(
     recentForm,
     topScorers: topPlayers.topScorers,
     topAssists: topPlayers.topAssists,
+    coachRecords,
+    coachSeasonRecords,
     topRated: topPlayers.topRated,
   };
 }
@@ -876,4 +947,215 @@ async function fetchTeamTopPlayers(teamId: number): Promise<{
     });
 
   return { topScorers, topAssists, topRated };
+}
+
+// ─── Coach Records (감독 승률) ───
+
+async function fetchCoachRecords(teamId: number): Promise<CoachRecord[]> {
+  // matches 테이블의 home_coach_id/away_coach_id에서 직접 집계
+  // (match_coaches 테이블 트리거 문제 우회 + 누락 없음)
+  const matches = await prisma.match.findMany({
+    where: {
+      OR: [{ home_team_id: teamId }, { away_team_id: teamId }],
+      home_score: { not: null },
+      away_score: { not: null },
+    },
+    select: {
+      home_team_id: true,
+      away_team_id: true,
+      home_coach_id: true,
+      away_coach_id: true,
+      home_score: true,
+      away_score: true,
+      penalty_home_score: true,
+      penalty_away_score: true,
+    },
+  });
+
+  // 현재 감독 확인
+  const currentCoach = await prisma.teamCoachHistory.findFirst({
+    where: { team_id: teamId, is_current: true },
+    select: { coach_id: true },
+  });
+
+  // 감독별 집계
+  const coachMap = new Map<
+    number,
+    { matches: number; wins: number; losses: number }
+  >();
+
+  for (const m of matches) {
+    const isHome = m.home_team_id === teamId;
+    const coachId = isHome ? m.home_coach_id : m.away_coach_id;
+    if (!coachId) continue;
+
+    if (!coachMap.has(coachId)) {
+      coachMap.set(coachId, { matches: 0, wins: 0, losses: 0 });
+    }
+    const agg = coachMap.get(coachId)!;
+    agg.matches += 1;
+
+    const teamScore = isHome ? m.home_score! : m.away_score!;
+    const oppScore = isHome ? m.away_score! : m.home_score!;
+
+    if (teamScore > oppScore) {
+      agg.wins += 1;
+    } else if (teamScore < oppScore) {
+      agg.losses += 1;
+    } else {
+      const pkTeam = isHome ? m.penalty_home_score : m.penalty_away_score;
+      const pkOpp = isHome ? m.penalty_away_score : m.penalty_home_score;
+      if (pkTeam != null && pkOpp != null && pkTeam > pkOpp) {
+        agg.wins += 1;
+      } else {
+        agg.losses += 1;
+      }
+    }
+  }
+
+  // 감독 정보
+  const coachIds = Array.from(coachMap.keys());
+  if (coachIds.length === 0) return [];
+
+  const coaches = await prisma.coach.findMany({
+    where: { coach_id: { in: coachIds } },
+    select: { coach_id: true, name: true, profile_image_url: true },
+  });
+  const coachInfoMap = new Map(coaches.map((c) => [c.coach_id, c]));
+
+  return coachIds
+    .map((cid) => {
+      const agg = coachMap.get(cid)!;
+      const info = coachInfoMap.get(cid);
+      return {
+        coach_id: cid,
+        name: info?.name ?? '-',
+        profile_image_url: info?.profile_image_url ?? null,
+        matches: agg.matches,
+        wins: agg.wins,
+        losses: agg.losses,
+        win_rate:
+          agg.matches > 0 ? Math.round((agg.wins / agg.matches) * 100) : 0,
+        is_current: currentCoach?.coach_id === cid,
+      };
+    })
+    .sort((a, b) => {
+      if (a.is_current !== b.is_current) return a.is_current ? -1 : 1;
+      return b.matches - a.matches;
+    });
+}
+
+// ─── Coach Season Records (시즌별 감독 승률) ───
+
+async function fetchCoachSeasonRecords(
+  teamId: number
+): Promise<CoachSeasonRecord[]> {
+  const matches = await prisma.match.findMany({
+    where: {
+      OR: [{ home_team_id: teamId }, { away_team_id: teamId }],
+      home_score: { not: null },
+      away_score: { not: null },
+      season_id: { not: null },
+    },
+    select: {
+      home_team_id: true,
+      away_team_id: true,
+      home_coach_id: true,
+      away_coach_id: true,
+      home_score: true,
+      away_score: true,
+      penalty_home_score: true,
+      penalty_away_score: true,
+      season: { select: { season_id: true, season_name: true } },
+    },
+    orderBy: { match_date: 'asc' },
+  });
+
+  // 시즌+감독별 집계
+  const key = (seasonId: number, coachId: number) => `${seasonId}-${coachId}`;
+  const aggMap = new Map<
+    string,
+    {
+      seasonId: number;
+      seasonName: string;
+      coachId: number;
+      matches: number;
+      wins: number;
+      losses: number;
+    }
+  >();
+
+  for (const m of matches) {
+    const isHome = m.home_team_id === teamId;
+    const coachId = isHome ? m.home_coach_id : m.away_coach_id;
+    const seasonId = m.season?.season_id;
+    if (!coachId || !seasonId) continue;
+
+    const k = key(seasonId, coachId);
+    if (!aggMap.has(k)) {
+      aggMap.set(k, {
+        seasonId,
+        seasonName: m.season!.season_name,
+        coachId,
+        matches: 0,
+        wins: 0,
+        losses: 0,
+      });
+    }
+    const agg = aggMap.get(k)!;
+    agg.matches += 1;
+
+    const teamScore = isHome ? m.home_score! : m.away_score!;
+    const oppScore = isHome ? m.away_score! : m.home_score!;
+
+    if (teamScore > oppScore) {
+      agg.wins += 1;
+    } else if (teamScore < oppScore) {
+      agg.losses += 1;
+    } else {
+      const pkTeam = isHome ? m.penalty_home_score : m.penalty_away_score;
+      const pkOpp = isHome ? m.penalty_away_score : m.penalty_home_score;
+      if (pkTeam != null && pkOpp != null && pkTeam > pkOpp) {
+        agg.wins += 1;
+      } else {
+        agg.losses += 1;
+      }
+    }
+  }
+
+  // 감독 정보
+  const coachIds = Array.from(
+    new Set(Array.from(aggMap.values()).map((a) => a.coachId))
+  );
+  const coaches =
+    coachIds.length > 0
+      ? await prisma.coach.findMany({
+          where: { coach_id: { in: coachIds } },
+          select: { coach_id: true, name: true, profile_image_url: true },
+        })
+      : [];
+  const coachInfoMap = new Map(coaches.map((c) => [c.coach_id, c]));
+
+  return Array.from(aggMap.values())
+    .sort((a, b) => a.seasonId - b.seasonId)
+    .map((agg) => {
+      const info = coachInfoMap.get(agg.coachId);
+      const winRate =
+        agg.matches > 0 ? Math.round((agg.wins / agg.matches) * 100) : 0;
+      const ppg =
+        agg.matches > 0
+          ? Math.round(((agg.wins * 3) / agg.matches) * 10) / 10
+          : 0;
+      return {
+        season_name: agg.seasonName,
+        coach_id: agg.coachId,
+        coach_name: info?.name ?? '-',
+        profile_image_url: info?.profile_image_url ?? null,
+        matches: agg.matches,
+        wins: agg.wins,
+        losses: agg.losses,
+        win_rate: winRate,
+        ppg,
+      };
+    });
 }
