@@ -13,6 +13,7 @@ export type TeamWithExtras = Team & {
     player_id: number;
     name: string;
     jersey_number: number | null;
+    profile_image_url: string | null;
     appearances: number;
   }[];
   championships_count?: number;
