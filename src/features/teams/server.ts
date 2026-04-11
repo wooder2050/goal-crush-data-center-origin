@@ -82,17 +82,6 @@ export type TeamPlayerStatRow = {
   value: number;
 };
 
-export type CoachRecord = {
-  coach_id: number;
-  name: string;
-  profile_image_url: string | null;
-  matches: number;
-  wins: number;
-  losses: number;
-  win_rate: number;
-  is_current: boolean;
-};
-
 export type CoachSeasonRecord = {
   season_name: string;
   coach_id: number;
@@ -121,7 +110,6 @@ export type InitialTeamDetailData = {
   topScorers: TeamPlayerStatRow[];
   topAssists: TeamPlayerStatRow[];
   topRated: TeamPlayerStatRow[];
-  coachRecords: CoachRecord[];
   coachSeasonRecords: CoachSeasonRecord[];
 };
 
@@ -325,7 +313,6 @@ export async function getInitialTeamDetailData(
     formation,
     recentForm,
     topPlayers,
-    coachRecords,
     coachSeasonRecords,
   ] = await Promise.all([
     fetchTeamStats(teamId),
@@ -334,7 +321,6 @@ export async function getInitialTeamDetailData(
     fetchTeamFormation(teamId),
     fetchTeamRecentForm(teamId),
     fetchTeamTopPlayers(teamId),
-    fetchCoachRecords(teamId),
     fetchCoachSeasonRecords(teamId),
   ]);
 
@@ -351,7 +337,6 @@ export async function getInitialTeamDetailData(
     recentForm,
     topScorers: topPlayers.topScorers,
     topAssists: topPlayers.topAssists,
-    coachRecords,
     coachSeasonRecords,
     topRated: topPlayers.topRated,
   };
@@ -947,102 +932,6 @@ async function fetchTeamTopPlayers(teamId: number): Promise<{
     });
 
   return { topScorers, topAssists, topRated };
-}
-
-// ─── Coach Records (감독 승률) ───
-
-async function fetchCoachRecords(teamId: number): Promise<CoachRecord[]> {
-  // matches 테이블의 home_coach_id/away_coach_id에서 직접 집계
-  // (match_coaches 테이블 트리거 문제 우회 + 누락 없음)
-  const matches = await prisma.match.findMany({
-    where: {
-      OR: [{ home_team_id: teamId }, { away_team_id: teamId }],
-      home_score: { not: null },
-      away_score: { not: null },
-    },
-    select: {
-      home_team_id: true,
-      away_team_id: true,
-      home_coach_id: true,
-      away_coach_id: true,
-      home_score: true,
-      away_score: true,
-      penalty_home_score: true,
-      penalty_away_score: true,
-    },
-  });
-
-  // 현재 감독 확인
-  const currentCoach = await prisma.teamCoachHistory.findFirst({
-    where: { team_id: teamId, is_current: true },
-    select: { coach_id: true },
-  });
-
-  // 감독별 집계
-  const coachMap = new Map<
-    number,
-    { matches: number; wins: number; losses: number }
-  >();
-
-  for (const m of matches) {
-    const isHome = m.home_team_id === teamId;
-    const coachId = isHome ? m.home_coach_id : m.away_coach_id;
-    if (!coachId) continue;
-
-    if (!coachMap.has(coachId)) {
-      coachMap.set(coachId, { matches: 0, wins: 0, losses: 0 });
-    }
-    const agg = coachMap.get(coachId)!;
-    agg.matches += 1;
-
-    const teamScore = isHome ? m.home_score! : m.away_score!;
-    const oppScore = isHome ? m.away_score! : m.home_score!;
-
-    if (teamScore > oppScore) {
-      agg.wins += 1;
-    } else if (teamScore < oppScore) {
-      agg.losses += 1;
-    } else {
-      const pkTeam = isHome ? m.penalty_home_score : m.penalty_away_score;
-      const pkOpp = isHome ? m.penalty_away_score : m.penalty_home_score;
-      if (pkTeam != null && pkOpp != null && pkTeam > pkOpp) {
-        agg.wins += 1;
-      } else {
-        agg.losses += 1;
-      }
-    }
-  }
-
-  // 감독 정보
-  const coachIds = Array.from(coachMap.keys());
-  if (coachIds.length === 0) return [];
-
-  const coaches = await prisma.coach.findMany({
-    where: { coach_id: { in: coachIds } },
-    select: { coach_id: true, name: true, profile_image_url: true },
-  });
-  const coachInfoMap = new Map(coaches.map((c) => [c.coach_id, c]));
-
-  return coachIds
-    .map((cid) => {
-      const agg = coachMap.get(cid)!;
-      const info = coachInfoMap.get(cid);
-      return {
-        coach_id: cid,
-        name: info?.name ?? '-',
-        profile_image_url: info?.profile_image_url ?? null,
-        matches: agg.matches,
-        wins: agg.wins,
-        losses: agg.losses,
-        win_rate:
-          agg.matches > 0 ? Math.round((agg.wins / agg.matches) * 100) : 0,
-        is_current: currentCoach?.coach_id === cid,
-      };
-    })
-    .sort((a, b) => {
-      if (a.is_current !== b.is_current) return a.is_current ? -1 : 1;
-      return b.matches - a.matches;
-    });
 }
 
 // ─── Coach Season Records (시즌별 감독 승률) ───
