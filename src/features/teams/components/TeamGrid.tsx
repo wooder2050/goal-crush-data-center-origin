@@ -80,7 +80,7 @@ function TeamCard({ team }: { team: TeamWithExtras }) {
     const league = inferLeague(c.season_name ?? null);
     return league === 'cup' || c.season_name?.includes('챔피언');
   });
-  const reps = (team.representative_players ?? []).slice(0, 2);
+  const reps = (team.representative_players ?? []).slice(0, 3);
 
   return (
     <Link href={`/teams/${team.team_id}`}>
