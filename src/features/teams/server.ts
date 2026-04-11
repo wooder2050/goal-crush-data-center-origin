@@ -144,16 +144,22 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
 
   const allTeamIds = baseTeams.map((t) => t.team_id);
 
-  // 배치 쿼리 1: 모든 팀의 선수별 출전 통계
+  // 배치 쿼리 1: 모든 팀의 선수별 출전/골 통계
   const allPlayerStats = await prisma.playerMatchStats.groupBy({
     by: ['team_id', 'player_id'],
-    where: { team_id: { in: allTeamIds }, player_id: { not: null } },
+    where: {
+      team_id: { in: allTeamIds },
+      player_id: { not: null },
+      minutes_played: { gt: 0 },
+    },
     _count: { player_id: true },
+    _sum: { goals: true },
   });
 
+  // 팀별 최다 출전 + 최다 골 선수 선택
   const teamPlayerStatsMap = new Map<
     number,
-    { player_id: number; appearances: number }[]
+    { player_id: number; appearances: number; goals: number }[]
   >();
   for (const stat of allPlayerStats) {
     if (stat.player_id === null || stat.team_id === null) continue;
@@ -164,16 +170,28 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
     teamPlayerStatsMap.get(teamId)!.push({
       player_id: stat.player_id,
       appearances: stat._count.player_id,
+      goals: stat._sum?.goals ?? 0,
     });
   }
+  // 각 팀에서 최다 출전 1명 + 최다 골 1명 (중복 제거)
+  const teamRepMap = new Map<
+    number,
+    { player_id: number; appearances: number; goals: number }[]
+  >();
   Array.from(teamPlayerStatsMap.entries()).forEach(([tid, stats]) => {
-    stats.sort((a, b) => b.appearances - a.appearances);
-    teamPlayerStatsMap.set(tid, stats.slice(0, 3));
+    const topApp = [...stats].sort((a, b) => b.appearances - a.appearances)[0];
+    const topGoal = [...stats].sort((a, b) => b.goals - a.goals)[0];
+    const reps: typeof stats = [];
+    if (topApp) reps.push(topApp);
+    if (topGoal && topGoal.player_id !== topApp?.player_id) {
+      reps.push(topGoal);
+    }
+    teamRepMap.set(tid, reps);
   });
 
   // 배치 쿼리 2: 필요한 모든 선수 정보
   const allPlayerIds = new Set<number>();
-  Array.from(teamPlayerStatsMap.values()).forEach((stats) => {
+  Array.from(teamRepMap.values()).forEach((stats) => {
     for (const s of stats) {
       allPlayerIds.add(s.player_id);
     }
@@ -223,17 +241,18 @@ export async function getInitialTeamsData(): Promise<InitialTeamsData> {
 
   const now = new Date();
   const teams = baseTeams.map((team) => {
-    const teamStats = teamPlayerStatsMap.get(team.team_id) ?? [];
-    const representative_players = teamStats.map((stat) => {
+    const reps = teamRepMap.get(team.team_id) ?? [];
+    const representative_players = reps.map((stat) => {
       const player = playerMap.get(stat.player_id);
       return player
-        ? { ...player, appearances: stat.appearances }
+        ? { ...player, appearances: stat.appearances, goals: stat.goals }
         : {
             player_id: stat.player_id,
             name: 'Unknown',
             jersey_number: null,
             profile_image_url: null,
             appearances: stat.appearances,
+            goals: stat.goals,
           };
     });
 

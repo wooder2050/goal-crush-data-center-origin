@@ -176,33 +176,43 @@ function TeamCard({ team }: { team: TeamWithExtras }) {
 
           {/* Representative players — pushed to bottom */}
           <div className="mt-auto space-y-2 pt-3">
-            {reps.map((p) => (
-              <div key={p.player_id} className="flex items-center gap-2.5">
-                <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gray-100">
-                  {p.profile_image_url ? (
-                    <Image
-                      src={p.profile_image_url}
-                      alt={p.name}
-                      fill
-                      sizes="32px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[11px] font-medium text-gray-400">
-                      {p.name.charAt(0)}
-                    </div>
-                  )}
+            {reps.map((p, idx) => {
+              // 첫 번째: 최다 출전, 두 번째: 최다 골
+              const isTopScorer = idx === 1;
+              const statLabel = isTopScorer
+                ? `${p.goals}골`
+                : `${p.appearances}경기`;
+              const roleLabel = isTopScorer ? '최다 득점' : '최다 출전';
+
+              return (
+                <div key={p.player_id} className="flex items-center gap-2.5">
+                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gray-100">
+                    {p.profile_image_url ? (
+                      <Image
+                        src={p.profile_image_url}
+                        alt={p.name}
+                        fill
+                        sizes="32px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[11px] font-medium text-gray-400">
+                        {p.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-[13px] font-medium text-gray-800">
+                      {p.name}
+                    </p>
+                    <p className="text-[10px] text-[#9F9F9F]">{roleLabel}</p>
+                  </div>
+                  <span className="shrink-0 text-[12px] font-medium text-gray-700">
+                    {statLabel}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="truncate text-[13px] font-medium text-gray-800">
-                    {p.name}
-                  </p>
-                </div>
-                <span className="shrink-0 text-[12px] text-[#9F9F9F]">
-                  {p.appearances}경기
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
