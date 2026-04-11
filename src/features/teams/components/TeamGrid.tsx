@@ -80,7 +80,7 @@ function TeamCard({ team }: { team: TeamWithExtras }) {
     const league = inferLeague(c.season_name ?? null);
     return league === 'cup' || c.season_name?.includes('챔피언');
   });
-  const reps = (team.representative_players ?? []).slice(0, 2);
+  const reps = (team.representative_players ?? []).slice(0, 3);
 
   return (
     <Link href={`/teams/${team.team_id}`}>
@@ -149,7 +149,7 @@ function TeamCard({ team }: { team: TeamWithExtras }) {
         </div>
 
         {/* Info section — fixed height */}
-        <div className="flex flex-col px-5 py-4 h-[160px]">
+        <div className="flex flex-col px-5 py-4 min-h-[200px]">
           {/* Championships detail */}
           {championships.length > 0 ? (
             <div className="flex flex-wrap gap-1">
@@ -176,33 +176,53 @@ function TeamCard({ team }: { team: TeamWithExtras }) {
 
           {/* Representative players — pushed to bottom */}
           <div className="mt-auto space-y-2 pt-3">
-            {reps.map((p) => (
-              <div key={p.player_id} className="flex items-center gap-2.5">
-                <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gray-100">
-                  {p.profile_image_url ? (
-                    <Image
-                      src={p.profile_image_url}
-                      alt={p.name}
-                      fill
-                      sizes="32px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[11px] font-medium text-gray-400">
-                      {p.name.charAt(0)}
-                    </div>
-                  )}
+            {reps.map((p) => {
+              const role = (p as { role?: string }).role ?? 'appearances';
+              const statLabel =
+                role === 'goals'
+                  ? `${p.goals}골`
+                  : role === 'assists'
+                    ? `${p.assists}도움`
+                    : `${p.appearances}경기`;
+              const roleLabel =
+                role === 'goals'
+                  ? '최다 득점'
+                  : role === 'assists'
+                    ? '최다 도움'
+                    : '최다 출전';
+
+              return (
+                <div
+                  key={`${p.player_id}-${role}`}
+                  className="flex items-center gap-2.5"
+                >
+                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gray-100">
+                    {p.profile_image_url ? (
+                      <Image
+                        src={p.profile_image_url}
+                        alt={p.name}
+                        fill
+                        sizes="32px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[11px] font-medium text-gray-400">
+                        {p.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-[13px] font-medium text-gray-800">
+                      {p.name}
+                    </p>
+                    <p className="text-[10px] text-[#9F9F9F]">{roleLabel}</p>
+                  </div>
+                  <span className="shrink-0 text-[12px] font-medium text-gray-700">
+                    {statLabel}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="truncate text-[13px] font-medium text-gray-800">
-                    {p.name}
-                  </p>
-                </div>
-                <span className="shrink-0 text-[12px] text-[#9F9F9F]">
-                  {p.appearances}경기
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
