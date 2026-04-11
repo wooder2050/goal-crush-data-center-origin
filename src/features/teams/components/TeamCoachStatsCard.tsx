@@ -101,11 +101,11 @@ export default function TeamCoachStatsCard({
                     className="pointer-events-none absolute left-1/2 -translate-x-1/2 z-20 hidden group-hover:flex flex-col items-center"
                     style={{ top: top - 75 }}
                   >
-                    <div className="rounded-lg bg-white px-4 py-2 shadow-lg border border-gray-200 flex flex-col items-center min-w-[120px]">
+                    <div className="rounded-lg bg-white px-4 py-2 shadow-lg border border-gray-200 flex flex-col items-center w-max">
                       <p className="text-[15px] font-medium text-gray-900 whitespace-nowrap">
                         {shortenSeasonName(r.season_name)}
                       </p>
-                      <div className="mt-1 flex items-center gap-2 text-[16px] font-bold text-gray-900">
+                      <div className="mt-1 flex items-center gap-2 text-[11px] font-bold text-gray-900 whitespace-nowrap">
                         <span>
                           <span className="mr-0.5 rounded bg-green-500 px-1.5 py-0.5 text-[12px] text-white">
                             승
