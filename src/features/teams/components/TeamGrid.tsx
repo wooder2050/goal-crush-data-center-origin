@@ -149,7 +149,7 @@ function TeamCard({ team }: { team: TeamWithExtras }) {
         </div>
 
         {/* Info section — fixed height */}
-        <div className="flex flex-col px-5 py-4 h-[160px]">
+        <div className="flex flex-col px-5 py-4 h-[200px]">
           {/* Championships detail */}
           {championships.length > 0 ? (
             <div className="flex flex-wrap gap-1">
