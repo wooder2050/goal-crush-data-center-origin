@@ -207,16 +207,19 @@ function FormIndicator({ form }: { form: string | null }) {
   if (!form) return null;
   return (
     <div className="flex items-center gap-1">
-      {form.split('').map((char, i) => (
-        <span
-          key={i}
-          className={`w-5 h-5 rounded-full text-white text-[9px] font-bold flex items-center justify-center ${
-            char === 'W' ? 'bg-green-500' : 'bg-red-500'
-          }`}
-        >
-          {char}
-        </span>
-      ))}
+      {form
+        .split('')
+        .reverse()
+        .map((char, i) => (
+          <span
+            key={i}
+            className={`w-5 h-5 rounded-full text-white text-[9px] font-bold flex items-center justify-center ${
+              char === 'W' ? 'bg-green-500' : 'bg-red-500'
+            }`}
+          >
+            {char}
+          </span>
+        ))}
     </div>
   );
 }
