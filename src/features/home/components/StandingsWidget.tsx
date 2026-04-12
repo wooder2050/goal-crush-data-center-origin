@@ -170,20 +170,23 @@ function RecentResults({ form }: { form: string | null }) {
       role="list"
       aria-label="최근 경기 결과"
     >
-      {form.split('').map((char, i) => {
-        const result = getResult(char);
-        if (!result) return null;
-        return (
-          <span
-            key={i}
-            role="listitem"
-            aria-label={result.label}
-            className={`w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center ${result.className}`}
-          >
-            {result.label}
-          </span>
-        );
-      })}
+      {form
+        .split('')
+        .reverse()
+        .map((char, i) => {
+          const result = getResult(char);
+          if (!result) return null;
+          return (
+            <span
+              key={i}
+              role="listitem"
+              aria-label={result.label}
+              className={`w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center ${result.className}`}
+            >
+              {result.label}
+            </span>
+          );
+        })}
     </div>
   );
 }
