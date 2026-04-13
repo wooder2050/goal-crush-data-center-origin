@@ -73,6 +73,9 @@ export function SportsEventJsonLd({
   location,
   homeTeam,
   awayTeam,
+  description,
+  image,
+  seasonName,
 }: {
   name: string;
   startDate: string;
@@ -80,6 +83,9 @@ export function SportsEventJsonLd({
   location?: string;
   homeTeam?: string;
   awayTeam?: string;
+  description?: string;
+  image?: string;
+  seasonName?: string;
 }) {
   const data: JsonLdData = {
     '@context': 'https://schema.org',
@@ -87,15 +93,47 @@ export function SportsEventJsonLd({
     name,
     startDate,
     ...(endDate && { endDate }),
-    ...(location && { location: { '@type': 'Place', name: location } }),
+    location: {
+      '@type': 'Place',
+      name: location || 'SBS 프리즘타워',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: '서울',
+        addressCountry: 'KR',
+      },
+    },
+    description:
+      description ||
+      `골 때리는 그녀들 ${homeTeam || ''} vs ${awayTeam || ''} 경기`,
+    organizer: {
+      '@type': 'Organization',
+      name: 'SBS',
+      url: 'https://www.sbs.co.kr',
+    },
     ...(homeTeam &&
       awayTeam && {
         competitor: [
           { '@type': 'SportsTeam', name: homeTeam },
           { '@type': 'SportsTeam', name: awayTeam },
         ],
+        performer: [
+          { '@type': 'SportsTeam', name: homeTeam },
+          { '@type': 'SportsTeam', name: awayTeam },
+        ],
       }),
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'KRW',
+      availability: 'https://schema.org/InStock',
+      url: 'https://www.gtndatacenter.com',
+      description: 'SBS 방송으로 무료 시청 가능',
+    },
+    image: image || 'https://www.gtndatacenter.com/og-image.png',
     sport: '축구',
+    ...(seasonName && {
+      eventAttendanceMode: 'https://schema.org/MixedEventAttendanceMode',
+    }),
     inLanguage: 'ko-KR',
   };
 

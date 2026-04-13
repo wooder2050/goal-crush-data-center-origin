@@ -129,6 +129,12 @@ export default async function Page({ params }: Props) {
         startDate={matchDate || ''}
         homeTeam={homeTeamName}
         awayTeam={awayTeamName}
+        location={match.location || undefined}
+        description={`골 때리는 그녀들 ${(match as { season?: { season_name?: string } }).season?.season_name ?? ''} - ${homeTeamName} vs ${awayTeamName}`}
+        seasonName={
+          (match as { season?: { season_name?: string } }).season
+            ?.season_name ?? undefined
+        }
       />
       <MatchDetailPageContent matchId={matchId} initialData={initialData} />
     </>
