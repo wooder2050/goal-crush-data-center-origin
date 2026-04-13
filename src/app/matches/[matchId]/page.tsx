@@ -135,6 +135,10 @@ export default async function Page({ params }: Props) {
           (match as { season?: { season_name?: string } }).season
             ?.season_name ?? undefined
         }
+        status={
+          (match.status as 'scheduled' | 'completed' | 'cancelled') ??
+          'scheduled'
+        }
       />
       <MatchDetailPageContent matchId={matchId} initialData={initialData} />
     </>
