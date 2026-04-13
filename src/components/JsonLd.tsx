@@ -76,6 +76,7 @@ export function SportsEventJsonLd({
   description,
   image,
   seasonName,
+  status,
 }: {
   name: string;
   startDate: string;
@@ -86,13 +87,36 @@ export function SportsEventJsonLd({
   description?: string;
   image?: string;
   seasonName?: string;
+  status?: 'scheduled' | 'completed' | 'cancelled';
 }) {
+  // endDate: 전달되지 않으면 startDate + 30분으로 자동 계산
+  const computedEndDate =
+    endDate ||
+    (() => {
+      try {
+        const start = new Date(startDate);
+        start.setMinutes(start.getMinutes() + 30);
+        return start.toISOString();
+      } catch {
+        return startDate;
+      }
+    })();
+
+  // eventStatus 매핑
+  const eventStatus =
+    status === 'cancelled'
+      ? 'https://schema.org/EventCancelled'
+      : status === 'completed'
+        ? 'https://schema.org/EventScheduled'
+        : 'https://schema.org/EventScheduled';
+
   const data: JsonLdData = {
     '@context': 'https://schema.org',
     '@type': 'SportsEvent',
     name,
     startDate,
-    ...(endDate && { endDate }),
+    endDate: computedEndDate,
+    eventStatus,
     location: {
       '@type': 'Place',
       name: location || 'SBS 프리즘타워',
