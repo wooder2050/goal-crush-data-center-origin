@@ -150,6 +150,7 @@ export function SportsEventJsonLd({
       price: '0',
       priceCurrency: 'KRW',
       availability: 'https://schema.org/InStock',
+      validFrom: startDate,
       url: 'https://www.gtndatacenter.com',
       description: 'SBS 방송으로 무료 시청 가능',
     },
