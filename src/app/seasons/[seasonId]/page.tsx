@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const seasonName = season.season_name;
-  const title = `${seasonName} 순위·결과 | 골때녀 데이터센터`;
+  const title = `${seasonName} 순위·결과`;
   const description = `골 때리는 그녀들 ${seasonName} 전체 경기 결과·팀 순위·득점 랭킹·어시스트 랭킹. 실시간 업데이트되는 순위표와 팀별 성적을 확인하세요.`;
 
   return {

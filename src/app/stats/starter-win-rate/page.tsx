@@ -14,14 +14,14 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: '/stats/starter-win-rate' },
   openGraph: {
-    title: '선발 출전 승률 | 골때녀 데이터 센터',
+    title: '선발 출전 승률 | 골때녀 데이터센터',
     description:
       '골 때리는 그녀들 선수별 선발 출전 시 팀 승률 순위를 확인하세요.',
     url: 'https://www.gtndatacenter.com/stats/starter-win-rate',
   },
   twitter: {
     card: 'summary',
-    title: '선발 출전 승률 | 골때녀 데이터 센터',
+    title: '선발 출전 승률 | 골때녀 데이터센터',
     description:
       '골 때리는 그녀들 선수별 선발 출전 시 팀 승률 순위를 확인하세요.',
   },

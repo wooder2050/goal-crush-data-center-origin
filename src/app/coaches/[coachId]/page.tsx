@@ -36,7 +36,7 @@ export async function generateMetadata({
     description,
     alternates: { canonical: `/coaches/${id}` },
     openGraph: {
-      title: `${title} | 골때녀 데이터 센터`,
+      title: `${title} | 골때녀 데이터센터`,
       description,
       url: `https://www.gtndatacenter.com/coaches/${id}`,
       images: coach.profile_image_url
@@ -45,7 +45,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary',
-      title: `${title} | 골때녀 데이터 센터`,
+      title: `${title} | 골때녀 데이터센터`,
       description,
     },
   };

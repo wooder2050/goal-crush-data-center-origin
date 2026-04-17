@@ -48,9 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const teamName = team.team_name;
   const coachName = team.team_coach_history[0]?.coach?.name;
-  const title = coachName
-    ? `${teamName} - 감독 ${coachName} | 골때녀 데이터센터`
-    : `${teamName} | 골때녀 데이터센터`;
+  const title = coachName ? `${teamName} - 감독 ${coachName}` : `${teamName}`;
   const description = coachName
     ? `골 때리는 그녀들 ${teamName} 선수 명단·경기 결과·팀 통계. ${coachName} 감독 체제 전력 분석.`
     : `골 때리는 그녀들 ${teamName} 선수 명단·경기 결과·팀 통계. 시즌별 성적과 선수 기록을 확인하세요.`;

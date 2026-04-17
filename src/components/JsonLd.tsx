@@ -30,7 +30,7 @@ export function WebsiteJsonLd() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: '골 때리는 그녀들 데이터 센터',
-    alternateName: '골때녀 데이터 센터',
+    alternateName: '골때녀 데이터센터',
     url: 'https://www.gtndatacenter.com',
     description:
       '골 때리는 그녀들 경기/선수/팀 데이터를 구조화하여 빠르게 탐색할 수 있는 데이터 아카이브',
