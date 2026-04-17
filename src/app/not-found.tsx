@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: '페이지를 찾을 수 없습니다 | 골때녀 데이터 센터',
+  title: '페이지를 찾을 수 없습니다',
   description:
     '요청하신 페이지가 존재하지 않거나 이동되었습니다. 홈페이지로 돌아가서 원하는 정보를 찾아보세요.',
   robots: {

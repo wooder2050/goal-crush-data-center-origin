@@ -41,13 +41,13 @@ export async function generateMetadata({
     description,
     alternates: { canonical: `/fantasy/${fantasySeasonId}/rankings` },
     openGraph: {
-      title: `${title} | 골때녀 데이터 센터`,
+      title: `${title} | 골때녀 데이터센터`,
       description,
       url: `https://www.gtndatacenter.com/fantasy/${fantasySeasonId}/rankings`,
     },
     twitter: {
       card: 'summary',
-      title: `${title} | 골때녀 데이터 센터`,
+      title: `${title} | 골때녀 데이터센터`,
       description,
     },
   };

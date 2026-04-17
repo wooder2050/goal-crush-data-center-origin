@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   description: '개별 선수의 팀별 상대 기록 - 골때리는 그녀들',
   alternates: { canonical: '/stats/player-vs-team' },
   openGraph: {
-    title: '선수 vs 팀 통계 | 골때녀 데이터 센터',
+    title: '선수 vs 팀 통계 | 골때녀 데이터센터',
     description: '개별 선수의 팀별 상대 기록 - 골때리는 그녀들',
     url: 'https://www.gtndatacenter.com/stats/player-vs-team',
   },
   twitter: {
     card: 'summary',
-    title: '선수 vs 팀 통계 | 골때녀 데이터 센터',
+    title: '선수 vs 팀 통계 | 골때녀 데이터센터',
     description: '개별 선수의 팀별 상대 기록 - 골때리는 그녀들',
   },
 };
