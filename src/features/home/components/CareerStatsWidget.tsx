@@ -203,7 +203,7 @@ function CareerPlayerRow({
           <div className="w-8 h-8 relative rounded-full overflow-hidden">
             <Image
               src={player.player_image}
-              alt=""
+              alt={player.player_name || ''}
               fill
               className="object-cover"
               sizes="32px"

@@ -125,7 +125,7 @@ export default function PowerRankingWidget() {
                         <div className="relative h-3.5 w-3.5 shrink-0 overflow-hidden rounded-full">
                           <Image
                             src={row.team_logo}
-                            alt=""
+                            alt={row.team_name || ''}
                             fill
                             sizes="14px"
                             className="object-cover"
