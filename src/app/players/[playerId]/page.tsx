@@ -64,12 +64,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   );
   const statsText =
     careerStats.matches > 0
-      ? ` 통산 ${careerStats.matches}경기 ${careerStats.goals}골 ${careerStats.assists}도움`
+      ? `통산 ${careerStats.matches}경기 ${careerStats.goals}골 ${careerStats.assists}도움`
       : '';
   const title = statsText
-    ? `${playerName}${teamInfo} -${statsText} | 골때녀 선수 프로필`
-    : `${playerName}${teamInfo} | 골때녀 선수 프로필`;
-  const description = `골 때리는 그녀들 ${playerName} 선수의 프로필과 통산 기록을 확인하세요.${statsText ? ` ${statsText}.` : ''} 시즌별 득점·어시스트·출전 통계를 제공합니다.`;
+    ? `${playerName} - ${statsText} | 골때녀 데이터센터`
+    : `${playerName}${teamInfo} | 골때녀 데이터센터`;
+  const description = statsText
+    ? `골 때리는 그녀들${currentTeam ? ` ${currentTeam}` : ''} ${playerName} 선수의 ${statsText}. 시즌별 스탯·최근 경기 출전 이력. 2026 G리그 포함 전 시즌 데이터 제공.`
+    : `골 때리는 그녀들${currentTeam ? ` ${currentTeam}` : ''} ${playerName} 선수의 프로필과 경기 기록. 시즌별 득점·어시스트·출전 통계를 제공합니다.`;
 
   return {
     title,
@@ -124,7 +126,14 @@ export default async function Page({ params }: Props) {
       <PersonJsonLd
         name={player.name}
         description={`골 때리는 그녀들 ${player.name} 선수`}
-        nationality="대한민국"
+        nationality={player.nationality || '대한민국'}
+        birthDate={
+          player.birth_date
+            ? new Date(player.birth_date).toISOString().split('T')[0]
+            : undefined
+        }
+        image={player.profile_image_url || undefined}
+        url={`https://www.gtndatacenter.com/players/${playerId}`}
       />
       <PlayerDetailContent playerId={playerId} initialData={initialData} />
     </>
