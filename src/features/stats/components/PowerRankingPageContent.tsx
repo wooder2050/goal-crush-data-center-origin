@@ -220,7 +220,7 @@ function RankingRowItem({
             <div className="relative h-4 w-4 shrink-0 overflow-hidden rounded-full">
               <Image
                 src={row.team_logo}
-                alt=""
+                alt={row.team_name || ''}
                 fill
                 sizes="16px"
                 className="object-cover"

@@ -163,7 +163,7 @@ function StandingsTable({ standings }: { standings: HomeStanding[] }) {
                     <div className="w-6 h-6 relative flex-shrink-0 rounded-full overflow-hidden">
                       <Image
                         src={s.team.logo}
-                        alt=""
+                        alt={s.team?.team_name || ''}
                         fill
                         className="object-cover"
                         sizes="24px"
@@ -330,7 +330,7 @@ function PlayerRow({
           <div className="w-8 h-8 relative rounded-full overflow-hidden">
             <Image
               src={player.player_image}
-              alt=""
+              alt={player.player_name || ''}
               fill
               className="object-cover"
               sizes="32px"
@@ -480,7 +480,7 @@ function CompletedMatchRow({ match }: { match: HomeMatch }) {
           <div className="w-5 h-5 sm:w-6 sm:h-6 relative flex-shrink-0 rounded-full overflow-hidden">
             <Image
               src={match.home_team.logo}
-              alt=""
+              alt={match.home_team?.team_name || ''}
               fill
               className="object-cover"
               sizes="24px"
@@ -503,7 +503,7 @@ function CompletedMatchRow({ match }: { match: HomeMatch }) {
           <div className="w-5 h-5 sm:w-6 sm:h-6 relative flex-shrink-0 rounded-full overflow-hidden">
             <Image
               src={match.away_team.logo}
-              alt=""
+              alt={match.away_team?.team_name || ''}
               fill
               className="object-cover"
               sizes="24px"
@@ -539,7 +539,7 @@ function UpcomingMatchRow({ match }: { match: HomeMatch }) {
           <div className="w-5 h-5 sm:w-6 sm:h-6 relative flex-shrink-0 rounded-full overflow-hidden">
             <Image
               src={match.home_team.logo}
-              alt=""
+              alt={match.home_team?.team_name || ''}
               fill
               className="object-cover"
               sizes="24px"
@@ -558,7 +558,7 @@ function UpcomingMatchRow({ match }: { match: HomeMatch }) {
           <div className="w-5 h-5 sm:w-6 sm:h-6 relative flex-shrink-0 rounded-full overflow-hidden">
             <Image
               src={match.away_team.logo}
-              alt=""
+              alt={match.away_team?.team_name || ''}
               fill
               className="object-cover"
               sizes="24px"
@@ -750,7 +750,7 @@ function CareerPlayerRow({
           <div className="w-8 h-8 relative rounded-full overflow-hidden">
             <Image
               src={player.player_image}
-              alt=""
+              alt={player.player_name || ''}
               fill
               className="object-cover"
               sizes="32px"
