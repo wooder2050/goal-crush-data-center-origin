@@ -31,6 +31,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const team = await prisma.team.findUnique({
     where: { team_id: id },
+    include: {
+      team_coach_history: {
+        where: { is_current: true, role: 'head' },
+        take: 1,
+        include: { coach: { select: { name: true } } },
+      },
+    },
   });
 
   if (!team) {
@@ -40,8 +47,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const teamName = team.team_name;
-  const title = `${teamName} - 골때녀 팀 정보`;
-  const description = `골 때리는 그녀들 ${teamName}의 선수 명단, 시즌별 성적, 경기 일정 및 결과를 확인하세요.`;
+  const coachName = team.team_coach_history[0]?.coach?.name;
+  const title = coachName
+    ? `${teamName} - 감독 ${coachName} | 골때녀 데이터센터`
+    : `${teamName} | 골때녀 데이터센터`;
+  const description = coachName
+    ? `골 때리는 그녀들 ${teamName} 선수 명단·경기 결과·팀 통계. ${coachName} 감독 체제 전력 분석.`
+    : `골 때리는 그녀들 ${teamName} 선수 명단·경기 결과·팀 통계. 시즌별 성적과 선수 기록을 확인하세요.`;
 
   return {
     title,
@@ -101,6 +113,9 @@ export default async function Page({ params }: Props) {
       <SportsTeamJsonLd
         name={initialData.team.team_name}
         description={`골 때리는 그녀들 ${initialData.team.team_name}`}
+        logo={initialData.team.logo || undefined}
+        url={`https://www.gtndatacenter.com/teams/${teamId}`}
+        foundedYear={initialData.team.founded_year || undefined}
       />
       <TeamDetailPageContent teamId={teamId} initialData={initialData} />
     </>

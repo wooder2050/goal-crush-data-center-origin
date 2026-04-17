@@ -170,10 +170,16 @@ export function SportsTeamJsonLd({
   name,
   description,
   foundedYear,
+  logo,
+  url,
+  coach,
 }: {
   name: string;
   description?: string;
   foundedYear?: number;
+  logo?: string;
+  url?: string;
+  coach?: string;
 }) {
   const data: JsonLdData = {
     '@context': 'https://schema.org',
@@ -181,7 +187,14 @@ export function SportsTeamJsonLd({
     name,
     ...(description && { description }),
     ...(foundedYear && { foundingDate: `${foundedYear}-01-01` }),
+    ...(logo && { logo }),
+    ...(url && { url }),
+    ...(coach && { coach: { '@type': 'Person', name: coach } }),
     sport: '축구',
+    memberOf: {
+      '@type': 'SportsOrganization',
+      name: '골 때리는 그녀들',
+    },
     inLanguage: 'ko-KR',
   };
 
@@ -194,11 +207,15 @@ export function PersonJsonLd({
   description,
   birthDate,
   nationality,
+  image,
+  url,
 }: {
   name: string;
   description?: string;
   birthDate?: string;
   nationality?: string;
+  image?: string;
+  url?: string;
 }) {
   const data: JsonLdData = {
     '@context': 'https://schema.org',
@@ -207,8 +224,49 @@ export function PersonJsonLd({
     ...(description && { description }),
     ...(birthDate && { birthDate }),
     ...(nationality && { nationality }),
+    ...(image && { image }),
+    ...(url && { url }),
+    knowsAbout: 'Soccer',
     inLanguage: 'ko-KR',
   };
 
   return <JsonLd data={data} />;
+}
+
+// 시즌 구조화 데이터
+export function SeasonJsonLd({
+  name,
+  description,
+  startDate,
+  endDate,
+  url,
+}: {
+  name: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  url?: string;
+}) {
+  const data: JsonLdData = {
+    '@context': 'https://schema.org',
+    '@type': 'SportsOrganization',
+    name: `골 때리는 그녀들 ${name}`,
+    ...(description && { description }),
+    sport: '축구',
+    ...(url && { url }),
+    event: {
+      '@type': 'SportsEvent',
+      name,
+      ...(startDate && { startDate }),
+      ...(endDate && { endDate }),
+      sport: '축구',
+      organizer: {
+        '@type': 'Organization',
+        name: 'SBS',
+      },
+    },
+    inLanguage: 'ko-KR',
+  };
+
+  return <JsonLd data={data} id="json-ld-season" />;
 }
