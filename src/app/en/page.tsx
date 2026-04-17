@@ -43,6 +43,7 @@ export const metadata: Metadata = {
       en: '/en',
     },
   },
+  robots: { index: false, follow: true },
 };
 
 export default async function EnglishPage() {

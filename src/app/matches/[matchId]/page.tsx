@@ -61,10 +61,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? `${match.home_score} : ${match.away_score}`
     : '경기 예정';
 
-  const title = `${homeTeamName} vs ${awayTeamName} (${scoreText}) - 골때녀 경기 결과`;
+  const title = hasScore
+    ? `${homeTeamName} vs ${awayTeamName} ${scoreText}${matchDate ? ` - ${matchDate}` : ''} | 골때녀 데이터센터`
+    : `${homeTeamName} vs ${awayTeamName}${matchDate ? ` - ${matchDate}` : ''} | 골때녀 데이터센터`;
   const description = hasScore
-    ? `${seasonName} ${homeTeamName} vs ${awayTeamName} 경기 결과 ${match.home_score}:${match.away_score}. ${matchDate} 진행된 경기의 상세 스탯, 라인업, 득점 기록을 확인하세요.`
-    : `${seasonName} ${homeTeamName} vs ${awayTeamName} 경기 정보. ${matchDate} 예정된 경기의 라인업, 맞대결 기록을 확인하세요.`;
+    ? `골 때리는 그녀들 ${seasonName} ${homeTeamName} vs ${awayTeamName} 경기 기록. ${match.home_score}:${match.away_score}. 득점자·어시스트·패스 성공률 등 상세 스탯.`
+    : `골 때리는 그녀들 ${seasonName} ${homeTeamName} vs ${awayTeamName}. ${matchDate} 예정. 라인업·맞대결 기록을 확인하세요.`;
 
   const ogImage = match.home_team?.logo || match.away_team?.logo;
 

@@ -44,9 +44,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/en`,
+      url: `${baseUrl}/ratings`,
       lastModified: new Date(),
-      changeFrequency: 'daily',
+      changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
@@ -104,7 +104,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const [seasons, teams, players, coaches, matches, posts] =
       await Promise.all([
         prisma.season.findMany({
-          select: { season_id: true, updated_at: true },
+          select: { season_id: true, updated_at: true, end_date: true },
           orderBy: { updated_at: 'desc' },
         }),
         prisma.team.findMany({
@@ -120,7 +120,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           orderBy: { created_at: 'desc' },
         }),
         prisma.match.findMany({
-          select: { match_id: true, updated_at: true },
+          select: { match_id: true, updated_at: true, match_date: true },
           orderBy: { updated_at: 'desc' },
         }),
         prisma.communityPost.findMany({
@@ -130,13 +130,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }),
       ]);
 
-    // 시즌 페이지들
-    const seasonPages: MetadataRoute.Sitemap = seasons.map((season) => ({
-      url: `${baseUrl}/seasons/${season.season_id}`,
-      lastModified: season.updated_at || new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    }));
+    // 시즌 페이지들 (활성 시즌은 daily, 종료된 시즌은 monthly)
+    const now = new Date();
+    const seasonPages: MetadataRoute.Sitemap = seasons.map((season) => {
+      const isActive = !season.end_date || new Date(season.end_date) > now;
+      return {
+        url: `${baseUrl}/seasons/${season.season_id}`,
+        lastModified: season.updated_at || new Date(),
+        changeFrequency: isActive ? 'daily' : 'monthly',
+        priority: isActive ? 0.9 : 0.7,
+      };
+    });
 
     // 팀 페이지들
     const teamPages: MetadataRoute.Sitemap = teams.map((team) => ({
@@ -162,13 +166,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    // 경기 페이지들
-    const matchPages: MetadataRoute.Sitemap = matches.map((match) => ({
-      url: `${baseUrl}/matches/${match.match_id}`,
-      lastModified: match.updated_at || new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    }));
+    // 경기 페이지들 (최근 60일 이내 경기는 daily, 이전 경기는 monthly)
+    const recentCutoff = new Date();
+    recentCutoff.setDate(recentCutoff.getDate() - 60);
+    const matchPages: MetadataRoute.Sitemap = matches.map((match) => {
+      const isRecent =
+        match.match_date && new Date(match.match_date) > recentCutoff;
+      return {
+        url: `${baseUrl}/matches/${match.match_id}`,
+        lastModified: match.updated_at || new Date(),
+        changeFrequency: isRecent ? 'daily' : 'monthly',
+        priority: isRecent ? 0.8 : 0.6,
+      };
+    });
 
     // 커뮤니티 포스트 페이지들
     const postPages: MetadataRoute.Sitemap = posts.map((post) => ({
