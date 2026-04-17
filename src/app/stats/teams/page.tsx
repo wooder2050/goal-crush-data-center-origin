@@ -15,14 +15,14 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: '/stats/teams' },
   openGraph: {
-    title: '팀 순위 | 골때녀 데이터 센터',
+    title: '팀 순위 | 골때녀 데이터센터',
     description:
       '골 때리는 그녀들 팀별 승부 기록, 승점, 득실차 순위를 확인하세요.',
     url: 'https://www.gtndatacenter.com/stats/teams',
   },
   twitter: {
     card: 'summary',
-    title: '팀 순위 | 골때녀 데이터 센터',
+    title: '팀 순위 | 골때녀 데이터센터',
     description:
       '골 때리는 그녀들 팀별 승부 기록, 승점, 득실차 순위를 확인하세요.',
   },

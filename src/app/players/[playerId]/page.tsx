@@ -67,8 +67,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? `통산 ${careerStats.matches}경기 ${careerStats.goals}골 ${careerStats.assists}도움`
       : '';
   const title = statsText
-    ? `${playerName} - ${statsText} | 골때녀 데이터센터`
-    : `${playerName}${teamInfo} | 골때녀 데이터센터`;
+    ? `${playerName} - ${statsText}`
+    : `${playerName}${teamInfo}`;
   const description = statsText
     ? `골 때리는 그녀들${currentTeam ? ` ${currentTeam}` : ''} ${playerName} 선수의 ${statsText}. 시즌별 스탯·최근 경기 출전 이력. 2026 G리그 포함 전 시즌 데이터 제공.`
     : `골 때리는 그녀들${currentTeam ? ` ${currentTeam}` : ''} ${playerName} 선수의 프로필과 경기 기록. 시즌별 득점·어시스트·출전 통계를 제공합니다.`;

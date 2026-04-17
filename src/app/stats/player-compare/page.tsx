@@ -15,14 +15,14 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: '/stats/player-compare' },
   openGraph: {
-    title: '골때녀 선수 비교 - 기록 비교·통산 성적 맞대결 | 골때녀 데이터 센터',
+    title: '골때녀 선수 비교 - 기록 비교·통산 성적 맞대결 | 골때녀 데이터센터',
     description:
       '골 때리는 그녀들 선수 기록을 나란히 비교! 두 선수의 골, 도움, 출장, 공격포인트를 한눈에 비교하세요.',
     url: 'https://www.gtndatacenter.com/stats/player-compare',
   },
   twitter: {
     card: 'summary',
-    title: '골때녀 선수 비교 - 기록 비교·통산 성적 맞대결 | 골때녀 데이터 센터',
+    title: '골때녀 선수 비교 - 기록 비교·통산 성적 맞대결 | 골때녀 데이터센터',
     description:
       '골 때리는 그녀들 선수 기록을 나란히 비교! 두 선수의 골, 도움, 출장, 공격포인트를 한눈에 비교하세요.',
   },

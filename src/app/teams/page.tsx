@@ -22,14 +22,14 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: '/teams' },
   openGraph: {
-    title: '골때녀 팀 목록·라인업·명단·성적 총정리 | 골때녀 데이터 센터',
+    title: '골때녀 팀 목록·라인업·명단·성적 총정리 | 골때녀 데이터센터',
     description:
       '골 때리는 그녀들 전체 팀 정보를 확인하세요. 팀별 라인업, 선수 명단, 시즌 성적, 승률, 득실점 통계를 제공합니다.',
     url: 'https://www.gtndatacenter.com/teams',
   },
   twitter: {
     card: 'summary',
-    title: '골때녀 팀 목록·라인업·명단·성적 총정리 | 골때녀 데이터 센터',
+    title: '골때녀 팀 목록·라인업·명단·성적 총정리 | 골때녀 데이터센터',
     description:
       '골 때리는 그녀들 전체 팀 정보를 확인하세요. 팀별 라인업, 선수 명단, 시즌 성적, 승률, 득실점 통계를 제공합니다.',
   },

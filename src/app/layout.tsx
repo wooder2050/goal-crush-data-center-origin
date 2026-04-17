@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.gtndatacenter.com'),
   title: {
     default: '골 때리는 그녀들 데이터 센터',
-    template: '%s | 골때녀 데이터 센터',
+    template: '%s | 골때녀 데이터센터',
   },
   description:
     '골 때리는 그녀들(골때녀) 경기 결과, 선수 기록, 팀 순위, 시즌 통계를 한눈에 확인할 수 있는 팬 데이터 센터',

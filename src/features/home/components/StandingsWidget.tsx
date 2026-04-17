@@ -115,7 +115,7 @@ function StandingsTable({
                     <div className="w-6 h-6 relative flex-shrink-0 rounded-full overflow-hidden">
                       <Image
                         src={s.team.logo}
-                        alt=""
+                        alt={s.team?.team_name || ''}
                         fill
                         className="object-cover"
                         sizes="24px"
