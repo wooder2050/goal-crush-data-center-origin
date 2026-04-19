@@ -252,6 +252,12 @@ export async function getInitialMatchDetailData(
     highlight_url,
     full_video_url,
     is_date_confirmed: match.is_date_confirmed,
+    rating_nationwide: match.rating_nationwide
+      ? Number(match.rating_nationwide)
+      : null,
+    rating_metropolitan: match.rating_metropolitan
+      ? Number(match.rating_metropolitan)
+      : null,
     created_at: match.created_at?.toISOString() ?? null,
     updated_at: match.updated_at?.toISOString() ?? null,
     home_team: match.home_team

@@ -1,5 +1,7 @@
 'use client';
 
+import dynamic from 'next/dynamic';
+
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Section } from '@/components/ui';
 import ChallengeResults from '@/features/matches/components/ChallengeResults';
@@ -12,6 +14,11 @@ import SuperResults from '@/features/matches/components/SuperResults';
 import UpcomingMatches from '@/features/matches/components/UpcomingMatches';
 import UpcomingMatchesSkeleton from '@/features/matches/components/UpcomingMatchesSkeleton';
 import type { InitialSeasonDetailData } from '@/features/seasons/server';
+
+const SeasonViewershipChart = dynamic(
+  () => import('@/features/stats/components/SeasonViewershipChart'),
+  { ssr: false }
+);
 
 const categoryToComponent = {
   G_LEAGUE: GLeagueTournamentResults,
@@ -54,6 +61,7 @@ export default function SeasonDetailContent({
           title={season.season_name}
           initialTab={initialTab}
         />
+        <SeasonViewershipChart seasonId={season.season_id} />
       </div>
     </Section>
   );

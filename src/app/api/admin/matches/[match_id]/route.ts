@@ -81,6 +81,14 @@ async function updateMatch(matchId: number, data: Record<string, unknown>) {
         data.full_video_url !== undefined ? data.full_video_url : undefined,
       is_sides_swapped:
         data.is_sides_swapped !== undefined ? data.is_sides_swapped : undefined,
+      rating_nationwide:
+        data.rating_nationwide !== undefined
+          ? data.rating_nationwide
+          : undefined,
+      rating_metropolitan:
+        data.rating_metropolitan !== undefined
+          ? data.rating_metropolitan
+          : undefined,
     },
     include: {
       home_team: true,
