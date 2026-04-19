@@ -56,12 +56,12 @@ export default function SeasonDetailContent({
         {category === 'G_LEAGUE' && (
           <InterleagueBracket seasonId={season.season_id} />
         )}
+        <SeasonViewershipChart seasonId={season.season_id} />
         <Component
           seasonId={season.season_id}
           title={season.season_name}
           initialTab={initialTab}
         />
-        <SeasonViewershipChart seasonId={season.season_id} />
       </div>
     </Section>
   );
