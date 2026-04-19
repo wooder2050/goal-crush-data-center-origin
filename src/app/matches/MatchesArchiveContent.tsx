@@ -201,7 +201,7 @@ function MatchRow({ match }: { match: ArchiveMatch }) {
               : 'text-gray-600'
           }`}
         >
-          {match.home_team?.team_name}
+          {match.home_team?.team_name?.replace('FC ', '')}
         </span>
         {match.home_team?.logo && (
           <div className="w-6 h-6 relative flex-shrink-0 rounded-full overflow-hidden">
@@ -257,7 +257,7 @@ function MatchRow({ match }: { match: ArchiveMatch }) {
               : 'text-gray-600'
           }`}
         >
-          {match.away_team?.team_name}
+          {match.away_team?.team_name?.replace('FC ', '')}
         </span>
       </div>
     </Link>
