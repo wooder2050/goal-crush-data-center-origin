@@ -25,6 +25,29 @@ interface ViewershipRatingsChartProps {
   title?: string;
 }
 
+const SHORT_NAMES: Record<string, string> = {
+  발라드림: '발라',
+  '월드 클라쓰': '월클',
+  구척장신: '구척',
+  스트리밍파이터: '스밍파',
+  액셔니스타: '액셔니',
+  '국대 패밀리': '국대',
+  '원더우먼 2026': '원더',
+  '탑걸 : 무브먼트': '탑걸',
+  아나콘다: '아나',
+  개벤져스: '개벤',
+  '불사조 유나이티드': '불사조',
+  불나비: '불나비',
+};
+
+function shortenTeamName(name: string): string {
+  let short = name.replace(/FC /g, '');
+  for (const [full, abbr] of Object.entries(SHORT_NAMES)) {
+    short = short.replace(full, abbr);
+  }
+  return short;
+}
+
 export default function ViewershipRatingsChart({
   data,
   title,
@@ -36,7 +59,7 @@ export default function ViewershipRatingsChart({
           (d) => d.rating_nationwide !== null || d.rating_metropolitan !== null
         )
         .map((d) => ({
-          label: d.label.replace(/FC /g, ''),
+          label: shortenTeamName(d.label),
           전국: d.rating_nationwide,
           수도권: d.rating_metropolitan,
         })),
