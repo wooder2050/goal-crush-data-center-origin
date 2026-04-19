@@ -26,6 +26,7 @@ interface RatingData {
   label: string;
   rating_nationwide: number | null;
   rating_metropolitan: number | null;
+  broadcast_time: string | null;
   season: { season_id: number; season_name: string } | null;
 }
 
@@ -423,6 +424,9 @@ export default function ViewershipRatingsPageContent() {
                   <th className="text-left py-2 px-2 text-gray-500 font-medium hidden sm:table-cell">
                     시즌
                   </th>
+                  <th className="text-center py-2 px-2 text-gray-500 font-medium hidden sm:table-cell">
+                    편성
+                  </th>
                   <th className="text-center py-2 px-2 text-gray-500 font-medium">
                     전국
                   </th>
@@ -452,6 +456,9 @@ export default function ViewershipRatingsPageContent() {
                     </td>
                     <td className="py-2 px-2 text-gray-400 text-xs hidden sm:table-cell truncate max-w-[150px]">
                       {match.season?.season_name}
+                    </td>
+                    <td className="py-2 px-2 text-center text-xs text-gray-400 hidden sm:table-cell">
+                      {match.broadcast_time ?? '-'}
                     </td>
                     <td className="py-2 px-2 text-center font-semibold text-gray-900">
                       {match.rating_nationwide != null

@@ -258,6 +258,7 @@ export async function getInitialMatchDetailData(
     rating_metropolitan: match.rating_metropolitan
       ? Number(match.rating_metropolitan)
       : null,
+    broadcast_time: match.broadcast_time ?? null,
     created_at: match.created_at?.toISOString() ?? null,
     updated_at: match.updated_at?.toISOString() ?? null,
     home_team: match.home_team
