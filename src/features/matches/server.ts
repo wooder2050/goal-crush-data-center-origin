@@ -26,6 +26,124 @@ interface ExtendedPrismaClient {
   };
 }
 
+// ── /matches archive ─────────────────────────────────
+
+export interface MatchesArchiveData {
+  seasons: Array<{ season_id: number; season_name: string }>;
+  recentMatches: Array<SerializedArchiveMatch>;
+  upcomingMatches: Array<SerializedArchiveMatch>;
+}
+
+interface SerializedArchiveMatch {
+  match_id: number;
+  match_date: string;
+  home_score: number | null;
+  away_score: number | null;
+  penalty_home_score: number | null;
+  penalty_away_score: number | null;
+  status: string | null;
+  is_date_confirmed: boolean;
+  season: { season_id: number; season_name: string } | null;
+  home_team: {
+    team_id: number;
+    team_name: string;
+    logo: string | null;
+  } | null;
+  away_team: {
+    team_id: number;
+    team_name: string;
+    logo: string | null;
+  } | null;
+}
+
+export async function getMatchesArchiveData(): Promise<MatchesArchiveData> {
+  const matchInclude = {
+    home_team: { select: { team_id: true, team_name: true, logo: true } },
+    away_team: { select: { team_id: true, team_name: true, logo: true } },
+    season: { select: { season_id: true, season_name: true } },
+  } as const;
+
+  const [seasons, recentRaw, upcomingRaw] = await Promise.all([
+    prisma.season.findMany({
+      select: { season_id: true, season_name: true },
+      orderBy: { season_id: 'desc' },
+    }),
+    prisma.match.findMany({
+      where: { status: 'completed' },
+      orderBy: { match_date: 'desc' },
+      take: 10,
+      include: matchInclude,
+    }),
+    prisma.match.findMany({
+      where: { match_date: { gt: new Date() }, is_date_confirmed: true },
+      orderBy: { match_date: 'asc' },
+      take: 10,
+      include: matchInclude,
+    }),
+  ]);
+
+  const allMatches = [...recentRaw, ...upcomingRaw];
+  const pairs = allMatches.flatMap((m) => {
+    const result: Array<{ team_id: number; season_id: number }> = [];
+    if (m.home_team_id != null && m.season_id != null)
+      result.push({ team_id: m.home_team_id, season_id: m.season_id });
+    if (m.away_team_id != null && m.season_id != null)
+      result.push({ team_id: m.away_team_id, season_id: m.season_id });
+    return result;
+  });
+
+  const teamNameMap = new Map<string, string>();
+  if (pairs.length > 0) {
+    const names = await (
+      prisma as unknown as ExtendedPrismaClient
+    ).teamSeasonName.findMany({
+      where: { OR: pairs },
+      select: { team_id: true, team_name: true },
+    });
+    names.forEach((t: MatchTeamSeasonNameResult) =>
+      teamNameMap.set(`${t.team_id}`, t.team_name)
+    );
+  }
+
+  const serialize = (
+    m: (typeof recentRaw)[number]
+  ): SerializedArchiveMatch => ({
+    match_id: m.match_id,
+    match_date: m.match_date.toISOString(),
+    home_score: m.home_score,
+    away_score: m.away_score,
+    penalty_home_score: m.penalty_home_score,
+    penalty_away_score: m.penalty_away_score,
+    status: m.status,
+    is_date_confirmed: m.is_date_confirmed,
+    season: m.season
+      ? { season_id: m.season.season_id, season_name: m.season.season_name }
+      : null,
+    home_team: m.home_team
+      ? {
+          team_id: m.home_team.team_id,
+          team_name:
+            teamNameMap.get(`${m.home_team.team_id}`) ?? m.home_team.team_name,
+          logo: m.home_team.logo,
+        }
+      : null,
+    away_team: m.away_team
+      ? {
+          team_id: m.away_team.team_id,
+          team_name:
+            teamNameMap.get(`${m.away_team.team_id}`) ?? m.away_team.team_name,
+          logo: m.away_team.logo,
+        }
+      : null,
+  });
+
+  return {
+    seasons,
+    recentMatches: recentRaw.map(serialize),
+    upcomingMatches: upcomingRaw.map(serialize),
+  };
+}
+
 // ── /matches/[matchId] detail ─────────────────────────
 
 /**

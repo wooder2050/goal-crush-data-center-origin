@@ -24,24 +24,24 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* 빠른 링크 */}
+          {/* 기록실 */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">빠른 링크</h4>
+            <h4 className="text-lg font-semibold mb-4">기록실</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   href="/seasons"
                   className="text-gray-300 hover:text-[#ff4800] transition-colors"
                 >
-                  시즌 기록
+                  시즌
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/players"
+                  href="/matches"
                   className="text-gray-300 hover:text-[#ff4800] transition-colors"
                 >
-                  선수 정보
+                  경기
                 </Link>
               </li>
               <li>
@@ -49,7 +49,23 @@ export default function Footer() {
                   href="/teams"
                   className="text-gray-300 hover:text-[#ff4800] transition-colors"
                 >
-                  팀 정보
+                  팀
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/players"
+                  className="text-gray-300 hover:text-[#ff4800] transition-colors"
+                >
+                  선수
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/coaches"
+                  className="text-gray-300 hover:text-[#ff4800] transition-colors"
+                >
+                  감독
                 </Link>
               </li>
               <li>
@@ -57,15 +73,15 @@ export default function Footer() {
                   href="/stats"
                   className="text-gray-300 hover:text-[#ff4800] transition-colors"
                 >
-                  통계 분석
+                  통계
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* 정책 & 지원 */}
+          {/* 안내 */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">정책 & 지원</h4>
+            <h4 className="text-lg font-semibold mb-4">안내</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -89,14 +105,6 @@ export default function Footer() {
                   className="text-gray-300 hover:text-[#ff4800] transition-colors"
                 >
                   이용약관
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/support"
-                  className="text-gray-300 hover:text-[#ff4800] transition-colors"
-                >
-                  고객지원
                 </Link>
               </li>
             </ul>

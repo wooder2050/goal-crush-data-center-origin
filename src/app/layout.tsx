@@ -19,6 +19,7 @@ import ScrollToTopOnRouteChange from './ScrollToTopOnRouteChange';
 const NAV_ITEMS = [
   { href: '/', label: '홈', requireAuth: false },
   { href: '/seasons', label: '시즌', requireAuth: false },
+  { href: '/matches', label: '경기', requireAuth: false },
   { href: '/teams', label: '팀', requireAuth: false },
   { href: '/players', label: '선수', requireAuth: false },
   { href: '/coaches', label: '감독', requireAuth: false },

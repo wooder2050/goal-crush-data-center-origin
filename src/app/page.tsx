@@ -45,5 +45,12 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const initialData = await getHomePageData();
-  return <HomePageDashboard initialData={initialData} />;
+  return (
+    <>
+      <h1 className="sr-only">
+        골때녀 데이터센터 - 골 때리는 그녀들 경기결과·선수·팀 순위
+      </h1>
+      <HomePageDashboard initialData={initialData} />
+    </>
+  );
 }
