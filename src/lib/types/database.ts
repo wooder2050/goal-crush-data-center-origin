@@ -241,6 +241,8 @@ export interface Match {
   highlight_url?: string | null;
   full_video_url?: string | null;
   is_date_confirmed?: boolean;
+  rating_nationwide?: number | null;
+  rating_metropolitan?: number | null;
   created_at?: string | null;
   updated_at?: string | null;
 }

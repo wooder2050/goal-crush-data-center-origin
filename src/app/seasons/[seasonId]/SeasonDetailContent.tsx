@@ -12,6 +12,7 @@ import SuperResults from '@/features/matches/components/SuperResults';
 import UpcomingMatches from '@/features/matches/components/UpcomingMatches';
 import UpcomingMatchesSkeleton from '@/features/matches/components/UpcomingMatchesSkeleton';
 import type { InitialSeasonDetailData } from '@/features/seasons/server';
+import SeasonViewershipChart from '@/features/stats/components/SeasonViewershipChart';
 
 const categoryToComponent = {
   G_LEAGUE: GLeagueTournamentResults,
@@ -54,6 +55,7 @@ export default function SeasonDetailContent({
           title={season.season_name}
           initialTab={initialTab}
         />
+        <SeasonViewershipChart seasonId={season.season_id} />
       </div>
     </Section>
   );

@@ -304,6 +304,12 @@ export default function RecordMatchDetailPage() {
       penalty_away_score: values.penalty_away_score
         ? parseInt(values.penalty_away_score)
         : null,
+      rating_nationwide: values.rating_nationwide
+        ? parseFloat(values.rating_nationwide)
+        : null,
+      rating_metropolitan: values.rating_metropolitan
+        ? parseFloat(values.rating_metropolitan)
+        : null,
       status: 'completed',
     };
 

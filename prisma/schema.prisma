@@ -203,6 +203,8 @@ model Match {
   away_coach_id               Int?
   is_sides_swapped            Boolean?                   @default(false)
   is_date_confirmed           Boolean                    @default(true)
+  rating_nationwide           Decimal?                   @db.Decimal(4, 1)
+  rating_metropolitan         Decimal?                   @db.Decimal(4, 1)
   assists                     Assist[]
   community_posts             CommunityPost[]
   fantasy_match_performances  FantasyMatchPerformance[]

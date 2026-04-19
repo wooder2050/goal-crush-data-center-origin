@@ -44,6 +44,8 @@ export const matchResultFormSchema = z.object({
   away_score: z.string().min(1, '원정팀 점수를 입력해주세요'),
   penalty_home_score: z.string().optional(),
   penalty_away_score: z.string().optional(),
+  rating_nationwide: z.string().optional(),
+  rating_metropolitan: z.string().optional(),
 });
 
 /**
