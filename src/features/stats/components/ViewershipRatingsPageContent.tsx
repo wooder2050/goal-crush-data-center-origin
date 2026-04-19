@@ -511,39 +511,49 @@ export default function ViewershipRatingsPageContent() {
           </div>
 
           {/* 필터 결과 평균 */}
-          {filteredData.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-end gap-4 text-xs text-gray-500">
-              <span>
-                평균 전국{' '}
-                <strong className="text-gray-900">
-                  {(
-                    filteredData
-                      .filter((d) => d.rating_nationwide != null)
-                      .reduce((sum, d) => sum + (d.rating_nationwide ?? 0), 0) /
-                    filteredData.filter((d) => d.rating_nationwide != null)
-                      .length
-                  ).toFixed(1)}
-                  %
-                </strong>
-              </span>
-              <span>
-                평균 수도권{' '}
-                <strong className="text-[#3b82f6]">
-                  {(
-                    filteredData
-                      .filter((d) => d.rating_metropolitan != null)
-                      .reduce(
-                        (sum, d) => sum + (d.rating_metropolitan ?? 0),
-                        0
-                      ) /
-                    filteredData.filter((d) => d.rating_metropolitan != null)
-                      .length
-                  ).toFixed(1)}
-                  %
-                </strong>
-              </span>
-            </div>
-          )}
+          {filteredData.length > 0 &&
+            (() => {
+              const nwValues = filteredData.filter(
+                (d) => d.rating_nationwide != null
+              );
+              const metroValues = filteredData.filter(
+                (d) => d.rating_metropolitan != null
+              );
+              if (nwValues.length === 0 && metroValues.length === 0)
+                return null;
+              return (
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-end gap-4 text-xs text-gray-500">
+                  {nwValues.length > 0 && (
+                    <span>
+                      평균 전국{' '}
+                      <strong className="text-gray-900">
+                        {(
+                          nwValues.reduce(
+                            (sum, d) => sum + (d.rating_nationwide ?? 0),
+                            0
+                          ) / nwValues.length
+                        ).toFixed(1)}
+                        %
+                      </strong>
+                    </span>
+                  )}
+                  {metroValues.length > 0 && (
+                    <span>
+                      평균 수도권{' '}
+                      <strong className="text-[#3b82f6]">
+                        {(
+                          metroValues.reduce(
+                            (sum, d) => sum + (d.rating_metropolitan ?? 0),
+                            0
+                          ) / metroValues.length
+                        ).toFixed(1)}
+                        %
+                      </strong>
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
 
           {/* 페이지네이션 */}
           {totalPages > 1 && (

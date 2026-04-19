@@ -46,6 +46,7 @@ export const matchResultFormSchema = z.object({
   penalty_away_score: z.string().optional(),
   rating_nationwide: z.string().optional(),
   rating_metropolitan: z.string().optional(),
+  broadcast_time: z.string().optional(),
 });
 
 /**

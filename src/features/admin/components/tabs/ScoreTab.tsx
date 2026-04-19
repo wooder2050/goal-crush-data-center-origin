@@ -28,6 +28,7 @@ interface ScoreTabProps {
     penalty_away_score: number | null;
     rating_nationwide?: number | { toNumber(): number } | null;
     rating_metropolitan?: number | { toNumber(): number } | null;
+    broadcast_time?: string | null;
   };
   onSubmit: (values: MatchResultFormValues) => Promise<void>;
 }
@@ -53,6 +54,7 @@ export default function ScoreTab({ match, onSubmit }: ScoreTabProps) {
       match.rating_metropolitan != null
         ? String(Number(match.rating_metropolitan))
         : '',
+    broadcast_time: match.broadcast_time ?? '21:00',
   };
 
   const form = useGoalForm({
@@ -175,6 +177,26 @@ export default function ScoreTab({ match, onSubmit }: ScoreTabProps) {
                     />
                   </FormControl>
                   <FormDescription>닐슨코리아 기준</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* 편성 시간 */}
+          <div className="mt-6">
+            <FormField
+              control={form.control}
+              name="broadcast_time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>편성 시간</FormLabel>
+                  <FormControl>
+                    <Input type="text" placeholder="예: 21:00" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    HH:MM 형식 (기본 21:00, 특별 편성 시 변경)
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
