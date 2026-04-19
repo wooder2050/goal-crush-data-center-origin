@@ -4,7 +4,6 @@ import React from 'react';
 
 import { Section } from '@/components/ui';
 import DetailMatchCard from '@/features/matches/components/MatchCard/DetailMatchCard';
-import ViewershipRatingCard from '@/features/matches/components/ViewershipRatingCard';
 import type { InitialMatchDetailData } from '@/features/matches/server';
 
 interface MatchDetailPageContentProps {
@@ -31,15 +30,7 @@ export default function MatchDetailPageContent({
               </div>
             </div>
           ) : (
-            <>
-              <DetailMatchCard matchId={id} initialMatch={initialData.match} />
-              <div className="mt-4">
-                <ViewershipRatingCard
-                  ratingNationwide={initialData.match.rating_nationwide}
-                  ratingMetropolitan={initialData.match.rating_metropolitan}
-                />
-              </div>
-            </>
+            <DetailMatchCard matchId={id} initialMatch={initialData.match} />
           )}
         </div>
       </Section>

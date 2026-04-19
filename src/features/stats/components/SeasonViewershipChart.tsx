@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import Link from 'next/link';
 import { useMemo } from 'react';
 
 import { useGoalQuery } from '@/hooks/useGoalQuery';
@@ -106,6 +107,15 @@ export default function SeasonViewershipChart({
 
       {/* 추이 차트 */}
       <ViewershipRatingsChart data={data} />
+
+      <div className="pt-2 text-center">
+        <Link
+          href="/stats/viewership-ratings"
+          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        >
+          전체 시청률 통계 보기 →
+        </Link>
+      </div>
     </div>
   );
 }

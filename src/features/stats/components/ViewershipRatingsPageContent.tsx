@@ -35,8 +35,11 @@ async function fetchAllRatings(): Promise<RatingData[]> {
   return res.json();
 }
 
+const PAGE_SIZE = 20;
+
 export default function ViewershipRatingsPageContent() {
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
   const { data, isLoading, error } = useGoalQuery(fetchAllRatings, [], {
     staleTime: 10 * 60 * 1000,
   });
@@ -58,6 +61,21 @@ export default function ViewershipRatingsPageContent() {
     const sid = parseInt(selectedSeasonId, 10);
     return data.filter((d) => d.season?.season_id === sid);
   }, [data, selectedSeasonId]);
+
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+  const paginatedData = useMemo(
+    () =>
+      filteredData.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE
+      ),
+    [filteredData, currentPage]
+  );
+
+  const handleSeasonChange = (value: string) => {
+    setSelectedSeasonId(value);
+    setCurrentPage(1);
+  };
 
   const topMatches = useMemo(() => {
     if (!data) return [];
@@ -147,10 +165,7 @@ export default function ViewershipRatingsPageContent() {
         <div className="rounded-xl border border-gray-100 bg-white p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-900">시청률 추이</h2>
-            <Select
-              value={selectedSeasonId}
-              onValueChange={setSelectedSeasonId}
-            >
+            <Select value={selectedSeasonId} onValueChange={handleSeasonChange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue />
               </SelectTrigger>
@@ -293,7 +308,7 @@ export default function ViewershipRatingsPageContent() {
                 </tr>
               </thead>
               <tbody>
-                {filteredData.map((match) => (
+                {paginatedData.map((match) => (
                   <tr
                     key={match.match_id}
                     className="border-b border-gray-50 last:border-0 hover:bg-gray-50"
@@ -329,6 +344,31 @@ export default function ViewershipRatingsPageContent() {
               </tbody>
             </table>
           </div>
+
+          {/* 페이지네이션 */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-50">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 text-sm rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                이전
+              </button>
+              <span className="text-sm text-gray-500">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 text-sm rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                다음
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </Container>
