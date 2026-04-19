@@ -26,6 +26,8 @@ interface ScoreTabProps {
     away_score: number | null;
     penalty_home_score: number | null;
     penalty_away_score: number | null;
+    rating_nationwide?: number | { toNumber(): number } | null;
+    rating_metropolitan?: number | { toNumber(): number } | null;
   };
   onSubmit: (values: MatchResultFormValues) => Promise<void>;
 }
@@ -42,6 +44,14 @@ export default function ScoreTab({ match, onSubmit }: ScoreTabProps) {
     penalty_away_score:
       match.penalty_away_score !== null
         ? match.penalty_away_score.toString()
+        : '',
+    rating_nationwide:
+      match.rating_nationwide != null
+        ? String(Number(match.rating_nationwide))
+        : '',
+    rating_metropolitan:
+      match.rating_metropolitan != null
+        ? String(Number(match.rating_metropolitan))
         : '',
   };
 
@@ -114,6 +124,57 @@ export default function ScoreTab({ match, onSubmit }: ScoreTabProps) {
                   <FormDescription>
                     동점 후 승부차기가 있었을 경우만 입력
                   </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* 시청률 */}
+        <div className="border-t pt-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">
+            시청률 (선택사항)
+          </h3>
+          <div className="grid md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="rating_nationwide"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>전국 시청률 (%)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      placeholder="예: 5.3"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>닐슨코리아 기준</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="rating_metropolitan"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>수도권 시청률 (%)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      placeholder="예: 6.1"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>닐슨코리아 기준</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
