@@ -189,7 +189,7 @@ export default function ViewershipRatingsPageContent() {
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-gray-900 truncate">
-                      {match.label}
+                      {match.label.replace(/FC /g, '')}
                     </div>
                     <div className="text-[11px] text-gray-400">
                       {format(new Date(match.match_date), 'yyyy.M.d', {
@@ -258,6 +258,76 @@ export default function ViewershipRatingsPageContent() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        {/* 전체 경기별 시청률 */}
+        <div className="rounded-xl border border-gray-100 bg-white p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-gray-900">
+              경기별 시청률 전체 기록
+            </h2>
+            <span className="text-xs text-gray-400">
+              {filteredData.length}경기 | 출처: 닐슨코리아
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left py-2 px-2 text-gray-500 font-medium">
+                    날짜
+                  </th>
+                  <th className="text-left py-2 px-2 text-gray-500 font-medium">
+                    경기
+                  </th>
+                  <th className="text-left py-2 px-2 text-gray-500 font-medium hidden sm:table-cell">
+                    시즌
+                  </th>
+                  <th className="text-center py-2 px-2 text-gray-500 font-medium">
+                    전국
+                  </th>
+                  <th className="text-center py-2 px-2 text-gray-500 font-medium">
+                    수도권
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map((match) => (
+                  <tr
+                    key={match.match_id}
+                    className="border-b border-gray-50 last:border-0 hover:bg-gray-50"
+                  >
+                    <td className="py-2 px-2 text-gray-500 whitespace-nowrap">
+                      {format(new Date(match.match_date), 'yy.M.d', {
+                        locale: ko,
+                      })}
+                    </td>
+                    <td className="py-2 px-2">
+                      <Link
+                        href={`/matches/${match.match_id}`}
+                        className="text-gray-900 hover:text-[#ff4800] transition-colors truncate block max-w-[200px] sm:max-w-none"
+                      >
+                        {match.label.replace(/FC /g, '')}
+                      </Link>
+                    </td>
+                    <td className="py-2 px-2 text-gray-400 text-xs hidden sm:table-cell truncate max-w-[150px]">
+                      {match.season?.season_name}
+                    </td>
+                    <td className="py-2 px-2 text-center font-semibold text-gray-900">
+                      {match.rating_nationwide != null
+                        ? `${match.rating_nationwide}%`
+                        : '-'}
+                    </td>
+                    <td className="py-2 px-2 text-center text-[#3b82f6]">
+                      {match.rating_metropolitan != null
+                        ? `${match.rating_metropolitan}%`
+                        : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
