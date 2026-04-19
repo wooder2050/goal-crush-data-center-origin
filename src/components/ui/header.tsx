@@ -82,8 +82,6 @@ const NavItem = React.forwardRef<HTMLAnchorElement, NavItemProps>(
       const current = normalize(pathname || '/');
       const target = normalize(href);
       if (target === '/') return current === '/';
-      // Special case: treat match detail pages as part of seasons navigation
-      if (target === '/seasons' && current.startsWith('/matches/')) return true;
       return current === target || current.startsWith(`${target}/`);
     }, [href, isActive, pathname]);
 
