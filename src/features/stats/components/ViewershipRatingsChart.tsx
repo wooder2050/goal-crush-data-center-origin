@@ -36,7 +36,7 @@ export default function ViewershipRatingsChart({
           (d) => d.rating_nationwide !== null || d.rating_metropolitan !== null
         )
         .map((d) => ({
-          label: d.label,
+          label: d.label.replace(/FC /g, ''),
           전국: d.rating_nationwide,
           수도권: d.rating_metropolitan,
         })),
