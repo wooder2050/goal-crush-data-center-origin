@@ -37,7 +37,7 @@ async function fetchAllRatings(): Promise<RatingData[]> {
 
 export default function ViewershipRatingsPageContent() {
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('all');
-  const { data, isLoading } = useGoalQuery(fetchAllRatings, [], {
+  const { data, isLoading, error } = useGoalQuery(fetchAllRatings, [], {
     staleTime: 10 * 60 * 1000,
   });
 
@@ -103,6 +103,19 @@ export default function ViewershipRatingsPageContent() {
           <div className="h-8 w-32 bg-gray-100 rounded animate-pulse" />
           <div className="h-[300px] bg-gray-50 rounded-xl animate-pulse" />
         </div>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="py-8">
+        <Section>
+          <H1>시청률 통계</H1>
+          <p className="mt-4 text-red-500">
+            데이터를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+          </p>
+        </Section>
       </Container>
     );
   }

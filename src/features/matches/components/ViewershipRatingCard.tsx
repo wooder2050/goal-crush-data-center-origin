@@ -11,7 +11,7 @@ export default function ViewershipRatingCard({
   ratingNationwide,
   ratingMetropolitan,
 }: ViewershipRatingCardProps) {
-  if (!ratingNationwide && !ratingMetropolitan) return null;
+  if (ratingNationwide == null && ratingMetropolitan == null) return null;
 
   return (
     <div className="rounded-xl border border-gray-100 bg-white p-4">
