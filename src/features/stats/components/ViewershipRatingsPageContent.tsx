@@ -43,6 +43,7 @@ type SortOption = 'latest' | 'highest' | 'lowest';
 export default function ViewershipRatingsPageContent() {
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('all');
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
+  const [selectedTime, setSelectedTime] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('latest');
   const [currentPage, setCurrentPage] = useState(1);
   const { data, isLoading, error } = useGoalQuery(fetchAllRatings, [], {
@@ -67,6 +68,15 @@ export default function ViewershipRatingsPageContent() {
       const label = d.label.replace(/FC /g, '');
       const parts = label.split(' vs ');
       parts.forEach((p) => set.add(p.trim()));
+    });
+    return Array.from(set).sort();
+  }, [data]);
+
+  const broadcastTimes = useMemo(() => {
+    if (!data) return [];
+    const set = new Set<string>();
+    data.forEach((d) => {
+      if (d.broadcast_time) set.add(d.broadcast_time);
     });
     return Array.from(set).sort();
   }, [data]);
@@ -96,6 +106,10 @@ export default function ViewershipRatingsPageContent() {
       });
     }
 
+    if (selectedTime !== 'all') {
+      result = result.filter((d) => d.broadcast_time === selectedTime);
+    }
+
     if (sortBy === 'latest') {
       result.sort(
         (a, b) =>
@@ -112,7 +126,7 @@ export default function ViewershipRatingsPageContent() {
     }
 
     return result;
-  }, [data, selectedSeasonId, selectedTeam, sortBy]);
+  }, [data, selectedSeasonId, selectedTeam, selectedTime, sortBy]);
 
   const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
   const paginatedData = useMemo(
@@ -127,6 +141,7 @@ export default function ViewershipRatingsPageContent() {
   const resetFilters = () => {
     setSelectedSeasonId('all');
     setSelectedTeam('all');
+    setSelectedTime('all');
     setSortBy('latest');
     setCurrentPage(1);
   };
@@ -384,6 +399,24 @@ export default function ViewershipRatingsPageContent() {
                   ))}
                 </SelectContent>
               </Select>
+              {broadcastTimes.length > 1 && (
+                <Select
+                  value={selectedTime}
+                  onValueChange={(v) => handleFilterChange(setSelectedTime, v)}
+                >
+                  <SelectTrigger className="w-[110px] h-8 text-xs">
+                    <SelectValue placeholder="편성" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">전체 시간</SelectItem>
+                    {broadcastTimes.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <Select
                 value={sortBy}
                 onValueChange={(v) =>
@@ -401,6 +434,7 @@ export default function ViewershipRatingsPageContent() {
               </Select>
               {(selectedSeasonId !== 'all' ||
                 selectedTeam !== 'all' ||
+                selectedTime !== 'all' ||
                 sortBy !== 'latest') && (
                 <button
                   onClick={resetFilters}
@@ -475,6 +509,41 @@ export default function ViewershipRatingsPageContent() {
               </tbody>
             </table>
           </div>
+
+          {/* 필터 결과 평균 */}
+          {filteredData.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-end gap-4 text-xs text-gray-500">
+              <span>
+                평균 전국{' '}
+                <strong className="text-gray-900">
+                  {(
+                    filteredData
+                      .filter((d) => d.rating_nationwide != null)
+                      .reduce((sum, d) => sum + (d.rating_nationwide ?? 0), 0) /
+                    filteredData.filter((d) => d.rating_nationwide != null)
+                      .length
+                  ).toFixed(1)}
+                  %
+                </strong>
+              </span>
+              <span>
+                평균 수도권{' '}
+                <strong className="text-[#3b82f6]">
+                  {(
+                    filteredData
+                      .filter((d) => d.rating_metropolitan != null)
+                      .reduce(
+                        (sum, d) => sum + (d.rating_metropolitan ?? 0),
+                        0
+                      ) /
+                    filteredData.filter((d) => d.rating_metropolitan != null)
+                      .length
+                  ).toFixed(1)}
+                  %
+                </strong>
+              </span>
+            </div>
+          )}
 
           {/* 페이지네이션 */}
           {totalPages > 1 && (
