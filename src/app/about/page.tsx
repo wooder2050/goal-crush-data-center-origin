@@ -7,6 +7,18 @@ export const metadata: Metadata = {
   description:
     '골 때리는 그녀들 데이터센터는 SBS 예능 골때녀의 경기 결과, 선수 기록, 팀 순위를 기록하는 비공식 팬 아카이브입니다.',
   alternates: { canonical: '/about' },
+  openGraph: {
+    title: '사이트 소개 | 골때녀 데이터센터',
+    description:
+      '골 때리는 그녀들 데이터센터는 SBS 예능 골때녀의 경기 결과, 선수 기록, 팀 순위를 기록하는 비공식 팬 아카이브입니다.',
+    url: 'https://www.gtndatacenter.com/about',
+  },
+  twitter: {
+    card: 'summary',
+    title: '사이트 소개 | 골때녀 데이터센터',
+    description:
+      '골 때리는 그녀들 데이터센터 — 경기 결과, 선수 기록, 팀 순위를 기록하는 비공식 팬 아카이브.',
+  },
 };
 
 export default function AboutPage() {
@@ -67,7 +79,7 @@ export default function AboutPage() {
               데이터 오류 제보, 기능 제안, 기타 문의는 아래 이메일로 보내주세요.
             </p>
             <p className="mt-2 font-medium text-gray-900">
-              gtndatacenter@gmail.com
+              gtndata.official@gmail.com
             </p>
           </div>
         </div>
