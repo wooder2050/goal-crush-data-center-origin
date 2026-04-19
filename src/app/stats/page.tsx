@@ -5,6 +5,7 @@ import {
   Target,
   TrendingUp,
   Trophy,
+  Tv,
   Users,
 } from 'lucide-react';
 import { Metadata } from 'next';
@@ -105,6 +106,13 @@ export default function StatsPage() {
       href: '/stats/penalty-shootout',
       icon: <CircleDot className="h-8 w-8 text-orange-500" />,
       gradient: 'from-orange-50 to-amber-50',
+    },
+    {
+      title: '시청률 통계',
+      description: '역대 시청률 추이, TOP 경기, 시즌별 비교',
+      href: '/stats/viewership-ratings',
+      icon: <Tv className="h-8 w-8 text-rose-500" />,
+      gradient: 'from-rose-50 to-pink-50',
     },
   ];
 
