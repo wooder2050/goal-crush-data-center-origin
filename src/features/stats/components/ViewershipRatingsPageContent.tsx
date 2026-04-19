@@ -70,9 +70,18 @@ export default function ViewershipRatingsPageContent() {
     return Array.from(set).sort();
   }, [data]);
 
+  // 차트용: 시즌 필터만 적용, 항상 시간순
+  const chartData = useMemo(() => {
+    if (!data) return [];
+    if (selectedSeasonId === 'all') return data;
+    const sid = parseInt(selectedSeasonId, 10);
+    return data.filter((d) => d.season?.season_id === sid);
+  }, [data, selectedSeasonId]);
+
+  // 테이블용: 시즌 + 팀 필터 + 정렬
   const filteredData = useMemo(() => {
     if (!data) return [];
-    let result = data;
+    let result = [...data];
 
     if (selectedSeasonId !== 'all') {
       const sid = parseInt(selectedSeasonId, 10);
@@ -86,19 +95,22 @@ export default function ViewershipRatingsPageContent() {
       });
     }
 
-    const sorted = [...result];
-    if (sortBy === 'highest') {
-      sorted.sort(
+    if (sortBy === 'latest') {
+      result.sort(
+        (a, b) =>
+          new Date(b.match_date).getTime() - new Date(a.match_date).getTime()
+      );
+    } else if (sortBy === 'highest') {
+      result.sort(
         (a, b) => (b.rating_nationwide ?? 0) - (a.rating_nationwide ?? 0)
       );
     } else if (sortBy === 'lowest') {
-      sorted.sort(
+      result.sort(
         (a, b) => (a.rating_nationwide ?? 99) - (b.rating_nationwide ?? 99)
       );
     }
-    // 'latest'는 API 기본 정렬(날짜순)
 
-    return sorted;
+    return result;
   }, [data, selectedSeasonId, selectedTeam, sortBy]);
 
   const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
@@ -228,7 +240,7 @@ export default function ViewershipRatingsPageContent() {
               </SelectContent>
             </Select>
           </div>
-          <ViewershipRatingsChart data={filteredData} />
+          <ViewershipRatingsChart data={chartData} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
