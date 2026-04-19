@@ -37,8 +37,12 @@ async function fetchAllRatings(): Promise<RatingData[]> {
 
 const PAGE_SIZE = 20;
 
+type SortOption = 'latest' | 'highest' | 'lowest';
+
 export default function ViewershipRatingsPageContent() {
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('all');
+  const [selectedTeam, setSelectedTeam] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('latest');
   const [currentPage, setCurrentPage] = useState(1);
   const { data, isLoading, error } = useGoalQuery(fetchAllRatings, [], {
     staleTime: 10 * 60 * 1000,
@@ -55,12 +59,47 @@ export default function ViewershipRatingsPageContent() {
       .sort((a, b) => b.season_id - a.season_id);
   }, [data]);
 
+  const teams = useMemo(() => {
+    if (!data) return [];
+    const set = new Set<string>();
+    data.forEach((d) => {
+      const label = d.label.replace(/FC /g, '');
+      const parts = label.split(' vs ');
+      parts.forEach((p) => set.add(p.trim()));
+    });
+    return Array.from(set).sort();
+  }, [data]);
+
   const filteredData = useMemo(() => {
     if (!data) return [];
-    if (selectedSeasonId === 'all') return data;
-    const sid = parseInt(selectedSeasonId, 10);
-    return data.filter((d) => d.season?.season_id === sid);
-  }, [data, selectedSeasonId]);
+    let result = data;
+
+    if (selectedSeasonId !== 'all') {
+      const sid = parseInt(selectedSeasonId, 10);
+      result = result.filter((d) => d.season?.season_id === sid);
+    }
+
+    if (selectedTeam !== 'all') {
+      result = result.filter((d) => {
+        const label = d.label.replace(/FC /g, '');
+        return label.includes(selectedTeam);
+      });
+    }
+
+    const sorted = [...result];
+    if (sortBy === 'highest') {
+      sorted.sort(
+        (a, b) => (b.rating_nationwide ?? 0) - (a.rating_nationwide ?? 0)
+      );
+    } else if (sortBy === 'lowest') {
+      sorted.sort(
+        (a, b) => (a.rating_nationwide ?? 99) - (b.rating_nationwide ?? 99)
+      );
+    }
+    // 'latest'는 API 기본 정렬(날짜순)
+
+    return sorted;
+  }, [data, selectedSeasonId, selectedTeam, sortBy]);
 
   const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
   const paginatedData = useMemo(
@@ -72,8 +111,15 @@ export default function ViewershipRatingsPageContent() {
     [filteredData, currentPage]
   );
 
-  const handleSeasonChange = (value: string) => {
-    setSelectedSeasonId(value);
+  const resetFilters = () => {
+    setSelectedSeasonId('all');
+    setSelectedTeam('all');
+    setSortBy('latest');
+    setCurrentPage(1);
+  };
+
+  const handleFilterChange = (setter: (v: string) => void, value: string) => {
+    setter(value);
     setCurrentPage(1);
   };
 
@@ -165,7 +211,10 @@ export default function ViewershipRatingsPageContent() {
         <div className="rounded-xl border border-gray-100 bg-white p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-900">시청률 추이</h2>
-            <Select value={selectedSeasonId} onValueChange={handleSeasonChange}>
+            <Select
+              value={selectedSeasonId}
+              onValueChange={(v) => handleFilterChange(setSelectedSeasonId, v)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue />
               </SelectTrigger>
@@ -278,17 +327,24 @@ export default function ViewershipRatingsPageContent() {
 
         {/* 전체 경기별 시청률 */}
         <div className="rounded-xl border border-gray-100 bg-white p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <h2 className="text-lg font-bold text-gray-900">
-              경기별 시청률 전체 기록
-            </h2>
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3 mb-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">
+                경기별 시청률 전체 기록
+              </h2>
+              <span className="text-xs text-gray-400 whitespace-nowrap">
+                {filteredData.length}경기
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               <Select
                 value={selectedSeasonId}
-                onValueChange={handleSeasonChange}
+                onValueChange={(v) =>
+                  handleFilterChange(setSelectedSeasonId, v)
+                }
               >
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue />
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="시즌" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">전체 시즌</SelectItem>
@@ -299,9 +355,47 @@ export default function ViewershipRatingsPageContent() {
                   ))}
                 </SelectContent>
               </Select>
-              <span className="text-xs text-gray-400 whitespace-nowrap">
-                {filteredData.length}경기
-              </span>
+              <Select
+                value={selectedTeam}
+                onValueChange={(v) => handleFilterChange(setSelectedTeam, v)}
+              >
+                <SelectTrigger className="w-[120px] h-8 text-xs">
+                  <SelectValue placeholder="팀" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체 팀</SelectItem>
+                  {teams.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={sortBy}
+                onValueChange={(v) =>
+                  handleFilterChange(setSortBy as (v: string) => void, v)
+                }
+              >
+                <SelectTrigger className="w-[130px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="latest">최신순</SelectItem>
+                  <SelectItem value="highest">시청률 높은순</SelectItem>
+                  <SelectItem value="lowest">시청률 낮은순</SelectItem>
+                </SelectContent>
+              </Select>
+              {(selectedSeasonId !== 'all' ||
+                selectedTeam !== 'all' ||
+                sortBy !== 'latest') && (
+                <button
+                  onClick={resetFilters}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  초기화
+                </button>
+              )}
             </div>
           </div>
           <div className="overflow-x-auto">
