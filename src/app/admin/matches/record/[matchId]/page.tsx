@@ -310,6 +310,7 @@ export default function RecordMatchDetailPage() {
       rating_metropolitan: values.rating_metropolitan
         ? parseFloat(values.rating_metropolitan)
         : null,
+      broadcast_time: values.broadcast_time || '21:00',
       status: 'completed',
     };
 

@@ -89,6 +89,8 @@ async function updateMatch(matchId: number, data: Record<string, unknown>) {
         data.rating_metropolitan !== undefined
           ? data.rating_metropolitan
           : undefined,
+      broadcast_time:
+        data.broadcast_time !== undefined ? data.broadcast_time : undefined,
     },
     include: {
       home_team: true,

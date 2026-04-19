@@ -29,6 +29,7 @@ export async function GET(request: Request) {
       match_date: true,
       rating_nationwide: true,
       rating_metropolitan: true,
+      broadcast_time: true,
       home_team: { select: { team_name: true } },
       away_team: { select: { team_name: true } },
       season: { select: { season_id: true, season_name: true } },
@@ -43,6 +44,7 @@ export async function GET(request: Request) {
     rating_metropolitan: m.rating_metropolitan
       ? Number(m.rating_metropolitan)
       : null,
+    broadcast_time: m.broadcast_time ?? null,
     season: m.season
       ? { season_id: m.season.season_id, season_name: m.season.season_name }
       : null,

@@ -243,6 +243,7 @@ export interface Match {
   is_date_confirmed?: boolean;
   rating_nationwide?: number | null;
   rating_metropolitan?: number | null;
+  broadcast_time?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
 }
