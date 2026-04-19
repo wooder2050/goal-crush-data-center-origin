@@ -278,13 +278,31 @@ export default function ViewershipRatingsPageContent() {
 
         {/* 전체 경기별 시청률 */}
         <div className="rounded-xl border border-gray-100 bg-white p-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <h2 className="text-lg font-bold text-gray-900">
               경기별 시청률 전체 기록
             </h2>
-            <span className="text-xs text-gray-400">
-              {filteredData.length}경기 | 출처: 닐슨코리아
-            </span>
+            <div className="flex items-center gap-3">
+              <Select
+                value={selectedSeasonId}
+                onValueChange={handleSeasonChange}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체 시즌</SelectItem>
+                  {seasons.map((s) => (
+                    <SelectItem key={s.season_id} value={String(s.season_id)}>
+                      {s.season_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-xs text-gray-400 whitespace-nowrap">
+                {filteredData.length}경기
+              </span>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
