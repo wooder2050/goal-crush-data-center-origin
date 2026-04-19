@@ -35,5 +35,10 @@ export const metadata: Metadata = {
 
 export default async function HeadToHeadStatsPage() {
   const initialData = await getInitialHeadToHeadData();
-  return <HeadToHeadPageContent initialTeams={initialData.teams} />;
+  return (
+    <>
+      <h1 className="sr-only">팀 맞대결 상대전적 통계</h1>
+      <HeadToHeadPageContent initialTeams={initialData.teams} />
+    </>
+  );
 }
