@@ -90,6 +90,7 @@ function StandingsTable({
             </th>
             <th className="text-center py-2.5 px-2 hidden sm:table-cell">승</th>
             <th className="text-center py-2.5 px-2 hidden sm:table-cell">패</th>
+            <th className="text-center py-2.5 px-2 whitespace-nowrap">득점</th>
             <th className="text-center py-2.5 px-2 whitespace-nowrap">득실</th>
             <th className="text-center py-2.5 px-2 font-bold whitespace-nowrap">
               승점
@@ -123,7 +124,7 @@ function StandingsTable({
                     </div>
                   )}
                   <span className="text-sm font-medium text-gray-800 truncate max-w-[120px] sm:max-w-none">
-                    {s.team?.team_name}
+                    {s.team?.team_name?.replace('FC ', '')}
                   </span>
                 </div>
               </td>
@@ -135,6 +136,9 @@ function StandingsTable({
               </td>
               <td className="text-center py-2.5 px-2 text-sm text-gray-600 hidden sm:table-cell">
                 {s.losses ?? 0}
+              </td>
+              <td className="text-center py-2.5 px-2 text-sm text-gray-600">
+                {s.goals_for ?? 0}
               </td>
               <td className="text-center py-2.5 px-2 text-sm text-gray-600">
                 {(s.goal_difference ?? 0) > 0
