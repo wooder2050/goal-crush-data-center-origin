@@ -62,8 +62,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : '경기 예정';
 
   const title = hasScore
-    ? `${homeTeamName} vs ${awayTeamName} ${scoreText}${matchDate ? ` - ${matchDate}` : ''}`
-    : `${homeTeamName} vs ${awayTeamName}${matchDate ? ` - ${matchDate}` : ''}`;
+    ? `${homeTeamName} vs ${awayTeamName} ${scoreText}${seasonName ? ` - ${seasonName}` : ''}${matchDate ? ` (${matchDate})` : ''}`
+    : `${homeTeamName} vs ${awayTeamName}${seasonName ? ` - ${seasonName}` : ''}${matchDate ? ` (${matchDate})` : ''}`;
   const description = hasScore
     ? `골 때리는 그녀들 ${seasonName} ${homeTeamName} vs ${awayTeamName} 경기 기록. ${match.home_score}:${match.away_score}. 득점자·어시스트·패스 성공률 등 상세 스탯.`
     : `골 때리는 그녀들 ${seasonName} ${homeTeamName} vs ${awayTeamName}. ${matchDate} 예정. 라인업·맞대결 기록을 확인하세요.`;
