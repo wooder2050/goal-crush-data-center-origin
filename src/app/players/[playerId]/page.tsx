@@ -165,9 +165,7 @@ export default async function Page({ params }: Props) {
         teamName={currentTeamName || undefined}
         position={positions?.position || undefined}
         height={player.height_cm || undefined}
-        stats={
-          careerStats.matches > 0 ? careerStats : undefined
-        }
+        stats={careerStats.matches > 0 ? careerStats : undefined}
       />
       <PlayerDetailContent playerId={playerId} initialData={initialData} />
     </>
