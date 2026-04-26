@@ -121,11 +121,39 @@ export default async function Page({ params }: Props) {
 
   const player = initialData.player;
 
+  // 구조화 데이터용 추가 정보 조회
+  const [teamHistory, seasonStats, positions] = await Promise.all([
+    prisma.playerTeamHistory.findFirst({
+      where: { player_id: id },
+      orderBy: { created_at: 'desc' },
+      include: { team: { select: { team_name: true } } },
+    }),
+    prisma.playerSeasonStats.findMany({
+      where: { player_id: id },
+      select: { goals: true, assists: true, matches_played: true },
+    }),
+    prisma.playerPosition.findFirst({
+      where: { player_id: id },
+      orderBy: { created_at: 'desc' },
+      select: { position: true },
+    }),
+  ]);
+
+  const currentTeamName = teamHistory?.team?.team_name;
+  const careerStats = seasonStats.reduce(
+    (acc, s) => ({
+      matches: acc.matches + (s.matches_played ?? 0),
+      goals: acc.goals + (s.goals ?? 0),
+      assists: acc.assists + (s.assists ?? 0),
+    }),
+    { matches: 0, goals: 0, assists: 0 }
+  );
+
   return (
     <>
       <PersonJsonLd
         name={player.name}
-        description={`골 때리는 그녀들 ${player.name} 선수`}
+        description={`골 때리는 그녀들${currentTeamName ? ` ${currentTeamName}` : ''} ${player.name} 선수`}
         nationality={player.nationality || '대한민국'}
         birthDate={
           player.birth_date
@@ -134,6 +162,12 @@ export default async function Page({ params }: Props) {
         }
         image={player.profile_image_url || undefined}
         url={`https://www.gtndatacenter.com/players/${playerId}`}
+        teamName={currentTeamName || undefined}
+        position={positions?.position || undefined}
+        height={player.height_cm || undefined}
+        stats={
+          careerStats.matches > 0 ? careerStats : undefined
+        }
       />
       <PlayerDetailContent playerId={playerId} initialData={initialData} />
     </>

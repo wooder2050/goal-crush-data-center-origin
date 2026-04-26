@@ -209,6 +209,11 @@ export function PersonJsonLd({
   nationality,
   image,
   url,
+  teamName,
+  position,
+  height,
+  weight,
+  stats,
 }: {
   name: string;
   description?: string;
@@ -216,6 +221,11 @@ export function PersonJsonLd({
   nationality?: string;
   image?: string;
   url?: string;
+  teamName?: string;
+  position?: string;
+  height?: number;
+  weight?: number;
+  stats?: { matches: number; goals: number; assists: number };
 }) {
   const data: JsonLdData = {
     '@context': 'https://schema.org',
@@ -223,9 +233,39 @@ export function PersonJsonLd({
     name,
     ...(description && { description }),
     ...(birthDate && { birthDate }),
-    ...(nationality && { nationality }),
+    ...(nationality && {
+      nationality: { '@type': 'Country', name: nationality },
+    }),
     ...(image && { image }),
     ...(url && { url }),
+    ...(height && { height: `${height}cm` }),
+    ...(weight && { weight: `${weight}kg` }),
+    ...(teamName && {
+      memberOf: {
+        '@type': 'SportsTeam',
+        name: teamName,
+        memberOf: {
+          '@type': 'SportsOrganization',
+          name: '골 때리는 그녀들',
+        },
+      },
+    }),
+    ...(position && { jobTitle: position }),
+    ...(stats && {
+      additionalProperty: [
+        {
+          '@type': 'PropertyValue',
+          name: '통산 경기',
+          value: stats.matches,
+        },
+        { '@type': 'PropertyValue', name: '통산 골', value: stats.goals },
+        {
+          '@type': 'PropertyValue',
+          name: '통산 도움',
+          value: stats.assists,
+        },
+      ],
+    }),
     knowsAbout: 'Soccer',
     inLanguage: 'ko-KR',
   };
