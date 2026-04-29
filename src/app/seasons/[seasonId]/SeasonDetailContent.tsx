@@ -6,10 +6,10 @@ import { GoalWrapper } from '@/common/GoalWrapper';
 import { Section } from '@/components/ui';
 import ChallengeResults from '@/features/matches/components/ChallengeResults';
 import GLeagueTournamentResults from '@/features/matches/components/GLeagueTournamentResults';
-import InterleagueBracket from '@/features/matches/components/InterleagueBracket';
 import OtherLeagueResults from '@/features/matches/components/OtherLeagueResults';
 import PlayoffResults from '@/features/matches/components/PlayoffResults';
 import SbsCupResults from '@/features/matches/components/SbsCupResults';
+import SemiFinalBracket from '@/features/matches/components/SemiFinalBracket';
 import SuperResults from '@/features/matches/components/SuperResults';
 import UpcomingMatches from '@/features/matches/components/UpcomingMatches';
 import UpcomingMatchesSkeleton from '@/features/matches/components/UpcomingMatchesSkeleton';
@@ -54,7 +54,7 @@ export default function SeasonDetailContent({
           <UpcomingMatches seasonId={season.season_id} limit={10} />
         </GoalWrapper>
         {category === 'G_LEAGUE' && (
-          <InterleagueBracket seasonId={season.season_id} />
+          <SemiFinalBracket seasonId={season.season_id} />
         )}
         <SeasonViewershipChart seasonId={season.season_id} />
         <Component

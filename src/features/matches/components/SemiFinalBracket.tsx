@@ -17,7 +17,7 @@ import {
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import type { MatchWithTeams } from '@/lib/types/database';
 
-import { getInterleagueMatchesPrisma } from '../api-prisma';
+import { getSemiFinalMatchesPrisma } from '../api-prisma';
 import { getMatchResult } from '../lib/matchUtils';
 
 interface Props {
@@ -107,19 +107,12 @@ function MatchRow({ match }: { match: MatchWithTeams }) {
   );
 }
 
-function InterleagueBracketInner({ seasonId, className = '' }: Props) {
-  const { data: matches } = useGoalSuspenseQuery(getInterleagueMatchesPrisma, [
+function SemiFinalBracketInner({ seasonId, className = '' }: Props) {
+  const { data: matches } = useGoalSuspenseQuery(getSemiFinalMatchesPrisma, [
     seasonId,
   ]);
 
   if (!matches || matches.length === 0) return null;
-
-  const confirmedMatches = matches.filter(
-    (m: MatchWithTeams) => m.is_date_confirmed !== false
-  );
-  const unconfirmedMatches = matches.filter(
-    (m: MatchWithTeams) => m.is_date_confirmed === false
-  );
 
   return (
     <Card
@@ -129,7 +122,7 @@ function InterleagueBracketInner({ seasonId, className = '' }: Props) {
         <CardTitle className="text-base p-0 sm:p-0 md:p-0 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Swords className="h-4 w-4 text-indigo-500" />
-            <span>인터리그 대진표</span>
+            <span>4강 대진표</span>
           </div>
           <Badge
             variant="outline"
@@ -141,46 +134,27 @@ function InterleagueBracketInner({ seasonId, className = '' }: Props) {
       </CardHeader>
       <CardContent className="px-2 sm:px-4 py-0 sm:py-0 md:py-0">
         <div className="divide-y divide-gray-100">
-          {confirmedMatches.map((m: MatchWithTeams) => (
+          {matches.map((m: MatchWithTeams) => (
             <MatchRow key={m.match_id} match={m} />
           ))}
         </div>
-
-        {unconfirmedMatches.length > 0 && (
-          <>
-            {confirmedMatches.length > 0 && (
-              <div className="flex items-center gap-3 py-1 px-1">
-                <div className="flex-1 h-px bg-gray-200" />
-                <span className="text-[10px] text-gray-400 whitespace-nowrap">
-                  방영 순서 미정
-                </span>
-                <div className="flex-1 h-px bg-gray-200" />
-              </div>
-            )}
-            <div className="divide-y divide-gray-100">
-              {unconfirmedMatches.map((m: MatchWithTeams) => (
-                <MatchRow key={m.match_id} match={m} />
-              ))}
-            </div>
-          </>
-        )}
       </CardContent>
     </Card>
   );
 }
 
-function InterleagueBracketSkeleton() {
+function SemiFinalBracketSkeleton() {
   return (
     <Card className="overflow-hidden border-l-4 border-indigo-500 ring-1 ring-indigo-500/10 animate-pulse">
       <CardHeader className="space-y-0 p-0 sm:p-0 md:p-0">
         <CardTitle className="text-base p-0 sm:p-0 md:p-0 flex items-center gap-2">
           <div className="h-4 w-4 bg-gray-300 rounded" />
-          <div className="h-4 w-28 bg-gray-300 rounded" />
+          <div className="h-4 w-24 bg-gray-300 rounded" />
         </CardTitle>
       </CardHeader>
       <CardContent className="px-2 sm:px-4 py-0 sm:py-0 md:py-0">
         <div className="divide-y divide-gray-100">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="flex items-center py-3 px-1">
               <div className="flex-1 flex items-center justify-end gap-1.5">
                 <div className="h-3.5 w-16 bg-gray-200 rounded" />
@@ -201,10 +175,10 @@ function InterleagueBracketSkeleton() {
   );
 }
 
-export default function InterleagueBracket(props: Props) {
+export default function SemiFinalBracket(props: Props) {
   return (
-    <GoalWrapper fallback={<InterleagueBracketSkeleton />}>
-      <InterleagueBracketInner {...props} />
+    <GoalWrapper fallback={<SemiFinalBracketSkeleton />}>
+      <SemiFinalBracketInner {...props} />
     </GoalWrapper>
   );
 }
