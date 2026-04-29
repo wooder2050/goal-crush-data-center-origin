@@ -11,19 +11,19 @@ interface MatchesWidgetProps {
   seasonId: number;
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
-  interleagueMatches?: HomeMatch[];
+  semiFinalMatches?: HomeMatch[];
 }
 
 export default function MatchesWidget({
   seasonId,
   recentMatches,
   upcomingMatches,
-  interleagueMatches = [],
+  semiFinalMatches = [],
 }: MatchesWidgetProps) {
   const hasNoMatches =
     recentMatches.length === 0 &&
     upcomingMatches.length === 0 &&
-    interleagueMatches.length === 0;
+    semiFinalMatches.length === 0;
 
   return (
     <Card className="shadow-sm">
@@ -69,13 +69,13 @@ export default function MatchesWidget({
               </>
             )}
 
-            {/* Interleague Matches */}
-            {interleagueMatches.length > 0 && (
+            {/* Semi-Final Matches */}
+            {semiFinalMatches.length > 0 && (
               <>
                 <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1.5 mt-2">
-                  인터리그
+                  4강전
                 </div>
-                {interleagueMatches.map((match) => (
+                {semiFinalMatches.map((match) => (
                   <InterleagueMatchRow key={match.match_id} match={match} />
                 ))}
               </>
