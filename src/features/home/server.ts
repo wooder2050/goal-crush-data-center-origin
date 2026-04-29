@@ -165,14 +165,13 @@ async function getRecentCompletedMatches(): Promise<HomeMatch[]> {
   return matches.map((m) => serializeMatch(m, teamNameMap));
 }
 
-async function getInterleagueMatchesList(
+async function getSemiFinalMatchesList(
   seasonId: number
 ): Promise<HomeMatch[]> {
   const matches = await prisma.match.findMany({
     where: {
       season_id: seasonId,
-      group_stage: null,
-      description: { contains: '인터리그' },
+      tournament_stage: 'semi_final',
     },
     orderBy: [{ is_date_confirmed: 'desc' }, { match_date: 'asc' }],
     include: {
@@ -882,7 +881,7 @@ export async function getHomePageData(): Promise<HomePageData> {
       currentSeason: { season_id: 0, season_name: '' },
       recentMatches: [],
       upcomingMatches: [],
-      interleagueMatches: [],
+      semiFinalMatches: [],
       standings: [],
       topScorers: [],
       topAssists: [],
@@ -908,7 +907,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   const [
     recentMatches,
     upcomingMatches,
-    interleagueMatches,
+    semiFinalMatches,
     standings,
     topScorers,
     topAssists,
@@ -920,7 +919,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   ] = await Promise.all([
     getRecentCompletedMatches(),
     getUpcomingMatchesList(),
-    getInterleagueMatchesList(currentSeason.season_id),
+    getSemiFinalMatchesList(currentSeason.season_id),
     getStandings(currentSeason.season_id),
     getTopScorersList(currentSeason.season_id),
     getTopAssistsList(currentSeason.season_id),
@@ -937,7 +936,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     currentSeason,
     recentMatches,
     upcomingMatches,
-    interleagueMatches,
+    semiFinalMatches,
     standings,
     topScorers,
     topAssists,

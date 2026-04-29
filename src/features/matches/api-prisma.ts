@@ -227,6 +227,25 @@ export const getInterleagueMatchesPrisma = async (
 
 getInterleagueMatchesPrisma.queryKey = 'interleague-matches';
 
+// ============== Semi-Final Matches ==============
+
+// Get semi-final matches for a season
+export const getSemiFinalMatchesPrisma = async (
+  seasonId: number
+): Promise<MatchWithTeams[]> => {
+  const response = await fetch(
+    apiUrl(`/api/matches/semi-final?seasonId=${seasonId}`)
+  );
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch semi-final matches: ${response.statusText}`
+    );
+  }
+  return response.json();
+};
+
+getSemiFinalMatchesPrisma.queryKey = 'semi-final-matches';
+
 // ============== Match Details ==============
 
 // Get match goals

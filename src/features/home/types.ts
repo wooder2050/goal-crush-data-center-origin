@@ -111,7 +111,7 @@ export interface HomePageData {
   };
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
-  interleagueMatches: HomeMatch[];
+  semiFinalMatches: HomeMatch[];
   standings: StandingsGroup[];
   topScorers: PlayerStatRow[];
   topAssists: PlayerStatRow[];
