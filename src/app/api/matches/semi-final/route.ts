@@ -28,10 +28,7 @@ export async function GET(request: NextRequest) {
         home_coach: true,
         away_coach: true,
       },
-      orderBy: [
-        { is_date_confirmed: 'desc' },
-        { match_date: 'asc' },
-      ],
+      orderBy: [{ is_date_confirmed: 'desc' }, { match_date: 'asc' }],
     });
 
     return NextResponse.json(matches);

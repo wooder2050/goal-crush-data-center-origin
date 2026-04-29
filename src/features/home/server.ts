@@ -165,9 +165,7 @@ async function getRecentCompletedMatches(): Promise<HomeMatch[]> {
   return matches.map((m) => serializeMatch(m, teamNameMap));
 }
 
-async function getSemiFinalMatchesList(
-  seasonId: number
-): Promise<HomeMatch[]> {
+async function getSemiFinalMatchesList(seasonId: number): Promise<HomeMatch[]> {
   const matches = await prisma.match.findMany({
     where: {
       season_id: seasonId,
