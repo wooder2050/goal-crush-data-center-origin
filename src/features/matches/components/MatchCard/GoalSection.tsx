@@ -128,7 +128,7 @@ export default function GoalSection({ match }: GoalSectionProps) {
           {sortedHomeTeamGoals.map((goal, index) => (
             <div
               key={index}
-              className="flex items-center justify-center text-xs text-gray-700"
+              className="flex items-center justify-center flex-wrap text-xs text-gray-700"
             >
               <div className="w-1.5 h-1.5 bg-black rounded-full mr-2"></div>
               <span className="font-medium">
@@ -198,7 +198,7 @@ export default function GoalSection({ match }: GoalSectionProps) {
           {sortedAwayTeamGoals.map((goal, index) => (
             <div
               key={index}
-              className="flex items-center justify-center text-xs text-gray-700"
+              className="flex items-center justify-center flex-wrap text-xs text-gray-700"
             >
               <div className="w-1.5 h-1.5 bg-gray-600 rounded-full mr-2"></div>
               <span className="font-medium">
