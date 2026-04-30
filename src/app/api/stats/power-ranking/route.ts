@@ -187,9 +187,7 @@ export async function GET(request: NextRequest) {
       const nConcInv = goalsConceded != null ? 1.0 / (1.0 + goalsConceded) : 0;
       const nSave = savePct ?? 0;
 
-      const build = (
-        items: [string, number, number][]
-      ): PIResult => {
+      const build = (items: [string, number, number][]): PIResult => {
         const breakdown: PIBreakdown = {};
         let pi = 0;
         for (const [key, norm, weight] of items) {
@@ -480,15 +478,11 @@ export async function GET(request: NextRequest) {
       for (const key of Array.from(allKeys)) {
         // 해당 지표가 없는 경기는 0으로 처리 (복수 포지션 선수의 합계 정합성)
         const avgNorm =
-          pr.piBreakdowns.reduce(
-            (s, bd) => s + (bd[key]?.normalized ?? 0),
-            0
-          ) / matches;
+          pr.piBreakdowns.reduce((s, bd) => s + (bd[key]?.normalized ?? 0), 0) /
+          matches;
         const avgWeight =
-          pr.piBreakdowns.reduce(
-            (s, bd) => s + (bd[key]?.weight ?? 0),
-            0
-          ) / matches;
+          pr.piBreakdowns.reduce((s, bd) => s + (bd[key]?.weight ?? 0), 0) /
+          matches;
         const avgContrib =
           pr.piBreakdowns.reduce(
             (s, bd) => s + (bd[key]?.contribution ?? 0),
