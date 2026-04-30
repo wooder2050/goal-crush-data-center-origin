@@ -77,6 +77,8 @@ export function SportsEventJsonLd({
   image,
   seasonName,
   status,
+  homeScore,
+  awayScore,
 }: {
   name: string;
   startDate: string;
@@ -88,6 +90,8 @@ export function SportsEventJsonLd({
   image?: string;
   seasonName?: string;
   status?: 'scheduled' | 'completed' | 'cancelled';
+  homeScore?: number | null;
+  awayScore?: number | null;
 }) {
   // endDate: 전달되지 않으면 startDate + 30분으로 자동 계산
   const computedEndDate =
@@ -144,6 +148,10 @@ export function SportsEventJsonLd({
           { '@type': 'SportsTeam', name: homeTeam },
           { '@type': 'SportsTeam', name: awayTeam },
         ],
+      }),
+    ...(homeScore != null &&
+      awayScore != null && {
+        result: `${homeScore} : ${awayScore}`,
       }),
     offers: {
       '@type': 'Offer',
@@ -309,4 +317,26 @@ export function SeasonJsonLd({
   };
 
   return <JsonLd data={data} id="json-ld-season" />;
+}
+
+// FAQ 구조화 데이터
+export function FAQPageJsonLd({
+  faqs,
+}: {
+  faqs: { question: string; answer: string }[];
+}) {
+  const data: JsonLdData = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+
+  return <JsonLd data={data} id="json-ld-faq" />;
 }

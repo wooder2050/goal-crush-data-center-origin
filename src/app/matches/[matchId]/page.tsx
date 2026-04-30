@@ -141,6 +141,8 @@ export default async function Page({ params }: Props) {
           (match.status as 'scheduled' | 'completed' | 'cancelled') ??
           'scheduled'
         }
+        homeScore={match.home_score}
+        awayScore={match.away_score}
       />
       <MatchDetailPageContent matchId={matchId} initialData={initialData} />
     </>
