@@ -395,8 +395,8 @@ function TeamLineupsSectionInner({
     return lineup.map((player) => {
       const assists = assistsByPlayer[player.player_id] || 0;
       const own_goals = ownGoalsByPlayer[player.player_id] || 0;
-      // 일반 골 = 전체 골 - 자책골
-      const regular_goals = Math.max(0, (player.goals || 0) - own_goals);
+      // player_match_stats.goals는 이미 자책골 제외 순수 득점
+      const regular_goals = player.goals || 0;
       return {
         ...player,
         assists,
@@ -427,10 +427,7 @@ function TeamLineupsSectionInner({
       for (const p of players) {
         const rating = teamPlayerRatings.get(p.player_id);
         if (rating == null || rating <= 0) continue;
-        const goals = Math.max(
-          0,
-          (p.goals || 0) - (ownGoalsByPlayer[p.player_id] || 0)
-        );
+        const goals = p.goals || 0;
         const assists = assistsByPlayer[p.player_id] || 0;
         if (
           rating > bestRating ||
@@ -449,8 +446,7 @@ function TeamLineupsSectionInner({
     }
 
     // 평점이 없는 경기: 기존 로직 (골 > 어시스트 > 무실점 GK)
-    const getRegularGoals = (p: LineupPlayer): number =>
-      Math.max(0, (p.goals || 0) - (ownGoalsByPlayer[p.player_id] || 0));
+    const getRegularGoals = (p: LineupPlayer): number => p.goals || 0;
     const getAssists = (p: LineupPlayer): number =>
       assistsByPlayer[p.player_id] || 0;
 

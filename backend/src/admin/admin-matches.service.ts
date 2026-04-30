@@ -1033,20 +1033,24 @@ export class AdminMatchesService {
       },
     });
 
-    await this.prisma.playerMatchStats.update({
-      where: { stat_id: playerMatchStats.stat_id },
-      data: { goals: (playerMatchStats.goals || 0) + 1, updated_at: new Date() },
-    });
-
-    if (match.season_id) {
-      const seasonStats = await this.prisma.playerSeasonStats.findFirst({
-        where: { player_id: data.player_id, season_id: match.season_id },
+    // 자책골은 goals에 포함하지 않음
+    const isOwnGoal = (data.goal_type || 'regular') === 'own_goal';
+    if (!isOwnGoal) {
+      await this.prisma.playerMatchStats.update({
+        where: { stat_id: playerMatchStats.stat_id },
+        data: { goals: (playerMatchStats.goals || 0) + 1, updated_at: new Date() },
       });
-      if (seasonStats) {
-        await this.prisma.playerSeasonStats.update({
-          where: { stat_id: seasonStats.stat_id },
-          data: { goals: (seasonStats.goals || 0) + 1 },
+
+      if (match.season_id) {
+        const seasonStats = await this.prisma.playerSeasonStats.findFirst({
+          where: { player_id: data.player_id, season_id: match.season_id },
         });
+        if (seasonStats) {
+          await this.prisma.playerSeasonStats.update({
+            where: { stat_id: seasonStats.stat_id },
+            data: { goals: (seasonStats.goals || 0) + 1 },
+          });
+        }
       }
     }
 
