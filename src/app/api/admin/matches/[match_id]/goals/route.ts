@@ -143,33 +143,36 @@ export async function POST(
       },
     });
 
-    // 선수의 경기 통계 업데이트 (골 추가) - playerMatchStats는 위에서 확인했으므로 바로 업데이트
-    await prisma.playerMatchStats.update({
-      where: { stat_id: playerMatchStats.stat_id },
-      data: {
-        goals: (playerMatchStats.goals || 0) + 1,
-        updated_at: new Date(),
-      },
-    });
-
-    // 시즌 통계 업데이트
-    if (match.season_id) {
-      const seasonStats = await prisma.playerSeasonStats.findFirst({
-        where: {
-          player_id,
-          season_id: match.season_id,
+    // 선수의 경기 통계 업데이트 (자책골은 goals에 포함하지 않음)
+    const isOwnGoal = (goal_type || 'regular') === 'own_goal';
+    if (!isOwnGoal) {
+      await prisma.playerMatchStats.update({
+        where: { stat_id: playerMatchStats.stat_id },
+        data: {
+          goals: (playerMatchStats.goals || 0) + 1,
+          updated_at: new Date(),
         },
       });
 
-      if (seasonStats) {
-        await prisma.playerSeasonStats.update({
+      // 시즌 통계 업데이트
+      if (match.season_id) {
+        const seasonStats = await prisma.playerSeasonStats.findFirst({
           where: {
-            stat_id: seasonStats.stat_id,
-          },
-          data: {
-            goals: (seasonStats.goals || 0) + 1,
+            player_id,
+            season_id: match.season_id,
           },
         });
+
+        if (seasonStats) {
+          await prisma.playerSeasonStats.update({
+            where: {
+              stat_id: seasonStats.stat_id,
+            },
+            data: {
+              goals: (seasonStats.goals || 0) + 1,
+            },
+          });
+        }
       }
     }
 

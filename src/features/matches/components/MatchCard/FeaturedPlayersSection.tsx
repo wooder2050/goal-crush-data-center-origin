@@ -6,12 +6,10 @@ import React, { useMemo } from 'react';
 
 import { Badge, Card } from '@/components/ui';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
-import type { Goal } from '@/lib/types';
 import { MatchWithTeams } from '@/lib/types/database';
 
 import {
   getKeyPlayersByMatchIdPrisma,
-  getMatchGoalsPrisma,
   getMatchLineupsPrisma,
   getMatchRatingsPrisma,
   type MatchRatingsResponse,
@@ -91,10 +89,6 @@ export default function FeaturedPlayersSection({ match }: Props) {
     match.match_id,
   ]);
 
-  const { data: goals = [] } = useGoalSuspenseQuery(getMatchGoalsPrisma, [
-    match.match_id,
-  ]);
-
   // 평점 데이터 조회 (평점이 있는 경기에서는 최고 평점 선수를 베스트로 선정)
   const { data: ratingsData } = useGoalSuspenseQuery(getMatchRatingsPrisma, [
     match.match_id,
@@ -117,20 +111,6 @@ export default function FeaturedPlayersSection({ match }: Props) {
       );
     });
   };
-
-  // Calculate own goals per player
-  const ownGoalsByPlayer = useMemo(() => {
-    return goals.reduce(
-      (acc: Record<number, number>, goal: Goal) => {
-        if (goal.goal_type === 'own_goal') {
-          const playerId = goal.player_id;
-          acc[playerId] = (acc[playerId] || 0) + 1;
-        }
-        return acc;
-      },
-      {} as Record<number, number>
-    );
-  }, [goals]);
 
   const [homePick, awayPick] = useMemo(() => {
     if (isScheduled) {
@@ -192,11 +172,8 @@ export default function FeaturedPlayersSection({ match }: Props) {
       }
 
       // 평점이 없는 경기: 기존 로직 (골 > 어시스트 > 출전시간 > 무실점 GK)
-      const getGoals = (x: LineupRow): number => {
-        const totalGoals = x.goals ?? 0;
-        const ownGoals = ownGoalsByPlayer[x.player_id] ?? 0;
-        return Math.max(0, totalGoals - ownGoals);
-      };
+      // player_match_stats.goals는 이미 자책골 제외 순수 득점
+      const getGoals = (x: LineupRow): number => x.goals ?? 0;
       const getAssists = (x: LineupRow): number => x.assists ?? 0;
       const getMinutes = (x: LineupRow): number => x.minutes_played ?? 0;
 
@@ -283,7 +260,6 @@ export default function FeaturedPlayersSection({ match }: Props) {
     match.home_score,
     match.home_team_id,
     match.away_team_id,
-    ownGoalsByPlayer,
     ratingsData,
   ]);
 
