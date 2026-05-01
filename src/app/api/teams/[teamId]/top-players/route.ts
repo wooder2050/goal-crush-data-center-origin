@@ -30,7 +30,11 @@ export async function GET(
       .filter((id): id is number => id !== null);
 
     if (playerIds.length === 0) {
-      return NextResponse.json({ topScorers: [], topAssists: [], topRated: [] });
+      return NextResponse.json({
+        topScorers: [],
+        topAssists: [],
+        topRated: [],
+      });
     }
 
     const [playersArr, team] = await Promise.all([
