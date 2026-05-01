@@ -63,12 +63,8 @@ export async function GET(
           m.penalty_home_score != null &&
           m.penalty_away_score != null
         ) {
-          const pkTeam = isHome
-            ? m.penalty_home_score
-            : m.penalty_away_score;
-          const pkOpp = isHome
-            ? m.penalty_away_score
-            : m.penalty_home_score;
+          const pkTeam = isHome ? m.penalty_home_score : m.penalty_away_score;
+          const pkOpp = isHome ? m.penalty_away_score : m.penalty_home_score;
           result = pkTeam > pkOpp ? 'W' : 'L';
         }
       }

@@ -64,7 +64,8 @@ export default function RecentFormSection({ match }: RecentFormSectionProps) {
       const teamScore = m.is_home ? m.home_score : m.away_score;
       const opponentScore = m.is_home ? m.away_score : m.home_score;
       const isPenalty =
-        m.penalty_home_score != null && m.penalty_away_score != null &&
+        m.penalty_home_score != null &&
+        m.penalty_away_score != null &&
         m.home_score === m.away_score;
 
       return {
