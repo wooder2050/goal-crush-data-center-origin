@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 
+export const revalidate = 600;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { teamId: string } }
@@ -10,32 +12,27 @@ export async function GET(
     const teamId = parseInt(params.teamId);
     const { searchParams } = new URL(request.url);
     const beforeDate = searchParams.get('before');
+    const limit = Math.min(
+      parseInt(searchParams.get('limit') ?? '10'),
+      20
+    );
 
     if (isNaN(teamId)) {
       return NextResponse.json({ error: 'Invalid team ID' }, { status: 400 });
     }
 
-    if (!beforeDate) {
-      return NextResponse.json(
-        { error: 'before date is required' },
-        { status: 400 }
-      );
+    const whereClause: Record<string, unknown> = {
+      OR: [{ home_team_id: teamId }, { away_team_id: teamId }],
+      home_score: { not: null },
+      away_score: { not: null },
+    };
+
+    if (beforeDate) {
+      whereClause.match_date = { lt: beforeDate };
     }
 
-    // 해당 팀이 참여한 최근 5경기를 가져옴 (beforeDate 이전)
     const recentMatches = await prisma.match.findMany({
-      where: {
-        OR: [{ home_team_id: teamId }, { away_team_id: teamId }],
-        match_date: {
-          lt: beforeDate,
-        },
-        home_score: {
-          not: null,
-        },
-        away_score: {
-          not: null,
-        },
-      },
+      where: whereClause,
       select: {
         match_id: true,
         match_date: true,
@@ -45,40 +42,60 @@ export async function GET(
         away_score: true,
         penalty_home_score: true,
         penalty_away_score: true,
+        season: { select: { season_name: true } },
         home_team: {
-          select: {
-            team_id: true,
-            team_name: true,
-          },
+          select: { team_id: true, team_name: true, logo: true },
         },
         away_team: {
-          select: {
-            team_id: true,
-            team_name: true,
-          },
+          select: { team_id: true, team_name: true, logo: true },
         },
       },
-      orderBy: {
-        match_date: 'desc',
-      },
-      take: 5,
+      orderBy: { match_date: 'desc' },
+      take: limit,
     });
 
-    // 응답 데이터를 명시적으로 변환하여 타입 일치
-    const formattedMatches = recentMatches.map((match) => ({
-      match_id: match.match_id,
-      match_date: match.match_date.toISOString(),
-      home_team_id: match.home_team_id,
-      away_team_id: match.away_team_id,
-      home_score: match.home_score,
-      away_score: match.away_score,
-      penalty_home_score: match.penalty_home_score,
-      penalty_away_score: match.penalty_away_score,
-      home_team: match.home_team,
-      away_team: match.away_team,
-    }));
+    const formatted = recentMatches.map((m) => {
+      const isHome = m.home_team_id === teamId;
+      const opponent = isHome ? m.away_team : m.home_team;
+      const teamScore = isHome ? m.home_score : m.away_score;
+      const oppScore = isHome ? m.away_score : m.home_score;
 
-    return NextResponse.json(formattedMatches);
+      let result: 'W' | 'L' | 'D' = 'D';
+      if (teamScore != null && oppScore != null) {
+        if (teamScore > oppScore) {
+          result = 'W';
+        } else if (teamScore < oppScore) {
+          result = 'L';
+        } else if (
+          m.penalty_home_score != null &&
+          m.penalty_away_score != null
+        ) {
+          const pkTeam = isHome
+            ? m.penalty_home_score
+            : m.penalty_away_score;
+          const pkOpp = isHome
+            ? m.penalty_away_score
+            : m.penalty_home_score;
+          result = pkTeam > pkOpp ? 'W' : 'L';
+        }
+      }
+
+      return {
+        match_id: m.match_id,
+        match_date: m.match_date.toISOString(),
+        season_name: m.season?.season_name ?? null,
+        is_home: isHome,
+        home_score: m.home_score,
+        away_score: m.away_score,
+        penalty_home_score: m.penalty_home_score,
+        penalty_away_score: m.penalty_away_score,
+        opponent_name: opponent?.team_name ?? '-',
+        opponent_logo: opponent?.logo ?? null,
+        result,
+      };
+    });
+
+    return NextResponse.json(formatted);
   } catch (error) {
     console.error('Failed to fetch team recent form:', error);
     return NextResponse.json(
