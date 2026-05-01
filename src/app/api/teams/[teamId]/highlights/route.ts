@@ -45,13 +45,13 @@ export async function GET(
       topApps?.player_id
         ? prisma.player.findUnique({
             where: { player_id: topApps.player_id },
-            select: { player_id: true, name: true },
+            select: { player_id: true, name: true, profile_image_url: true },
           })
         : Promise.resolve(null),
       topGoals?.player_id
         ? prisma.player.findUnique({
             where: { player_id: topGoals.player_id },
-            select: { player_id: true, name: true },
+            select: { player_id: true, name: true, profile_image_url: true },
           })
         : Promise.resolve(null),
     ]);
@@ -146,6 +146,7 @@ export async function GET(
             player_id: topAppsPlayer.player_id,
             name: topAppsPlayer.name,
             appearances: topApps?.appearances ?? 0,
+            profile_image_url: topAppsPlayer.profile_image_url ?? null,
           }
         : null,
       top_scorer: topGoalsPlayer
@@ -153,6 +154,7 @@ export async function GET(
             player_id: topGoalsPlayer.player_id,
             name: topGoalsPlayer.name,
             goals: topGoals?.goals ?? 0,
+            profile_image_url: topGoalsPlayer.profile_image_url ?? null,
           }
         : null,
       championships: {

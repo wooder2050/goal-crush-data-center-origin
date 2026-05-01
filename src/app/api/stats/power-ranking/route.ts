@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const limit = Math.min(
       parseInt(url.searchParams.get('limit') ?? '20'),
-      100
+      500
     );
 
     // 현재 시즌
