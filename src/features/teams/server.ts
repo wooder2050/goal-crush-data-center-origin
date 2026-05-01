@@ -693,6 +693,7 @@ async function fetchTeamFormation(teamId: number): Promise<TeamFormation> {
     select: {
       player_id: true,
       position: true,
+      minutes_played: true,
       player: {
         select: { name: true, jersey_number: true, profile_image_url: true },
       },
@@ -706,6 +707,7 @@ async function fetchTeamFormation(teamId: number): Promise<TeamFormation> {
       {
         name: string;
         count: number;
+        minutes_played: number;
         jersey_number: number | null;
         profile_image_url: string | null;
       }
@@ -719,61 +721,81 @@ async function fetchTeamFormation(teamId: number): Promise<TeamFormation> {
     const existing = players.get(s.player_id);
     if (existing) {
       existing.count += 1;
+      existing.minutes_played += s.minutes_played ?? 0;
     } else {
       players.set(s.player_id, {
         name: s.player?.name ?? '-',
         count: 1,
+        minutes_played: s.minutes_played ?? 0,
         jersey_number: s.player?.jersey_number ?? null,
         profile_image_url: s.player?.profile_image_url ?? null,
       });
     }
   }
 
-  const positionOrder = ['GK', 'DF', 'MF', 'FW'];
+  // 출전횟수 → 출전시간 순으로 정렬
+  const sortByAppearance = (
+    a: [number, { count: number; minutes_played: number }],
+    b: [number, { count: number; minutes_played: number }]
+  ) => b[1].count - a[1].count || b[1].minutes_played - a[1].minutes_played;
+
   const usedPlayerIds = new Set<number>();
   const positions: TeamFormationPosition[] = [];
 
-  for (const pos of positionOrder) {
+  // 3단계: GK를 제외한 필드 플레이어 중 출전횟수·출전시간 TOP 4
+  const fieldPlayers: Array<
+    [
+      number,
+      {
+        name: string;
+        count: number;
+        minutes_played: number;
+        jersey_number: number | null;
+        profile_image_url: string | null;
+      },
+      string,
+    ]
+  > = [];
+  for (const pos of ['DF', 'MF', 'FW']) {
     const players = positionMap.get(pos);
     if (!players) continue;
-    const sorted = Array.from(players.entries())
-      .filter(([pid]) => !usedPlayerIds.has(pid))
-      .sort((a, b) => b[1].count - a[1].count);
-    if (sorted.length === 0) continue;
-    const top = sorted[0];
+    for (const [pid, data] of players.entries()) {
+      fieldPlayers.push([pid, data, pos]);
+    }
+  }
+  fieldPlayers.sort((a, b) => sortByAppearance([a[0], a[1]], [b[0], b[1]]));
+
+  for (const [pid, data, pos] of fieldPlayers) {
+    if (positions.length >= 4) break;
+    if (usedPlayerIds.has(pid)) continue;
     positions.push({
       position: pos,
-      player_id: top[0],
-      name: top[1].name,
-      count: top[1].count,
-      jersey_number: top[1].jersey_number,
-      profile_image_url: top[1].profile_image_url,
-      total_players: sorted.length,
+      player_id: pid,
+      name: data.name,
+      count: data.count,
+      jersey_number: data.jersey_number,
+      profile_image_url: data.profile_image_url,
+      total_players: positionMap.get(pos)?.size ?? 0,
     });
-    usedPlayerIds.add(top[0]);
+    usedPlayerIds.add(pid);
   }
 
-  if (positions.length < 5) {
-    for (const pos of ['MF', 'DF', 'FW']) {
-      if (positions.length >= 5) break;
-      const players = positionMap.get(pos);
-      if (!players) continue;
-      const sorted = Array.from(players.entries())
-        .filter(([pid]) => !usedPlayerIds.has(pid))
-        .sort((a, b) => b[1].count - a[1].count);
-      for (const [pid, data] of sorted) {
-        if (positions.length >= 5) break;
-        positions.push({
-          position: pos,
-          player_id: pid,
-          name: data.name,
-          count: data.count,
-          jersey_number: data.jersey_number,
-          profile_image_url: data.profile_image_url,
-          total_players: positionMap.get(pos)?.size ?? 0,
-        });
-        usedPlayerIds.add(pid);
-      }
+  // 4단계: GK 추가
+  const gkPlayers = positionMap.get('GK');
+  if (gkPlayers) {
+    const sortedGk = Array.from(gkPlayers.entries()).sort(sortByAppearance);
+    if (sortedGk.length > 0) {
+      const [pid, data] = sortedGk[0];
+      positions.push({
+        position: 'GK',
+        player_id: pid,
+        name: data.name,
+        count: data.count,
+        jersey_number: data.jersey_number,
+        profile_image_url: data.profile_image_url,
+        total_players: sortedGk.length,
+      });
+      usedPlayerIds.add(pid);
     }
   }
 
