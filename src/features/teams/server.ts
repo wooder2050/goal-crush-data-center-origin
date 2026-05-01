@@ -782,8 +782,8 @@ async function fetchTeamFormation(teamId: number): Promise<TeamFormation> {
     }
   }
 
-  const sortedFieldPlayers = Array.from(playerAggMap.entries()).sort(
-    (a, b) => sortByAppearance([a[0], a[1]], [b[0], b[1]])
+  const sortedFieldPlayers = Array.from(playerAggMap.entries()).sort((a, b) =>
+    sortByAppearance([a[0], a[1]], [b[0], b[1]])
   );
 
   for (const [pid, data] of sortedFieldPlayers) {
