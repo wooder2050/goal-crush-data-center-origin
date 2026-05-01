@@ -759,7 +759,7 @@ async function fetchTeamFormation(teamId: number): Promise<TeamFormation> {
   for (const pos of ['DF', 'MF', 'FW']) {
     const players = positionMap.get(pos);
     if (!players) continue;
-    for (const [pid, data] of players.entries()) {
+    for (const [pid, data] of Array.from(players.entries())) {
       fieldPlayers.push([pid, data, pos]);
     }
   }
