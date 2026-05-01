@@ -12,27 +12,20 @@ export async function GET(
     const teamId = parseInt(params.teamId);
     const { searchParams } = new URL(request.url);
     const beforeDate = searchParams.get('before');
-    const limit = Math.min(
-      parseInt(searchParams.get('limit') ?? '10'),
-      20
-    );
+    const rawLimit = parseInt(searchParams.get('limit') ?? '10');
+    const limit = Math.min(Number.isNaN(rawLimit) ? 10 : rawLimit, 20);
 
     if (isNaN(teamId)) {
       return NextResponse.json({ error: 'Invalid team ID' }, { status: 400 });
     }
 
-    const whereClause: Record<string, unknown> = {
-      OR: [{ home_team_id: teamId }, { away_team_id: teamId }],
-      home_score: { not: null },
-      away_score: { not: null },
-    };
-
-    if (beforeDate) {
-      whereClause.match_date = { lt: beforeDate };
-    }
-
     const recentMatches = await prisma.match.findMany({
-      where: whereClause,
+      where: {
+        OR: [{ home_team_id: teamId }, { away_team_id: teamId }],
+        home_score: { not: null },
+        away_score: { not: null },
+        ...(beforeDate ? { match_date: { lt: beforeDate } } : {}),
+      },
       select: {
         match_id: true,
         match_date: true,
