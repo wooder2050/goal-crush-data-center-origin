@@ -742,40 +742,61 @@ async function fetchTeamFormation(teamId: number): Promise<TeamFormation> {
   const usedPlayerIds = new Set<number>();
   const positions: TeamFormationPosition[] = [];
 
-  // 3단계: GK를 제외한 필드 플레이어 중 출전횟수·출전시간 TOP 4
-  const fieldPlayers: Array<
-    [
-      number,
-      {
-        name: string;
-        count: number;
-        minutes_played: number;
-        jersey_number: number | null;
-        profile_image_url: string | null;
-      },
-      string,
-    ]
-  > = [];
+  // 3단계: GK를 제외한 필드 플레이어를 선수 단위로 합산 후 TOP 4
+  const playerAggMap = new Map<
+    number,
+    {
+      name: string;
+      count: number;
+      minutes_played: number;
+      jersey_number: number | null;
+      profile_image_url: string | null;
+      bestPosition: string;
+      bestPositionCount: number;
+    }
+  >();
+
   for (const pos of ['DF', 'MF', 'FW']) {
     const players = positionMap.get(pos);
     if (!players) continue;
     for (const [pid, data] of Array.from(players.entries())) {
-      fieldPlayers.push([pid, data, pos]);
+      const existing = playerAggMap.get(pid);
+      if (existing) {
+        existing.count += data.count;
+        existing.minutes_played += data.minutes_played;
+        if (data.count > existing.bestPositionCount) {
+          existing.bestPosition = pos;
+          existing.bestPositionCount = data.count;
+        }
+      } else {
+        playerAggMap.set(pid, {
+          name: data.name,
+          count: data.count,
+          minutes_played: data.minutes_played,
+          jersey_number: data.jersey_number,
+          profile_image_url: data.profile_image_url,
+          bestPosition: pos,
+          bestPositionCount: data.count,
+        });
+      }
     }
   }
-  fieldPlayers.sort((a, b) => sortByAppearance([a[0], a[1]], [b[0], b[1]]));
 
-  for (const [pid, data, pos] of fieldPlayers) {
+  const sortedFieldPlayers = Array.from(playerAggMap.entries()).sort((a, b) =>
+    sortByAppearance([a[0], a[1]], [b[0], b[1]])
+  );
+
+  for (const [pid, data] of sortedFieldPlayers) {
     if (positions.length >= 4) break;
     if (usedPlayerIds.has(pid)) continue;
     positions.push({
-      position: pos,
+      position: data.bestPosition,
       player_id: pid,
       name: data.name,
       count: data.count,
       jersey_number: data.jersey_number,
       profile_image_url: data.profile_image_url,
-      total_players: positionMap.get(pos)?.size ?? 0,
+      total_players: positionMap.get(data.bestPosition)?.size ?? 0,
     });
     usedPlayerIds.add(pid);
   }
