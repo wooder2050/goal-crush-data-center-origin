@@ -16,20 +16,15 @@ interface RecentFormSectionProps {
 interface RecentMatchResult {
   match_id: number;
   match_date: string;
-  home_team_id: number;
-  away_team_id: number;
+  season_name: string | null;
+  is_home: boolean;
   home_score: number | null;
   away_score: number | null;
   penalty_home_score: number | null;
   penalty_away_score: number | null;
-  home_team: {
-    team_id: number;
-    team_name: string;
-  };
-  away_team: {
-    team_id: number;
-    team_name: string;
-  };
+  opponent_name: string;
+  opponent_logo: string | null;
+  result: 'W' | 'L' | 'D';
 }
 
 const simplifyTeamName = (name?: string | null) =>
@@ -64,101 +59,34 @@ export default function RecentFormSection({ match }: RecentFormSectionProps) {
     );
   }
 
-  const getRecentForm = (matches: RecentMatchResult[], teamId: number) => {
-    if (matches.length === 0) {
-      return {
-        results: [],
-        wins: 0,
-        losses: 0,
-        matchDetails: [] as Array<{
-          result: string;
-          opponent: { team_id: number; team_name: string } | null;
-          isPenalty: boolean;
-          teamScore: number | null;
-          opponentScore: number | null;
-        }>,
-      };
-    }
-
-    const results = matches.map((m) => {
-      const isHome = m.home_team_id === teamId;
-      const teamScore = isHome ? m.home_score : m.away_score;
-      const opponentScore = isHome ? m.away_score : m.home_score;
-      const opponentTeam = isHome ? m.away_team : m.home_team;
-
-      if (teamScore === null || opponentScore === null)
-        return {
-          result: 'N',
-          opponent: null,
-          isPenalty: false,
-          teamScore: null,
-          opponentScore: null,
-        };
-
-      if (teamScore > opponentScore)
-        return {
-          result: 'W',
-          opponent: opponentTeam,
-          isPenalty: false,
-          teamScore,
-          opponentScore,
-        };
-      if (teamScore < opponentScore)
-        return {
-          result: 'L',
-          opponent: opponentTeam,
-          isPenalty: false,
-          teamScore,
-          opponentScore,
-        };
-
-      // 골때녀는 무승부가 없으므로 승부차기로 결정
-      if (m.penalty_home_score !== null && m.penalty_away_score !== null) {
-        const teamPenaltyScore = isHome
-          ? m.penalty_home_score
-          : m.penalty_away_score;
-        const opponentPenaltyScore = isHome
-          ? m.penalty_away_score
-          : m.penalty_home_score;
-
-        if (teamPenaltyScore > opponentPenaltyScore) {
-          return {
-            result: 'W',
-            opponent: opponentTeam,
-            isPenalty: true,
-            teamScore,
-            opponentScore,
-          };
-        } else {
-          return {
-            result: 'L',
-            opponent: opponentTeam,
-            isPenalty: true,
-            teamScore,
-            opponentScore,
-          };
-        }
-      }
+  const getRecentForm = (matches: RecentMatchResult[]) => {
+    const details = matches.map((m) => {
+      const teamScore = m.is_home ? m.home_score : m.away_score;
+      const opponentScore = m.is_home ? m.away_score : m.home_score;
+      const isPenalty =
+        m.penalty_home_score != null &&
+        m.penalty_away_score != null &&
+        m.home_score === m.away_score;
 
       return {
-        result: 'W',
-        opponent: opponentTeam,
-        isPenalty: false,
+        result: m.result,
+        opponent_name: m.opponent_name,
+        isPenalty,
         teamScore,
         opponentScore,
       };
     });
 
     return {
-      results: results.map((r) => r.result),
-      wins: results.filter((r) => r.result === 'W').length,
-      losses: results.filter((r) => r.result === 'L').length,
-      matchDetails: results,
+      results: details.map((d) => d.result),
+      wins: details.filter((d) => d.result === 'W').length,
+      losses: details.filter((d) => d.result === 'L').length,
+      matchDetails: details,
     };
   };
 
-  const homeForm = getRecentForm(homeRecentMatches, match.home_team_id);
-  const awayForm = getRecentForm(awayRecentMatches, match.away_team_id);
+  const homeForm = getRecentForm(homeRecentMatches);
+  const awayForm = getRecentForm(awayRecentMatches);
 
   // 결과에 따른 배경색 (FotMob 스타일 - 원형 배지)
   const getResultBgColor = (result: string) => {
@@ -255,10 +183,7 @@ export default function RecentFormSection({ match }: RecentFormSectionProps) {
 
                 {/* 상대팀 */}
                 <span className="text-[10px] sm:text-xs text-gray-500 truncate flex-1">
-                  vs{' '}
-                  {detail.opponent
-                    ? simplifyTeamName(detail.opponent.team_name)
-                    : '-'}
+                  vs {simplifyTeamName(detail.opponent_name)}
                 </span>
               </div>
             ))

@@ -578,20 +578,15 @@ export const getTeamRecentFormPrisma = async (
   Array<{
     match_id: number;
     match_date: string;
-    home_team_id: number;
-    away_team_id: number;
+    season_name: string | null;
+    is_home: boolean;
     home_score: number | null;
     away_score: number | null;
     penalty_home_score: number | null;
     penalty_away_score: number | null;
-    home_team: {
-      team_id: number;
-      team_name: string;
-    };
-    away_team: {
-      team_id: number;
-      team_name: string;
-    };
+    opponent_name: string;
+    opponent_logo: string | null;
+    result: 'W' | 'L' | 'D';
   }>
 > => {
   const response = await fetch(
