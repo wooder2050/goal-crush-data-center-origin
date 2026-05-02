@@ -98,9 +98,7 @@ export default async function Image({
             gap: '8px',
           }}
         >
-          <div style={{ color: '#94a3b8', fontSize: '24px' }}>
-            {seasonName}
-          </div>
+          <div style={{ color: '#94a3b8', fontSize: '24px' }}>{seasonName}</div>
           <div style={{ color: '#64748b', fontSize: '20px' }}>{matchDate}</div>
         </div>
 
@@ -171,7 +169,11 @@ export default async function Image({
                   {match.home_score}
                 </div>
                 <div
-                  style={{ color: '#475569', fontSize: '64px', fontWeight: 300 }}
+                  style={{
+                    color: '#475569',
+                    fontSize: '64px',
+                    fontWeight: 300,
+                  }}
                 >
                   :
                 </div>

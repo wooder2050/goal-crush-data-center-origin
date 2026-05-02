@@ -61,9 +61,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // 스코어 정보
   const hasScore = match.home_score !== null && match.away_score !== null;
-  const scoreText = hasScore
-    ? `${match.home_score}:${match.away_score}`
-    : '';
+  const scoreText = hasScore ? `${match.home_score}:${match.away_score}` : '';
 
   // 득점자 정보 (자책골 제외)
   const scorerNames = (match.goals ?? [])

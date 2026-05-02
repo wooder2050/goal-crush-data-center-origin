@@ -33,7 +33,11 @@ export default function MatchDetailPageContent({
             <h1 className="text-2xl font-bold text-gray-900">경기 상세</h1>
             <ShareButtons
               title={`${shareTitle} | 골때녀 데이터센터`}
-              description={hasScore ? `경기 결과 ${match.home_score}:${match.away_score}` : undefined}
+              description={
+                hasScore
+                  ? `경기 결과 ${match.home_score}:${match.away_score}`
+                  : undefined
+              }
             />
           </div>
           {!Number.isFinite(id) ? (

@@ -13,8 +13,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
 
   const shareUrl =
-    url ||
-    (typeof window !== 'undefined' ? window.location.href : '');
+    url || (typeof window !== 'undefined' ? window.location.href : '');
 
   const handleCopyLink = useCallback(async () => {
     try {
