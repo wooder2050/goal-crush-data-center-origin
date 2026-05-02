@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 
 import PlayerDetailContent from './PlayerDetailContent';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 interface Props {
   params: Promise<{ playerId: string }>;

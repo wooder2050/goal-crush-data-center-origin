@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { SupportPage } from '@/features/policy';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: '고객 지원/문의',

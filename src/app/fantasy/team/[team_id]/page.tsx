@@ -6,6 +6,8 @@ import { Position } from '@/types/fantasy';
 
 import TeamDetailClient from './TeamDetailClient';
 
+export const revalidate = 3600;
+
 interface PageProps {
   params: {
     team_id: string;

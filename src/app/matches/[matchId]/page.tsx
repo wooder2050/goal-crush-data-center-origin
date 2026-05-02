@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 
 import MatchDetailPageContent from './MatchDetailPageContent';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 interface Props {
   params: Promise<{ matchId: string }>;
@@ -35,6 +35,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       home_team: true,
       away_team: true,
       season: true,
+      goals: {
+        include: { player: { select: { name: true } } },
+        orderBy: { goal_time: 'asc' },
+      },
     },
   });
 
@@ -58,17 +62,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // 스코어 정보
   const hasScore = match.home_score !== null && match.away_score !== null;
   const scoreText = hasScore
-    ? `${match.home_score} : ${match.away_score}`
-    : '경기 예정';
+    ? `${match.home_score}:${match.away_score}`
+    : '';
+
+  // 득점자 정보 (자책골 제외)
+  const scorerNames = (match.goals ?? [])
+    .filter((g) => g.goal_type !== 'own_goal')
+    .map((g) => g.player?.name)
+    .filter(Boolean) as string[];
+  const uniqueScorers = Array.from(new Set(scorerNames));
+  const scorersText =
+    uniqueScorers.length > 3
+      ? uniqueScorers.slice(0, 3).join(', ') +
+        ` 외 ${uniqueScorers.length - 3}명`
+      : uniqueScorers.join(', ');
 
   const title = hasScore
-    ? `${homeTeamName} vs ${awayTeamName} ${scoreText}${seasonName ? ` - ${seasonName}` : ''}${matchDate ? ` (${matchDate})` : ''}`
-    : `${homeTeamName} vs ${awayTeamName}${seasonName ? ` - ${seasonName}` : ''}${matchDate ? ` (${matchDate})` : ''}`;
+    ? `${homeTeamName} vs ${awayTeamName} 경기 결과 ${scoreText} - ${seasonName}`
+    : `${homeTeamName} vs ${awayTeamName} - ${seasonName}${matchDate ? ` (${matchDate})` : ''}`;
   const description = hasScore
-    ? `골 때리는 그녀들 ${seasonName} ${homeTeamName} vs ${awayTeamName} 경기 기록. ${match.home_score}:${match.away_score}. 득점자·어시스트·패스 성공률 등 상세 스탯.`
+    ? `골 때리는 그녀들 ${seasonName} ${homeTeamName} vs ${awayTeamName} 경기 결과 ${scoreText} (${matchDate}).${scorersText ? ` 득점: ${scorersText}.` : ''} 선수별 평점·상세 스탯 확인.`
     : `골 때리는 그녀들 ${seasonName} ${homeTeamName} vs ${awayTeamName}. ${matchDate} 예정. 라인업·맞대결 기록을 확인하세요.`;
-
-  const ogImage = match.home_team?.logo || match.away_team?.logo;
 
   return {
     title,
@@ -89,22 +103,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: `https://www.gtndatacenter.com/matches/${matchId}`,
-      images: ogImage
-        ? [
-            {
-              url: ogImage,
-              width: 400,
-              height: 400,
-              alt: `${homeTeamName} vs ${awayTeamName}`,
-            },
-          ]
-        : undefined,
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title,
       description,
-      images: ogImage ? [ogImage] : undefined,
     },
   };
 }

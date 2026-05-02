@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
@@ -121,6 +122,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Match not found' }, { status: 404 });
     }
 
+    revalidatePath('/', 'layout');
+    revalidatePath(`/matches/${matchId}`);
+
     return NextResponse.json(updatedMatch);
   } catch (error) {
     console.error('Failed to update match:', error);
@@ -149,6 +153,9 @@ export async function PATCH(
     if (!updatedMatch) {
       return NextResponse.json({ error: 'Match not found' }, { status: 404 });
     }
+
+    revalidatePath('/', 'layout');
+    revalidatePath(`/matches/${matchId}`);
 
     return NextResponse.json(updatedMatch);
   } catch (error) {

@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
@@ -46,6 +47,8 @@ export async function POST(
 
     // 5. 조별리그 순위 업데이트 (해당 시즌만)
     await updateGroupLeagueStandings(seasonId);
+
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({
       message: '통계가 성공적으로 업데이트되었습니다.',

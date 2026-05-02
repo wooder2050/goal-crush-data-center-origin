@@ -2,6 +2,7 @@
 
 import React from 'react';
 
+import { ShareButtons } from '@/components/ShareButtons';
 import { Section } from '@/components/ui';
 import DetailMatchCard from '@/features/matches/components/MatchCard/DetailMatchCard';
 import type { InitialMatchDetailData } from '@/features/matches/server';
@@ -16,12 +17,25 @@ export default function MatchDetailPageContent({
   initialData,
 }: MatchDetailPageContentProps) {
   const id = Number(matchId);
+  const match = initialData.match;
+  const homeTeam = match.home_team?.team_name || '홈팀';
+  const awayTeam = match.away_team?.team_name || '원정팀';
+  const hasScore = match.home_score !== null && match.away_score !== null;
+  const shareTitle = hasScore
+    ? `${homeTeam} vs ${awayTeam} ${match.home_score}:${match.away_score}`
+    : `${homeTeam} vs ${awayTeam}`;
 
   return (
     <main className="min-h-screen bg-white">
       <Section padding="sm">
         <div className="mx-auto max-w-7xl">
-          <h1 className="mb-4 text-2xl font-bold text-gray-900">경기 상세</h1>
+          <div className="mb-4 flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">경기 상세</h1>
+            <ShareButtons
+              title={`${shareTitle} | 골때녀 데이터센터`}
+              description={hasScore ? `경기 결과 ${match.home_score}:${match.away_score}` : undefined}
+            />
+          </div>
           {!Number.isFinite(id) ? (
             <div className="rounded-md border p-6">
               <div className="animate-pulse space-y-3">
