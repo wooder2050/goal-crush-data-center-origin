@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 
 import SeasonDetailContent from './SeasonDetailContent';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 function parseSeasonId(raw: string): number | null {
   if (!/^\d+$/.test(raw)) return null;

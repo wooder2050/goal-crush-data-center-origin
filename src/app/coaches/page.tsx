@@ -6,7 +6,7 @@ import { Section } from '@/components/ui';
 import CoachesPage from '@/features/coaches/components/CoachesPage';
 import CoachesPageSkeleton from '@/features/coaches/components/CoachesPageSkeleton';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: '골때녀 감독 명단 - 역대 감독별 전적·승률·우승 비교',

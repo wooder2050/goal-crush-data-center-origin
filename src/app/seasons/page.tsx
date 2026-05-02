@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { SeasonsPage } from '@/features/seasons';
 import { getInitialSeasonsPageData } from '@/features/seasons/server';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: '골때녀 순위표·경기결과 - 시즌별 리그 순위 총정리',

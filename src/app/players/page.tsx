@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { PlayersPage } from '@/features/players';
 import { getInitialPlayersData } from '@/features/players/server';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: '골때녀 선수 명단 - 역대 출연진 프로필·득점·어시스트 기록',
