@@ -36,13 +36,16 @@ export default function TeamDetailPageContent({
 
   const safeTeamId = teamIdNumber ?? 0;
 
-  const { data: team } = useGoalQuery(getTeamByIdPrisma, [safeTeamId], {
+  const { data: teamData } = useGoalQuery(getTeamByIdPrisma, [safeTeamId], {
     initialData: initialData.team as Awaited<
       ReturnType<typeof getTeamByIdPrisma>
     >,
     enabled: teamIdNumber !== null,
+    staleTime: 1000 * 60 * 10,
+    retry: 1,
   });
-  const { data: players = [] } = useGoalQuery(
+  const team = teamData ?? initialData.team;
+  const { data: playersData } = useGoalQuery(
     getTeamPlayersPrisma,
     [safeTeamId, 'all'],
     {
@@ -50,14 +53,20 @@ export default function TeamDetailPageContent({
         ReturnType<typeof getTeamPlayersPrisma>
       >,
       enabled: teamIdNumber !== null,
+      staleTime: 1000 * 60 * 10,
+      retry: 1,
     }
   );
-  const { data: stats } = useGoalQuery(getTeamStatsPrisma, [safeTeamId], {
+  const players = playersData ?? initialData.players ?? [];
+  const { data: statsData } = useGoalQuery(getTeamStatsPrisma, [safeTeamId], {
     initialData: initialData.stats as Awaited<
       ReturnType<typeof getTeamStatsPrisma>
     >,
     enabled: teamIdNumber !== null,
+    staleTime: 1000 * 60 * 10,
+    retry: 1,
   });
+  const stats = statsData ?? initialData.stats;
 
   if (teamIdNumber === null) {
     return <TeamDetailSkeleton />;
