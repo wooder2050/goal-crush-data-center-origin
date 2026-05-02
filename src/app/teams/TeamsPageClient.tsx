@@ -11,11 +11,15 @@ export default function TeamsPageClient({
 }: {
   initialData: InitialTeamsData;
 }) {
-  const { data: teams = [] } = useGoalQuery(getTeamsPrisma, [], {
+  const { data } = useGoalQuery(getTeamsPrisma, [], {
     initialData: initialData.teams as Awaited<
       ReturnType<typeof getTeamsPrisma>
     >,
+    staleTime: 1000 * 60 * 10,
+    retry: 1,
   });
+
+  const teams = data ?? initialData.teams;
 
   return (
     <Section padding="sm">

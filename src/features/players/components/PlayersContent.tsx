@@ -57,16 +57,22 @@ export default function PlayersContent({
   hideInternalSearch?: boolean;
   stickyHeaderSlot?: React.ReactNode;
 }) {
-  const { data: teams = [] } = useGoalQuery(getTeamsPrisma, [], {
+  const { data: teamsData } = useGoalQuery(getTeamsPrisma, [], {
     initialData: initialTeams as
       | Awaited<ReturnType<typeof getTeamsPrisma>>
       | undefined,
+    staleTime: 1000 * 60 * 10,
+    retry: 1,
   });
-  const { data: seasons = [] } = useGoalQuery(getAllSeasonsPrisma, [], {
+  const teams = teamsData ?? initialTeams ?? [];
+  const { data: seasonsData } = useGoalQuery(getAllSeasonsPrisma, [], {
     initialData: initialSeasons as
       | Awaited<ReturnType<typeof getAllSeasonsPrisma>>
       | undefined,
+    staleTime: 1000 * 60 * 10,
+    retry: 1,
   });
+  const seasons = seasonsData ?? initialSeasons ?? [];
   const [keyword, setKeyword] = useState('');
   const [keywordInput, setKeywordInput] = useState('');
   const [isFocused, setIsFocused] = useState(false);
