@@ -6,6 +6,8 @@ import CoachDetailPage from '@/features/coaches/components/CoachDetailPage';
 import CoachDetailSkeleton from '@/features/coaches/components/CoachDetailSkeleton';
 import { prisma } from '@/lib/prisma';
 
+export const revalidate = 3600;
+
 interface CoachDetailPageWrapperProps {
   params: Promise<{ coachId: string }>;
 }

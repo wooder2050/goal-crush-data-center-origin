@@ -4,7 +4,7 @@ import { getMatchesArchiveData } from '@/features/matches/server';
 
 import MatchesArchiveContent from './MatchesArchiveContent';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: '경기 기록',

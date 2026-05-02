@@ -4,7 +4,7 @@ import { FAQPageJsonLd } from '@/components/JsonLd';
 import { HomePageDashboard } from '@/features/home';
 import { getHomePageData } from '@/features/home/server';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 600;
 
 export const metadata: Metadata = {
   title: {

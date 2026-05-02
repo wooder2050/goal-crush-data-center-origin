@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { PrivacyPolicyPage } from '@/features/policy';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: '개인정보처리방침',

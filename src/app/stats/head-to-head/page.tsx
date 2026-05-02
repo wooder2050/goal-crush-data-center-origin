@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import HeadToHeadPageContent from '@/features/stats/components/HeadToHeadPageContent';
 import { getInitialHeadToHeadData } from '@/features/stats/server';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: '골때녀 팀 맞대결·상대전적 통계 - 역대 팀 간 전적 비교',

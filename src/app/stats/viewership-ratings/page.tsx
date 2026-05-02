@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import ViewershipRatingsPageContent from '@/features/stats/components/ViewershipRatingsPageContent';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: '시청률 통계',

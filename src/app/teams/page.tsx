@@ -4,7 +4,7 @@ import { getInitialTeamsData } from '@/features/teams/server';
 
 import TeamsPageClient from './TeamsPageClient';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: '골때녀 팀 목록·라인업·명단·성적 총정리',
