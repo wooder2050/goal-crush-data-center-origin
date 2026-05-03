@@ -931,7 +931,7 @@ function SideBySidePlayerStats({
         </TabsPrimitive.Root>
 
         {/* 양팀 테이블 나란히 배치 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {homeStats.length > 0 && (
             <SingleTeamStatsTable
               players={homeStats}
@@ -966,7 +966,7 @@ function SideBySidePlayerStats({
         <div className="space-y-4">
           <h4 className="text-base font-medium text-gray-800">골키퍼</h4>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {homeGoalkeepers.length > 0 && (
               <SingleTeamStatsTable
                 players={homeStats}
