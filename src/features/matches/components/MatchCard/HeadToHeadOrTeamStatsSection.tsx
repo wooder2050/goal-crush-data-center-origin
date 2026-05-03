@@ -79,7 +79,11 @@ export default function HeadToHeadOrTeamStatsSection({
         <HeadToHeadList matchId={matchId} />
       </GoalWrapper>
       <GoalWrapper fallback={<CoachHeadToHeadSectionSkeleton />}>
-        <CoachHeadToHeadSection matchId={matchId} />
+        <CoachHeadToHeadSection
+          matchId={matchId}
+          homeTeamColor={homeTeamPrimaryColor}
+          awayTeamColor={awayTeamPrimaryColor}
+        />
       </GoalWrapper>
       <GoalWrapper fallback={<CoachHeadToHeadListSkeleton />}>
         <CoachHeadToHeadList matchId={matchId} />
