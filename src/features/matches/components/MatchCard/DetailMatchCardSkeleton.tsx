@@ -14,70 +14,43 @@ export default function DetailMatchCardSkeleton({
   return (
     <Card className={className}>
       <CardContent className="px-0 py-2 sm:p-4">
-        <div className="animate-pulse space-y-3 sm:space-y-4">
-          <div className="flex gap-2 px-3 sm:px-0">
-            <div className="h-6 w-20 rounded bg-gray-200" />
-            <div className="h-6 w-16 rounded bg-gray-200" />
-            <div className="h-6 w-24 rounded bg-gray-200" />
+        <div className="animate-pulse space-y-4">
+          {/* MatchHeader 스켈레톤 */}
+          <div className="flex items-center justify-between px-3 sm:px-0">
+            <div className="h-5 w-48 rounded bg-gray-200" />
+            <div className="h-4 w-28 rounded bg-gray-200" />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-            <div className="space-y-3 sm:space-y-4">
-              <div className="rounded-lg border p-3 sm:p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="h-5 w-32 bg-gray-200 rounded" />
-                  <div className="h-8 w-24 bg-gray-200 rounded" />
-                </div>
-                <div className="h-4 w-40 bg-gray-200 rounded" />
-              </div>
-              <div className="rounded-lg border p-3 sm:p-4 space-y-2">
-                <div className="h-4 w-28 bg-gray-200 rounded" />
-                <div className="h-3 w-full bg-gray-200 rounded" />
-                <div className="h-3 w-11/12 bg-gray-200 rounded" />
-                <div className="h-3 w-10/12 bg-gray-200 rounded" />
-              </div>
-              <div className="rounded-lg border p-3 sm:p-4 space-y-3">
-                <div className="h-4 w-28 bg-gray-200 rounded" />
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="h-6 bg-gray-200 rounded" />
-                  <div className="h-6 bg-gray-200 rounded" />
-                  <div className="h-6 bg-gray-200 rounded" />
-                </div>
-              </div>
-              <div className="rounded-lg border p-2 sm:p-3 space-y-2">
-                <div className="h-4 w-32 bg-gray-200 rounded" />
-                <div className="space-y-2">
-                  <div className="h-4 w-full bg-gray-200 rounded" />
-                  <div className="h-4 w-11/12 bg-gray-200 rounded" />
-                  <div className="h-4 w-10/12 bg-gray-200 rounded" />
-                </div>
-              </div>
-              <div className="rounded-lg border p-3 sm:p-4 space-y-3">
-                <div className="h-4 w-36 bg-gray-200 rounded" />
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="h-6 bg-gray-200 rounded" />
-                  <div className="h-6 bg-gray-200 rounded" />
-                  <div className="h-6 bg-gray-200 rounded" />
-                </div>
-              </div>
-              <div className="rounded-lg border p-2 sm:p-3 space-y-2">
-                <div className="h-4 w-28 bg-gray-200 rounded" />
-                <div className="space-y-2">
-                  <div className="h-4 w-full bg-gray-200 rounded" />
-                  <div className="h-4 w-11/12 bg-gray-200 rounded" />
-                  <div className="h-4 w-10/12 bg-gray-200 rounded" />
-                </div>
-              </div>
+
+          {/* MatchScoreHeader 스켈레톤 */}
+          <div className="flex items-center justify-between px-4 py-4">
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-gray-200 sm:h-12 sm:w-12" />
+              <div className="h-4 w-20 rounded bg-gray-200" />
             </div>
-            <div className="rounded-lg border p-3 sm:p-4 space-y-2">
-              <div className="h-4 w-24 bg-gray-200 rounded" />
-              <div className="space-y-2">
-                <div className="h-3 w-full bg-gray-200 rounded" />
-                <div className="h-3 w-11/12 bg-gray-200 rounded" />
-                <div className="h-3 w-10/12 bg-gray-200 rounded" />
-                <div className="h-3 w-9/12 bg-gray-200 rounded" />
-                <div className="h-3 w-8/12 bg-gray-200 rounded" />
-              </div>
+            <div className="h-10 w-16 rounded bg-gray-200" />
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-gray-200 sm:h-12 sm:w-12" />
+              <div className="h-4 w-20 rounded bg-gray-200" />
             </div>
+          </div>
+
+          {/* 탭 바 스켈레톤 */}
+          <div className="flex gap-0 border-b border-gray-200">
+            <div className="h-11 flex-1 border-b-2 border-gray-300 bg-gray-50" />
+            <div className="h-11 flex-1" />
+            <div className="h-11 flex-1" />
+            <div className="h-11 flex-1" />
+          </div>
+
+          {/* 탭 콘텐츠 스켈레톤 */}
+          <div className="space-y-3 px-3 sm:px-0">
+            <div className="h-4 w-32 rounded bg-gray-200" />
+            <div className="h-3 w-full rounded bg-gray-200" />
+            <div className="h-3 w-11/12 rounded bg-gray-200" />
+            <div className="h-3 w-10/12 rounded bg-gray-200" />
+            <div className="mt-4 h-4 w-28 rounded bg-gray-200" />
+            <div className="h-3 w-full rounded bg-gray-200" />
+            <div className="h-3 w-9/12 rounded bg-gray-200" />
           </div>
         </div>
       </CardContent>
