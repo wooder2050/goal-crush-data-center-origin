@@ -1,5 +1,7 @@
 'use client';
 
+import { ChevronLeft } from 'lucide-react';
+import Link from 'next/link';
 import { useMemo } from 'react';
 
 import { Section } from '@/components/ui';
@@ -81,6 +83,12 @@ export default function TeamDetailPageContent({
   return (
     <Section padding="sm">
       <div className="mb-6">
+        <Link
+          href="/teams"
+          className="mb-3 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden="true" />팀 목록
+        </Link>
         <h1 className="text-2xl font-bold">팀 상세 정보</h1>
       </div>
       <div className="mx-auto max-w-[1280px]">
