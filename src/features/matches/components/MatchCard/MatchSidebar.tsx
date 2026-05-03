@@ -122,12 +122,30 @@ export default function MatchSidebar({
         </dl>
       </div>
 
-      {/* 이전 경기 */}
+      {/* 같은 시즌 경기 */}
       {recentSeasonMatches.length > 0 && (
         <div className="rounded-xl border border-gray-100 bg-white p-4">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-            이전 경기
-          </h3>
+          <Link
+            href={`/seasons/${match.season_id}`}
+            className="mb-3 flex items-center justify-between group"
+          >
+            <h3 className="text-xs font-semibold text-gray-900 group-hover:underline truncate">
+              {seasonName || '시즌'}
+            </h3>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="shrink-0 text-gray-400 group-hover:text-gray-900"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </Link>
           <div className="space-y-1">
             {recentSeasonMatches.map((m) => (
               <Link
