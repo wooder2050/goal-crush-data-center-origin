@@ -594,7 +594,7 @@ function SingleTeamStatsTable({
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 py-2 text-left font-medium text-gray-700">
+                <th className="whitespace-nowrap px-3 py-2 text-left font-medium text-gray-700">
                   선수
                 </th>
                 {showRatingColumn && (
@@ -1114,7 +1114,7 @@ function PlayerStatsTable({
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 py-2 text-left font-medium text-gray-700">
+                <th className="whitespace-nowrap px-3 py-2 text-left font-medium text-gray-700">
                   선수
                 </th>
                 {category.stats.map((stat) => (
