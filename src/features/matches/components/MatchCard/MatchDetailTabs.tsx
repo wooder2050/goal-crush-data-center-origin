@@ -5,7 +5,10 @@ import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { useHashTab } from '@/hooks/useHashTab';
 import type { MatchWithTeams } from '@/lib/types';
 
-import { getMatchRatingsPrisma, getMatchXtRatingsPrisma } from '../../api-prisma';
+import {
+  getMatchRatingsPrisma,
+  getMatchXtRatingsPrisma,
+} from '../../api-prisma';
 import LineupsTab from './tabs/LineupsTab';
 import RatingsTab from './tabs/RatingsTab';
 import StatsTab from './tabs/StatsTab';

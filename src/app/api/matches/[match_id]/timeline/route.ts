@@ -93,7 +93,9 @@ export async function GET(
     // 골 선수의 팀 매핑
     const goalPlayerIds = goals.map((g) => g.player_id);
     const assistPlayerIds = assists.map((a) => a.player_id);
-    const allPlayerIds = Array.from(new Set([...goalPlayerIds, ...assistPlayerIds]));
+    const allPlayerIds = Array.from(
+      new Set([...goalPlayerIds, ...assistPlayerIds])
+    );
 
     const playerTeams = await prisma.playerMatchStats.findMany({
       where: {

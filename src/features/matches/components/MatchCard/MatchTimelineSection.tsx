@@ -20,14 +20,10 @@ interface Props {
   awayTeamId: number;
 }
 
-function MatchTimelineSectionInner({
-  matchId,
-  homeTeamId,
-  awayTeamId,
-}: Props) {
-  const { data } = useGoalSuspenseQuery(getMatchTimelinePrisma, [
-    matchId,
-  ]) as { data: MatchTimelineResponse };
+function MatchTimelineSectionInner({ matchId, homeTeamId, awayTeamId }: Props) {
+  const { data } = useGoalSuspenseQuery(getMatchTimelinePrisma, [matchId]) as {
+    data: MatchTimelineResponse;
+  };
 
   const goalsWithScore = useMemo(() => {
     if (!data) return [];
@@ -178,14 +174,10 @@ function GoalRow({
       </div>
 
       {/* 홈팀 영역 (왼쪽) */}
-      <div className="w-1/2 pr-6">
-        {isHome && content}
-      </div>
+      <div className="w-1/2 pr-6">{isHome && content}</div>
 
       {/* 원정팀 영역 (오른쪽) */}
-      <div className="w-1/2 pl-6">
-        {!isHome && content}
-      </div>
+      <div className="w-1/2 pl-6">{!isHome && content}</div>
     </div>
   );
 }
