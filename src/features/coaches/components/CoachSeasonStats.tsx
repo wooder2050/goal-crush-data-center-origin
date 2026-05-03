@@ -4,7 +4,6 @@ import Image from 'next/image';
 import React, { useMemo } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -18,6 +17,21 @@ import { shortenSeasonName } from '@/lib/utils';
 
 import { fetchCoachStats } from '../api-prisma';
 import CoachSeasonStatsSkeleton from './CoachSeasonStatsSkeleton';
+
+function mobileSeasonName(name: string): string {
+  const s = shortenSeasonName(name);
+  return s
+    .replace(/시즌\s*(\d+)\s*슈퍼리그/, 'S$1 슈퍼')
+    .replace(/시즌\s*(\d+)\s*챌린지리그/, 'S$1 챌린지')
+    .replace(/시즌\s*(\d+)\s*조별리그/, 'S$1 조별')
+    .replace(/시즌\s*(\d+)\s*플레이오프/, 'S$1 PO')
+    .replace(/시즌\s*(\d+)\s*G리그/, 'S$1 G')
+    .replace(/제(\d+)회\s*SBS컵/, '$1회 SBS')
+    .replace(/제(\d+)회\s*챔피언\s*매치/, '$1회 CM')
+    .replace(/(\d{4})\s*골\s*때리는\s*그녀들\s*G리그/, '$1 G')
+    .replace(/(\d{4})\s*GIFA컵/, '$1 GIFA')
+    .replace(/시즌\s*(\d+)/, 'S$1');
+}
 
 interface CoachSeasonStatsProps {
   coachId: number;
@@ -45,132 +59,121 @@ function CoachSeasonStatsInner({ coachId, stats }: CoachSeasonStatsProps) {
 
   if (!effective || effective.length === 0) {
     return (
-      <Card>
-        <CardHeader className="px-0 sm:px-0 md:px-0">
-          <CardTitle>시즌별 통계</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-0 md:p-0">
-          <p className="text-gray-500 text-center py-8">
-            아직 경기 데이터가 없습니다.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="px-6 py-8 text-center">
+        <p className="text-[14px] text-[#9F9F9F]">
+          아직 경기 데이터가 없습니다.
+        </p>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="px-0 sm:px-0 md:px-0">
-        <CardTitle>시즌별 통계</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0 sm:p-0 md:p-0">
-        <div className="overflow-x-hidden">
-          <Table className="w-full table-fixed text-xs md:text-sm">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[24%] truncate">시즌</TableHead>
-                <TableHead className="w-[16%] sm:w-[28%] truncate">
-                  팀
-                </TableHead>
-                <TableHead className="w-[10%] truncate">순위</TableHead>
-                <TableHead className="w-[10%] truncate">경기</TableHead>
-                <TableHead className="w-[10%] truncate">승</TableHead>
-                <TableHead className="w-[10%] truncate">패</TableHead>
-                <TableHead className="w-[10%] truncate">승률</TableHead>
-                <TableHead className="hidden sm:table-cell w-[10%] truncate">
-                  득점
-                </TableHead>
-                <TableHead className="hidden sm:table-cell w-[10%] truncate">
-                  실점
-                </TableHead>
-                <TableHead className="hidden sm:table-cell w-[10%] truncate">
-                  득실차
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {effective.map((season) => (
-                <TableRow key={season.season_id}>
-                  {/* 시즌 */}
-                  <TableCell className="truncate">
-                    {shortenSeasonName(season.season_name)}
-                  </TableCell>
-                  {/* 팀 */}
-                  <TableCell className="truncate w-[16%] sm:w-auto">
-                    <div className="flex flex-wrap items-center gap-1 max-w-[140px] sm:max-w-[240px]">
-                      {(season.teams_detailed ?? []).length > 0 ? (
-                        (season.teams_detailed ?? []).map((t) => (
-                          <span
-                            key={t.team_id}
-                            className="inline-flex items-center gap-1 text-[11px] md:text-xs text-gray-700 truncate"
-                          >
-                            {t.logo ? (
-                              <span className="relative inline-block w-3.5 h-3.5">
-                                <Image
-                                  src={t.logo}
-                                  alt={t.team_name}
-                                  fill
-                                  sizes="14px"
-                                  className="rounded-full object-cover"
-                                />
-                              </span>
-                            ) : (
-                              <span className="w-3.5 h-3.5 rounded-full bg-gray-200 inline-block" />
-                            )}
-                            <span className="hidden sm:inline truncate max-w-[120px]">
-                              {t.team_name}
-                            </span>
+    <div className="overflow-x-auto">
+      <Table className="w-full text-[11px] sm:text-xs md:text-sm">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="whitespace-nowrap">시즌</TableHead>
+            <TableHead className="whitespace-nowrap">팀</TableHead>
+            <TableHead className="whitespace-nowrap text-center">
+              순위
+            </TableHead>
+            <TableHead className="whitespace-nowrap text-center">
+              경기
+            </TableHead>
+            <TableHead className="whitespace-nowrap text-center">승</TableHead>
+            <TableHead className="whitespace-nowrap text-center">패</TableHead>
+            <TableHead className="whitespace-nowrap text-center">
+              승률
+            </TableHead>
+            <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
+              득점
+            </TableHead>
+            <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
+              실점
+            </TableHead>
+            <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
+              득실차
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {effective.map((season) => (
+            <TableRow key={season.season_id}>
+              {/* 시즌: 모바일 단축 / 데스크톱 전체 */}
+              <TableCell className="whitespace-nowrap">
+                <span className="sm:hidden">
+                  {mobileSeasonName(season.season_name)}
+                </span>
+                <span className="hidden sm:inline">
+                  {shortenSeasonName(season.season_name)}
+                </span>
+              </TableCell>
+              {/* 팀 */}
+              <TableCell>
+                <div className="flex flex-wrap items-center gap-1">
+                  {(season.teams_detailed ?? []).length > 0 ? (
+                    (season.teams_detailed ?? []).map((t) => (
+                      <span
+                        key={t.team_id}
+                        className="inline-flex items-center gap-1 text-gray-700"
+                      >
+                        {t.logo ? (
+                          <span className="relative inline-block w-3.5 h-3.5">
+                            <Image
+                              src={t.logo}
+                              alt={t.team_name}
+                              fill
+                              sizes="14px"
+                              className="rounded-full object-cover"
+                            />
                           </span>
-                        ))
-                      ) : (
-                        <div className="hidden sm:block text-xs md:text-sm truncate max-w-[200px]">
-                          {season.teams.join(', ')}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  {/* 순위 */}
-                  <TableCell className="truncate">
-                    {season.position ?? '-'}
-                  </TableCell>
-                  {/* 경기 */}
-                  <TableCell className="truncate">
-                    {season.matches_played}
-                  </TableCell>
-                  {/* 승 */}
-                  <TableCell className="text-green-600 font-semibold truncate">
-                    {season.wins}
-                  </TableCell>
-                  {/* 패 */}
-                  <TableCell className="text-red-600 font-semibold truncate">
-                    {season.losses}
-                  </TableCell>
-                  {/* 승률 */}
-                  <TableCell className="font-semibold truncate">
-                    {season.win_rate}%
-                  </TableCell>
-                  {/* 득점 */}
-                  <TableCell className="hidden sm:table-cell truncate">
-                    {season.goals_for}
-                  </TableCell>
-                  {/* 실점 */}
-                  <TableCell className="hidden sm:table-cell truncate">
-                    {season.goals_against}
-                  </TableCell>
-                  {/* 득실차 */}
-                  <TableCell
-                    className={`hidden sm:table-cell ${season.goal_difference >= 0 ? 'text-green-600' : 'text-red-600'} truncate`}
-                  >
-                    {season.goal_difference >= 0 ? '+' : ''}
-                    {season.goal_difference}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+                        ) : (
+                          <span className="w-3.5 h-3.5 rounded-full bg-gray-200 inline-block" />
+                        )}
+                        <span className="hidden sm:inline whitespace-nowrap">
+                          {t.team_name}
+                        </span>
+                      </span>
+                    ))
+                  ) : (
+                    <span className="hidden sm:inline whitespace-nowrap">
+                      {season.teams.join(', ')}
+                    </span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="text-center whitespace-nowrap">
+                {season.position ?? '-'}
+              </TableCell>
+              <TableCell className="text-center whitespace-nowrap">
+                {season.matches_played}
+              </TableCell>
+              <TableCell className="text-center text-green-600 font-semibold whitespace-nowrap">
+                {season.wins}
+              </TableCell>
+              <TableCell className="text-center text-red-600 font-semibold whitespace-nowrap">
+                {season.losses}
+              </TableCell>
+              <TableCell className="text-center font-semibold whitespace-nowrap">
+                {season.win_rate}%
+              </TableCell>
+              <TableCell className="hidden sm:table-cell text-center whitespace-nowrap">
+                {season.goals_for}
+              </TableCell>
+              <TableCell className="hidden sm:table-cell text-center whitespace-nowrap">
+                {season.goals_against}
+              </TableCell>
+              <TableCell
+                className={`hidden sm:table-cell text-center whitespace-nowrap ${season.goal_difference >= 0 ? 'text-green-600' : 'text-red-600'}`}
+              >
+                {season.goal_difference >= 0 ? '+' : ''}
+                {season.goal_difference}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 

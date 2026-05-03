@@ -682,6 +682,8 @@ export interface CoachDetail extends Coach {
       team_id: number;
       team_name: string;
       logo: string | null;
+      primary_color: string | null;
+      secondary_color: string | null;
     };
     season: {
       season_id: number;
@@ -701,6 +703,8 @@ export interface CoachDetail extends Coach {
       away_team_id: number | null;
       home_score: number | null;
       away_score: number | null;
+      penalty_home_score: number | null;
+      penalty_away_score: number | null;
       home_team: {
         team_id: number;
         team_name: string;
@@ -808,6 +812,9 @@ export interface CoachTrophies {
     season_id: number;
     season_name: string;
     category: Season['category'];
+    team_id?: number;
+    team_name?: string;
+    team_logo?: string | null;
   }>;
 }
 
