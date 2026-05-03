@@ -35,12 +35,12 @@ export default function MatchDetailTabs({ match }: MatchDetailTabsProps) {
 
   return (
     <Tabs value={tab} onValueChange={onTabChange} className="mt-4">
-      <TabsList className="sticky top-0 z-10 w-full justify-start gap-1 bg-white">
+      <TabsList className="sticky top-0 z-10 w-full justify-start gap-0 rounded-none border-b border-gray-200 bg-white p-0">
         {tabs.map((t) => (
           <TabsTrigger
             key={t.value}
             value={t.value}
-            className="min-h-[44px] flex-1 text-sm"
+            className="relative min-h-[44px] flex-1 rounded-none bg-transparent px-4 text-sm font-medium text-gray-400 shadow-none hover:text-gray-900 data-[state=active]:bg-transparent data-[state=active]:text-gray-900 data-[state=active]:shadow-none data-[state=active]:after:absolute data-[state=active]:after:inset-x-0 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-gray-900 data-[state=active]:after:content-['']"
           >
             {t.label}
           </TabsTrigger>
