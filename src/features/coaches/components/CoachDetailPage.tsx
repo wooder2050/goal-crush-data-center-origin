@@ -550,15 +550,22 @@ function CoachMatchHistory({
 }: {
   matches: import('@/lib/types/database').CoachDetail['match_coaches'];
 }) {
-  // 최신순 정렬, head/head_coach role만, 스코어가 있는 경기만
+  // 최신순 정렬, head/head_coach role만, 결과 확정 경기만
   const sorted = useMemo(() => {
     return [...matches]
-      .filter(
-        (mc) =>
-          (mc.role === 'head' || mc.role === 'head_coach') &&
-          mc.match.home_score != null &&
-          mc.match.away_score != null
-      )
+      .filter((mc) => {
+        if (mc.role !== 'head' && mc.role !== 'head_coach') return false;
+        const m = mc.match;
+        if (m.home_score == null || m.away_score == null) return false;
+        // 동점인데 PK 결과 없는 경기는 미방영이므로 제외
+        if (
+          m.home_score === m.away_score &&
+          m.penalty_home_score == null &&
+          m.penalty_away_score == null
+        )
+          return false;
+        return true;
+      })
       .sort(
         (a, b) =>
           new Date(b.match.match_date).getTime() -
