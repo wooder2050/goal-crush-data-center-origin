@@ -46,6 +46,7 @@ function CoachDetailPageInner({ coachId }: CoachDetailPageProps) {
     let pkWins = 0;
     let pkLosses = 0;
     let losses = 0;
+    let counted = 0;
 
     for (const mc of matches) {
       const m = mc.match;
@@ -56,18 +57,24 @@ function CoachDetailPageInner({ coachId }: CoachDetailPageProps) {
 
       if (teamScore > oppScore) {
         wins++;
+        counted++;
       } else if (teamScore < oppScore) {
         losses++;
+        counted++;
       } else {
-        // 동점 → 승부차기
+        // 동점 → 승부차기 결과가 있는 경기만 카운트
         const pkTeam = isHome ? m.penalty_home_score : m.penalty_away_score;
         const pkOpp = isHome ? m.penalty_away_score : m.penalty_home_score;
         if (pkTeam != null && pkOpp != null) {
           if (pkTeam > pkOpp) pkWins++;
           else if (pkTeam < pkOpp) pkLosses++;
+          counted++;
         }
+        // PK 결과 없는 동점 경기는 아직 미방영이므로 제외
       }
     }
+
+    if (counted === 0) return null;
 
     return {
       teamId: targetTeamId,
@@ -75,7 +82,7 @@ function CoachDetailPageInner({ coachId }: CoachDetailPageProps) {
         currentTeamVerified?.team_name ??
         coach.team_coach_history?.[0]?.team?.team_name ??
         '-',
-      matches: matches.length,
+      matches: counted,
       wins,
       pkWins,
       pkLosses,
