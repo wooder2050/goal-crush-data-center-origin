@@ -8,6 +8,7 @@ import HeadToHeadOrTeamStatsSection, {
 } from '../HeadToHeadOrTeamStatsSection';
 import HeadToHeadSectionSkeleton from '../HeadToHeadSectionSkeleton';
 import MatchGoalkeeperStatsSectionSkeleton from '../MatchGoalkeeperStatsSectionSkeleton';
+import PassMapSection from '../PassMapSection';
 
 export default function StatsTab({ match }: { match: MatchWithTeams }) {
   const hasScore = match.home_score != null && match.away_score != null;
@@ -43,6 +44,16 @@ export default function StatsTab({ match }: { match: MatchWithTeams }) {
         <GoalWrapper fallback={<MatchGoalkeeperStatsSectionSkeleton />}>
           <GoalkeeperStatsSectionIfNoDetailedStats matchId={match.match_id} />
         </GoalWrapper>
+      )}
+
+      {hasScore && hasTeams && (
+        <PassMapSection
+          matchId={match.match_id}
+          homeTeamName={match.home_team?.team_name || '홈팀'}
+          homeTeamId={match.home_team_id!}
+          awayTeamName={match.away_team?.team_name || '원정팀'}
+          awayTeamId={match.away_team_id!}
+        />
       )}
     </div>
   );

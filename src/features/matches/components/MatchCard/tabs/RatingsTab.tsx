@@ -6,7 +6,6 @@ import type { MatchWithTeams } from '@/lib/types';
 import MatchDetailedStatsSection from '../MatchDetailedStatsSection';
 import MatchDetailedStatsSectionSkeleton from '../MatchDetailedStatsSectionSkeleton';
 import MatchPlayerRatingsSection from '../MatchPlayerRatingsSection';
-import PassMapSection from '../PassMapSection';
 
 export default function RatingsTab({ match }: { match: MatchWithTeams }) {
   const hasScore = match.home_score != null && match.away_score != null;
@@ -44,14 +43,6 @@ export default function RatingsTab({ match }: { match: MatchWithTeams }) {
           awayTeamSecondaryColor={match.away_team?.secondary_color || '#FFFFFF'}
         />
       </GoalWrapper>
-
-      <PassMapSection
-        matchId={match.match_id}
-        homeTeamName={match.home_team?.team_name || '홈팀'}
-        homeTeamId={match.home_team_id!}
-        awayTeamName={match.away_team?.team_name || '원정팀'}
-        awayTeamId={match.away_team_id!}
-      />
     </div>
   );
 }
