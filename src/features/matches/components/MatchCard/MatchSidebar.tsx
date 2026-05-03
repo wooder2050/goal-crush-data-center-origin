@@ -147,63 +147,94 @@ export default function MatchSidebar({
             </svg>
           </Link>
           <div className="space-y-1">
-            {recentSeasonMatches.map((m) => (
-              <Link
-                key={m.match_id}
-                href={`/matches/${m.match_id}`}
-                className="block rounded-lg px-2 py-2 transition-colors hover:bg-gray-50"
-              >
-                {/* 홈팀 */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {m.home_team?.logo ? (
-                      <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden">
-                        <Image
-                          src={m.home_team.logo}
-                          alt={m.home_team.team_name}
-                          width={16}
-                          height={16}
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-4 h-4 shrink-0 rounded-full bg-gray-200" />
-                    )}
-                    <span className="text-xs text-gray-800 truncate">
-                      {m.home_team?.team_name || '홈'}
-                    </span>
-                  </div>
-                  <span className="text-xs font-bold text-gray-900 tabular-nums">
-                    {m.home_score ?? '-'}
-                  </span>
-                </div>
+            {recentSeasonMatches.map((m) => {
+              const isCurrent = m.match_id === match.match_id;
+              const isCompleted = m.status === 'completed';
+              const scheduledDate = m.match_date
+                ? new Date(m.match_date).toLocaleDateString('ko-KR', {
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                : '';
 
-                {/* 원정팀 */}
-                <div className="flex items-center justify-between mt-0.5">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {m.away_team?.logo ? (
-                      <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden">
-                        <Image
-                          src={m.away_team.logo}
-                          alt={m.away_team.team_name}
-                          width={16}
-                          height={16}
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
+              return (
+                <Link
+                  key={m.match_id}
+                  href={`/matches/${m.match_id}`}
+                  className={`block rounded-lg px-2 py-2 transition-colors ${
+                    isCurrent ? 'bg-gray-900 text-white' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  {/* 홈팀 */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {m.home_team?.logo ? (
+                        <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden">
+                          <Image
+                            src={m.home_team.logo}
+                            alt={m.home_team.team_name}
+                            width={16}
+                            height={16}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-4 h-4 shrink-0 rounded-full bg-gray-200" />
+                      )}
+                      <span
+                        className={`text-xs truncate ${isCurrent ? 'text-white' : 'text-gray-800'}`}
+                      >
+                        {m.home_team?.team_name || '홈'}
+                      </span>
+                    </div>
+                    {isCompleted ? (
+                      <span
+                        className={`text-xs font-bold tabular-nums ${isCurrent ? 'text-white' : 'text-gray-900'}`}
+                      >
+                        {m.home_score ?? '-'}
+                      </span>
                     ) : (
-                      <div className="w-4 h-4 shrink-0 rounded-full bg-gray-200" />
+                      <span
+                        className={`text-[10px] ${isCurrent ? 'text-gray-300' : 'text-gray-400'}`}
+                      >
+                        {scheduledDate}
+                      </span>
                     )}
-                    <span className="text-xs text-gray-800 truncate">
-                      {m.away_team?.team_name || '원정'}
-                    </span>
                   </div>
-                  <span className="text-xs font-bold text-gray-900 tabular-nums">
-                    {m.away_score ?? '-'}
-                  </span>
-                </div>
-              </Link>
-            ))}
+
+                  {/* 원정팀 */}
+                  <div className="flex items-center justify-between mt-0.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {m.away_team?.logo ? (
+                        <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden">
+                          <Image
+                            src={m.away_team.logo}
+                            alt={m.away_team.team_name}
+                            width={16}
+                            height={16}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-4 h-4 shrink-0 rounded-full bg-gray-200" />
+                      )}
+                      <span
+                        className={`text-xs truncate ${isCurrent ? 'text-white' : 'text-gray-800'}`}
+                      >
+                        {m.away_team?.team_name || '원정'}
+                      </span>
+                    </div>
+                    {isCompleted && (
+                      <span
+                        className={`text-xs font-bold tabular-nums ${isCurrent ? 'text-white' : 'text-gray-900'}`}
+                      >
+                        {m.away_score ?? '-'}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}
