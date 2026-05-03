@@ -292,16 +292,16 @@ export function PassMap({
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-3 py-2 text-left font-medium text-gray-700">
+              <th className="px-1 sm:px-2 py-2 text-left font-medium text-gray-700">
                 선수
               </th>
-              <th className="px-2 py-2 text-center font-medium text-gray-700 whitespace-nowrap">
+              <th className="px-1 sm:px-2 py-2 text-center font-medium text-gray-700 whitespace-nowrap">
                 패스
               </th>
-              <th className="px-2 py-2 text-center font-medium text-gray-700 whitespace-nowrap">
+              <th className="px-1 sm:px-2 py-2 text-center font-medium text-gray-700 whitespace-nowrap">
                 성공
               </th>
-              <th className="px-2 py-2 text-center font-medium text-gray-700 whitespace-nowrap">
+              <th className="px-1 sm:px-2 py-2 text-center font-medium text-gray-700 whitespace-nowrap">
                 성공률
               </th>
             </tr>
@@ -323,7 +323,7 @@ export function PassMap({
                     key={player.jersey_number}
                     className="border-t border-gray-200 hover:bg-gray-50"
                   >
-                    <td className="px-2 sm:px-3 py-2">
+                    <td className="px-1 sm:px-2 py-2">
                       <div className="flex items-center gap-1 sm:gap-2">
                         {player.profile_image_url ? (
                           <span className="relative h-6 w-6 overflow-hidden rounded-full flex-shrink-0 hidden sm:block">
@@ -348,13 +348,13 @@ export function PassMap({
                         </span>
                       </div>
                     </td>
-                    <td className="px-2 py-2 text-center tabular-nums">
+                    <td className="px-1 sm:px-2 py-2 text-center tabular-nums">
                       {player.total_passes}
                     </td>
-                    <td className="px-2 py-2 text-center tabular-nums text-green-600">
+                    <td className="px-1 sm:px-2 py-2 text-center tabular-nums text-green-600">
                       {player.success_passes}
                     </td>
-                    <td className="px-2 py-2 text-center tabular-nums">
+                    <td className="px-1 sm:px-2 py-2 text-center tabular-nums">
                       {rate}%
                     </td>
                   </tr>

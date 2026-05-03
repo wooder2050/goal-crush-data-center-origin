@@ -845,3 +845,55 @@ export const getMatchXtRatingsPrisma = async (
   }
   return response.json();
 };
+
+// ============== Match Timeline ==============
+
+export interface TimelineTeamInfo {
+  team_id: number;
+  team_name: string;
+  logo: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+}
+
+export interface TimelineGoal {
+  goal_id: number;
+  player_id: number;
+  player_name: string;
+  profile_image_url: string | null;
+  team_id: number | null;
+  goal_time: number | null;
+  goal_type: string | null;
+  assists: {
+    player_id: number;
+    player_name: string;
+    profile_image_url: string | null;
+  }[];
+}
+
+export interface TimelineCard {
+  player_id: number;
+  player_name: string;
+  profile_image_url: string | null;
+  team_id: number;
+  card_type: 'yellow' | 'red';
+  period_id: number;
+  action_index: number;
+}
+
+export interface MatchTimelineResponse {
+  home_team: TimelineTeamInfo | null;
+  away_team: TimelineTeamInfo | null;
+  goals: TimelineGoal[];
+  cards: TimelineCard[];
+}
+
+export const getMatchTimelinePrisma = async (
+  matchId: number
+): Promise<MatchTimelineResponse> => {
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/timeline`));
+  if (!response.ok) {
+    return { home_team: null, away_team: null, goals: [], cards: [] };
+  }
+  return response.json();
+};

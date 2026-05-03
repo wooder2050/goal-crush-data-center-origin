@@ -1,5 +1,7 @@
 'use client';
 
+import { ChevronLeft } from 'lucide-react';
+import Link from 'next/link';
 import React from 'react';
 
 import { ShareButtons } from '@/components/ShareButtons';
@@ -30,6 +32,15 @@ export default function MatchDetailPageContent({
     <main className="min-h-screen bg-white">
       <Section padding="sm">
         <div className="mx-auto max-w-5xl">
+          {match.season_id && (
+            <Link
+              href={`/seasons/${match.season_id}`}
+              className="mb-3 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              {match.season?.season_name || '시즌 목록'}
+            </Link>
+          )}
           <div className="mb-4 flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">경기 상세</h1>
             <ShareButtons
@@ -58,7 +69,10 @@ export default function MatchDetailPageContent({
               </div>
               <aside className="hidden lg:block">
                 <div className="sticky top-4 space-y-4">
-                  <MatchSidebar match={initialData.match} />
+                  <MatchSidebar
+                    match={initialData.match}
+                    recentSeasonMatches={initialData.recentSeasonMatches}
+                  />
                 </div>
               </aside>
             </div>

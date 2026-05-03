@@ -1,14 +1,22 @@
 'use client';
 
-import { Calendar, MapPin, MonitorPlay, Tv } from 'lucide-react';
+import { Calendar, ChevronRight, MapPin, MonitorPlay, Tv } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 import type { MatchWithTeams } from '@/lib/types';
 
+import type { SeasonMatchItem } from '../../server';
+
 interface MatchSidebarProps {
   match: MatchWithTeams;
+  recentSeasonMatches?: SeasonMatchItem[];
 }
 
-export default function MatchSidebar({ match }: MatchSidebarProps) {
+export default function MatchSidebar({
+  match,
+  recentSeasonMatches = [],
+}: MatchSidebarProps) {
   const matchDate = match.match_date
     ? new Date(match.match_date).toLocaleDateString('ko-KR', {
         year: 'numeric',
@@ -113,6 +121,110 @@ export default function MatchSidebar({ match }: MatchSidebarProps) {
           )}
         </dl>
       </div>
+
+      {/* 같은 시즌 경기 */}
+      {recentSeasonMatches.length > 0 && (
+        <div className="rounded-xl border border-gray-100 bg-white p-4">
+          <Link
+            href={`/seasons/${match.season_id}`}
+            className="mb-3 flex items-center justify-between group"
+          >
+            <h3 className="text-xs font-semibold text-gray-900 group-hover:underline truncate">
+              {seasonName || '시즌'}
+            </h3>
+            <ChevronRight
+              className="h-3.5 w-3.5 shrink-0 text-gray-400 group-hover:text-gray-900"
+              aria-hidden="true"
+            />
+          </Link>
+          <div>
+            {recentSeasonMatches.map((m) => {
+              const isCurrent = m.match_id === match.match_id;
+              const isCompleted = m.status === 'completed';
+              const scheduledDate = m.match_date
+                ? new Date(m.match_date).toLocaleDateString('ko-KR', {
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                : '';
+
+              return (
+                <Link
+                  key={m.match_id}
+                  href={`/matches/${m.match_id}`}
+                  aria-current={isCurrent ? 'page' : undefined}
+                  className={`flex items-center gap-2 rounded-lg px-2 py-2.5 transition-colors ${
+                    isCurrent ? 'bg-gray-100' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  {/* 팀 정보 (왼쪽) */}
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      {m.home_team?.logo ? (
+                        <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden">
+                          <Image
+                            src={m.home_team.logo}
+                            alt={m.home_team.team_name}
+                            width={16}
+                            height={16}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-4 h-4 shrink-0 rounded-full bg-gray-200" />
+                      )}
+                      <span className="text-xs text-gray-800 truncate">
+                        {m.home_team?.team_name || '홈'}
+                      </span>
+                      {isCompleted && (
+                        <span className="ml-auto text-xs font-bold text-gray-900 tabular-nums">
+                          {m.home_score ?? '-'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {m.away_team?.logo ? (
+                        <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden">
+                          <Image
+                            src={m.away_team.logo}
+                            alt={m.away_team.team_name}
+                            width={16}
+                            height={16}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-4 h-4 shrink-0 rounded-full bg-gray-200" />
+                      )}
+                      <span className="text-xs text-gray-800 truncate">
+                        {m.away_team?.team_name || '원정'}
+                      </span>
+                      {isCompleted && (
+                        <span className="ml-auto text-xs font-bold text-gray-900 tabular-nums">
+                          {m.away_score ?? '-'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 상태 (오른쪽, 세로 중앙) */}
+                  <div className="shrink-0 w-14 text-center">
+                    {isCompleted ? (
+                      <span className="text-[10px] text-gray-400">FT</span>
+                    ) : m.is_date_confirmed ? (
+                      <span className="text-[10px] text-gray-400 leading-tight">
+                        {scheduledDate}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-gray-400">예정</span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
