@@ -117,7 +117,7 @@ function PassMapSectionInner({
                   </h6>
                   <RawDataPitch
                     actions={rawActions.filter(
-                      (a: { team_id: number; period_id: number }) =>
+                      (a) =>
                         a.team_id === homeTeamId &&
                         (a.period_id === 1 || a.period_id === 3)
                     )}
@@ -131,7 +131,7 @@ function PassMapSectionInner({
                   </h6>
                   <RawDataPitch
                     actions={rawActions.filter(
-                      (a: { team_id: number; period_id: number }) =>
+                      (a) =>
                         a.team_id === homeTeamId &&
                         (a.period_id === 2 || a.period_id === 4)
                     )}
@@ -152,7 +152,7 @@ function PassMapSectionInner({
                   </h6>
                   <RawDataPitch
                     actions={rawActions.filter(
-                      (a: { team_id: number; period_id: number }) =>
+                      (a) =>
                         a.team_id === awayTeamId &&
                         (a.period_id === 1 || a.period_id === 3)
                     )}
@@ -166,7 +166,7 @@ function PassMapSectionInner({
                   </h6>
                   <RawDataPitch
                     actions={rawActions.filter(
-                      (a: { team_id: number; period_id: number }) =>
+                      (a) =>
                         a.team_id === awayTeamId &&
                         (a.period_id === 2 || a.period_id === 4)
                     )}
