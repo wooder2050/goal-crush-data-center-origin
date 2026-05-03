@@ -22,6 +22,7 @@ export default function StatsTab({ match }: { match: MatchWithTeams }) {
 
   return (
     <div className="space-y-3 sm:space-y-4">
+      {/* 팀 통계 비교 (상세 통계가 있는 경기만) */}
       {hasTeams && (
         <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
           <HeadToHeadOrTeamStatsSection
@@ -46,24 +47,28 @@ export default function StatsTab({ match }: { match: MatchWithTeams }) {
         </GoalWrapper>
       )}
 
+      {/* 골키퍼 통계 */}
+      {hasScore && (
+        <GoalWrapper fallback={<MatchGoalkeeperStatsSectionSkeleton />}>
+          <GoalkeeperStatsSectionIfNoDetailedStats matchId={match.match_id} />
+        </GoalWrapper>
+      )}
+
+      {/* 맞대결 전적 (항상 표시) */}
       <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
         <HeadToHeadSection matchId={match.match_id} />
       </GoalWrapper>
       <GoalWrapper fallback={<HeadToHeadListSkeleton />}>
         <HeadToHeadList matchId={match.match_id} />
       </GoalWrapper>
+
+      {/* 감독 맞대결 (항상 표시) */}
       <GoalWrapper fallback={<CoachHeadToHeadSectionSkeleton />}>
         <CoachHeadToHeadSection matchId={match.match_id} />
       </GoalWrapper>
       <GoalWrapper fallback={<CoachHeadToHeadListSkeleton />}>
         <CoachHeadToHeadList matchId={match.match_id} />
       </GoalWrapper>
-
-      {hasScore && (
-        <GoalWrapper fallback={<MatchGoalkeeperStatsSectionSkeleton />}>
-          <GoalkeeperStatsSectionIfNoDetailedStats matchId={match.match_id} />
-        </GoalWrapper>
-      )}
     </div>
   );
 }
