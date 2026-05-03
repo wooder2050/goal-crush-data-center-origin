@@ -39,7 +39,10 @@ export async function GET(request: NextRequest) {
       // 해당 코치들의 경기 메트릭 계산을 위한 match_coach 조회 (role=head)
       const matchRows = allCoachIds.length
         ? await prisma.matchCoach.findMany({
-            where: { role: 'head', coach_id: { in: allCoachIds } },
+            where: {
+              role: { in: ['head', 'head_coach'] },
+              coach_id: { in: allCoachIds },
+            },
             select: {
               coach_id: true,
               team_id: true,
@@ -220,7 +223,7 @@ export async function GET(request: NextRequest) {
       // 경기 결과가 있는 경기만 카운트하기 위해 match join 필요
       const matchCoachesWithResults = await prisma.matchCoach.findMany({
         where: {
-          role: 'head',
+          role: { in: ['head', 'head_coach'] },
           match: {
             home_score: { not: null },
             away_score: { not: null },

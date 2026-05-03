@@ -543,11 +543,14 @@ function CoachMatchHistory({
 }: {
   matches: import('@/lib/types/database').CoachDetail['match_coaches'];
 }) {
-  // 최신순 정렬, 스코어가 있는 경기만
+  // 최신순 정렬, head/head_coach role만, 스코어가 있는 경기만
   const sorted = useMemo(() => {
     return [...matches]
       .filter(
-        (mc) => mc.match.home_score != null && mc.match.away_score != null
+        (mc) =>
+          (mc.role === 'head' || mc.role === 'head_coach') &&
+          mc.match.home_score != null &&
+          mc.match.away_score != null
       )
       .sort(
         (a, b) =>
@@ -851,28 +854,34 @@ function CoachWinRateByTeam({
     const items: Item[] = [];
 
     // seasonStats는 season_id asc 정렬됨
+    // 멀티팀 시즌은 각 팀별로 별도 항목 (통계는 시즌 전체를 팀 수로 균등 분배하지 않고 첫 팀에만 귀속)
     for (const s of seasonStats) {
-      const teamId = s.teams_detailed?.[0]?.team_id;
-      if (teamId == null) continue;
+      const teams = s.teams_detailed ?? [];
+      if (teams.length === 0) continue;
 
-      const prev = items[items.length - 1];
-      if (prev && prev.team_id === teamId) {
-        // 연속 같은 팀 → 병합
-        prev.matches += s.matches_played ?? 0;
-        prev.wins += s.wins ?? 0;
-        prev.losses += s.losses ?? 0;
-      } else {
-        const t = s.teams_detailed![0];
-        items.push({
-          key: `${teamId}-${s.season_id}`,
-          team_id: teamId,
-          team_name: t.team_name,
-          logo: t.logo,
-          color: teamColorMap.get(teamId) ?? '#1F2937',
-          matches: s.matches_played ?? 0,
-          wins: s.wins ?? 0,
-          losses: s.losses ?? 0,
-        });
+      // 단일 팀 시즌 또는 첫 번째 팀
+      for (let ti = 0; ti < teams.length; ti++) {
+        const t = teams[ti];
+        const prev = items[items.length - 1];
+        if (prev && prev.team_id === t.team_id) {
+          // 연속 같은 팀 → 병합 (첫 번째 팀만 통계 합산)
+          if (ti === 0) {
+            prev.matches += s.matches_played ?? 0;
+            prev.wins += s.wins ?? 0;
+            prev.losses += s.losses ?? 0;
+          }
+        } else {
+          items.push({
+            key: `${t.team_id}-${s.season_id}`,
+            team_id: t.team_id,
+            team_name: t.team_name,
+            logo: t.logo,
+            color: teamColorMap.get(t.team_id) ?? '#1F2937',
+            matches: ti === 0 ? (s.matches_played ?? 0) : 0,
+            wins: ti === 0 ? (s.wins ?? 0) : 0,
+            losses: ti === 0 ? (s.losses ?? 0) : 0,
+          });
+        }
       }
     }
 
