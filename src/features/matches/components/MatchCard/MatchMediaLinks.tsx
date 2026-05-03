@@ -3,6 +3,7 @@
 import { Tv } from 'lucide-react';
 import React from 'react';
 
+import { Button } from '@/components/ui/button';
 import { MatchWithTeams } from '@/lib/types/database';
 
 interface MatchMediaLinksProps {
@@ -23,44 +24,46 @@ const MatchMediaLinks: React.FC<MatchMediaLinksProps> = ({
 
   return (
     <div
-      className={`mb-2 sm:mb-3 flex w-full items-center justify-center sm:justify-end gap-2 flex-wrap ${className}`}
+      className={`mb-2 flex items-center justify-end gap-1.5 lg:hidden ${className}`}
     >
       {hasRating && (
-        <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-gray-700">
+        <span className="inline-flex items-center gap-1 text-[10px] text-gray-400">
           <Tv className="h-3 w-3" />
           {match.rating_nationwide != null && (
-            <span>전국 {Number(match.rating_nationwide)}%</span>
+            <span>{Number(match.rating_nationwide)}%</span>
           )}
           {match.rating_nationwide != null &&
             match.rating_metropolitan != null && (
-              <span className="text-gray-300">|</span>
+              <span className="text-gray-300">/</span>
             )}
           {match.rating_metropolitan != null && (
-            <span>수도권 {Number(match.rating_metropolitan)}%</span>
+            <span>{Number(match.rating_metropolitan)}%</span>
           )}
         </span>
       )}
       {match.highlight_url && (
-        <a
-          href={match.highlight_url}
-          target="_blank"
-          rel="noreferrer noopener"
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center rounded-md bg-black px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-white shadow-sm hover:bg-black/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50"
-        >
-          🎦 하이라이트
-        </a>
+        <Button variant="outline" size="xs" asChild>
+          <a
+            href={match.highlight_url}
+            target="_blank"
+            rel="noreferrer noopener"
+            onClick={(e) => e.stopPropagation()}
+          >
+            하이라이트
+          </a>
+        </Button>
       )}
       {match.full_video_url && (
-        <a
-          href={match.full_video_url}
-          target="_blank"
-          rel="noreferrer noopener"
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center rounded-md border px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-gray-700 hover:bg-gray-50"
-        >
-          ▶️ 풀영상
-        </a>
+        <Button variant="outline" size="xs" asChild>
+          <a
+            href={match.full_video_url}
+            target="_blank"
+            rel="noreferrer noopener"
+            onClick={(e) => e.stopPropagation()}
+          >
+            풀영상
+          </a>
+        </Button>
       )}
     </div>
   );

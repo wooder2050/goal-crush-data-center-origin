@@ -63,12 +63,12 @@ function PassMapSectionInner({
           SPADL 이벤트 데이터 기반
         </span>
       </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {sortedPassMapData.map((teamData) => {
           const isHomeTeam = teamData.team_id === homeTeamId;
           return (
             <Card key={teamData.team_id} className="h-full">
-              <CardContent className="px-4 py-4">
+              <CardContent className="px-2 py-2 sm:px-3 sm:py-3">
                 <PassMap
                   players={teamData.players}
                   connections={teamData.connections}
