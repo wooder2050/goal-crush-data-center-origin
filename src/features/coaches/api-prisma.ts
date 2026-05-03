@@ -93,7 +93,7 @@ export async function computeCoachSeasonStats(
   coachId: number
 ): Promise<CoachSeasonStats[]> {
   const matchCoaches = await db.matchCoach.findMany({
-    where: { coach_id: coachId, role: 'head' },
+    where: { coach_id: coachId, role: { in: ['head', 'head_coach'] } },
     select: {
       team: { select: { team_id: true, team_name: true } },
       match: {
@@ -383,7 +383,7 @@ export async function computeCoachTrophies(
     const coachMatches = await db.matchCoach.findMany({
       where: {
         coach_id: coachId,
-        role: 'head',
+        role: { in: ['head', 'head_coach'] },
         team_id: { in: seasonTeamPairs.map((p) => p.team_id) },
         match: { season_id: { in: seasonTeamPairs.map((p) => p.season_id) } },
       },
@@ -397,6 +397,24 @@ export async function computeCoachTrophies(
   const pairSet = new Set(
     coachSeasonTeamPairs.map((p) => `${p.season_id}:${p.team_id}`)
   );
+  // 팀 정보 조회 (team_id → name, logo)
+  const trophyTeamIds = Array.from(
+    new Set(
+      wins
+        .filter(
+          (w) =>
+            w.season_id != null &&
+            w.team_id != null &&
+            pairSet.has(`${w.season_id}:${w.team_id}`)
+        )
+        .map((w) => w.team_id!)
+    )
+  );
+  const trophyTeams =
+    trophyTeamIds.length > 0
+      ? await getTeamsByIdsCached(db, trophyTeamIds)
+      : new Map();
+
   const items: CoachTrophies['items'] = wins
     .filter(
       (w) =>
@@ -404,13 +422,19 @@ export async function computeCoachTrophies(
         w.team_id != null &&
         pairSet.has(`${w.season_id}:${w.team_id}`)
     )
-    .map((w) => ({
-      season_id: w.season_id!,
-      season_name: w.season?.season_name ?? 'Unknown',
-      category:
-        (w.season as Partial<Pick<Season, 'category'>> | null)?.category ??
-        null,
-    }))
+    .map((w) => {
+      const team = trophyTeams.get(w.team_id!);
+      return {
+        season_id: w.season_id!,
+        season_name: w.season?.season_name ?? 'Unknown',
+        category:
+          (w.season as Partial<Pick<Season, 'category'>> | null)?.category ??
+          null,
+        team_id: w.team_id!,
+        team_name: team?.team_name ?? 'Unknown',
+        team_logo: team?.logo ?? null,
+      };
+    })
     .filter((it) => {
       if (!it) return false;
       if (it.season_name?.includes('조별')) return false;
