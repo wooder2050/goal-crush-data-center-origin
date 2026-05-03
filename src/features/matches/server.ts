@@ -4,8 +4,20 @@ import type { MatchWithTeams } from '@/lib/types';
 
 // ── Types ──────────────────────────────────────────────
 
+export type SeasonMatchItem = {
+  match_id: number;
+  match_date: string;
+  home_score: number | null;
+  away_score: number | null;
+  status: string | null;
+  is_date_confirmed: boolean;
+  home_team: { team_id: number; team_name: string; logo: string | null } | null;
+  away_team: { team_id: number; team_name: string; logo: string | null } | null;
+};
+
 export type InitialMatchDetailData = {
   match: MatchWithTeams;
+  recentSeasonMatches: SeasonMatchItem[];
 };
 
 // Prisma 클라이언트에 teamSeasonName 메서드가 없는 문제를 해결하기 위한 타입 확장
@@ -259,6 +271,7 @@ export async function getInitialMatchDetailData(
       ? Number(match.rating_metropolitan)
       : null,
     broadcast_time: match.broadcast_time ?? null,
+    summary: (match as unknown as { summary?: string | null }).summary ?? null,
     created_at: match.created_at?.toISOString() ?? null,
     updated_at: match.updated_at?.toISOString() ?? null,
     home_team: match.home_team
@@ -280,5 +293,86 @@ export async function getInitialMatchDetailData(
     away_coach: match.away_coach ? serializeCoach(match.away_coach) : null,
   };
 
-  return { match: serializedMatch };
+  // 같은 시즌의 이전 5경기 + 현재 + 다음 2경기 조회
+  let recentSeasonMatches: SeasonMatchItem[] = [];
+  if (match.season_id && match.match_date) {
+    const teamSelect = {
+      select: { team_id: true, team_name: true, logo: true },
+    } as const;
+
+    const [prevRaw, nextRaw] = await Promise.all([
+      prisma.match.findMany({
+        where: {
+          season_id: match.season_id,
+          match_date: { lt: match.match_date },
+        },
+        orderBy: { match_date: 'desc' },
+        take: 5,
+        include: { home_team: teamSelect, away_team: teamSelect },
+      }),
+      prisma.match.findMany({
+        where: {
+          season_id: match.season_id,
+          match_date: { gt: match.match_date },
+        },
+        orderBy: { match_date: 'asc' },
+        take: 2,
+        include: { home_team: teamSelect, away_team: teamSelect },
+      }),
+    ]);
+
+    const serializeItem = (m: (typeof prevRaw)[number]): SeasonMatchItem => ({
+      match_id: m.match_id,
+      match_date: m.match_date.toISOString(),
+      home_score: m.home_score,
+      away_score: m.away_score,
+      status: m.status,
+      is_date_confirmed: m.is_date_confirmed,
+      home_team: m.home_team
+        ? {
+            team_id: m.home_team.team_id,
+            team_name: m.home_team.team_name,
+            logo: m.home_team.logo,
+          }
+        : null,
+      away_team: m.away_team
+        ? {
+            team_id: m.away_team.team_id,
+            team_name: m.away_team.team_name,
+            logo: m.away_team.logo,
+          }
+        : null,
+    });
+
+    const currentItem: SeasonMatchItem = {
+      match_id: match.match_id,
+      match_date: match.match_date.toISOString(),
+      home_score: match.home_score,
+      away_score: match.away_score,
+      status: match.status,
+      is_date_confirmed: match.is_date_confirmed,
+      home_team: match.home_team
+        ? {
+            team_id: match.home_team.team_id,
+            team_name: match.home_team.team_name,
+            logo: match.home_team.logo,
+          }
+        : null,
+      away_team: match.away_team
+        ? {
+            team_id: match.away_team.team_id,
+            team_name: match.away_team.team_name,
+            logo: match.away_team.logo,
+          }
+        : null,
+    };
+
+    recentSeasonMatches = [
+      ...prevRaw.reverse().map(serializeItem),
+      currentItem,
+      ...nextRaw.map(serializeItem),
+    ];
+  }
+
+  return { match: serializedMatch, recentSeasonMatches };
 }

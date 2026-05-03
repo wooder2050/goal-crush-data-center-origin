@@ -10,6 +10,8 @@ import GoalSection from '../GoalSection';
 import GoalSectionSkeleton from '../GoalSectionSkeleton';
 import KeyPlayersSection from '../KeyPlayersSection';
 import KeyPlayersSectionSkeleton from '../KeyPlayersSectionSkeleton';
+import MatchSummarySection from '../MatchSummarySection';
+import MatchTimelineSection from '../MatchTimelineSection';
 import PenaltyShootoutSection from '../PenaltyShootoutSection';
 import PenaltyShootoutSectionSkeleton from '../PenaltyShootoutSectionSkeleton';
 import RecentFormSection from '../RecentFormSection';
@@ -17,6 +19,7 @@ import RecentFormSectionSkeleton from '../RecentFormSectionSkeleton';
 
 export default function SummaryTab({ match }: { match: MatchWithTeams }) {
   const hasScore = match.home_score != null && match.away_score != null;
+  const hasTeams = match.home_team_id != null && match.away_team_id != null;
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -36,6 +39,14 @@ export default function SummaryTab({ match }: { match: MatchWithTeams }) {
           <GoalWrapper fallback={<RecentFormSectionSkeleton />}>
             <RecentFormSection match={match} />
           </GoalWrapper>
+          <MatchSummarySection summary={match.summary} />
+          {hasTeams && (
+            <MatchTimelineSection
+              matchId={match.match_id}
+              homeTeamId={match.home_team_id!}
+              awayTeamId={match.away_team_id!}
+            />
+          )}
         </>
       ) : (
         <>

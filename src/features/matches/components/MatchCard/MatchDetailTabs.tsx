@@ -1,9 +1,14 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { useHashTab } from '@/hooks/useHashTab';
 import type { MatchWithTeams } from '@/lib/types';
 
+import {
+  getMatchRatingsPrisma,
+  getMatchXtRatingsPrisma,
+} from '../../api-prisma';
 import LineupsTab from './tabs/LineupsTab';
 import RatingsTab from './tabs/RatingsTab';
 import StatsTab from './tabs/StatsTab';
@@ -18,11 +23,26 @@ export default function MatchDetailTabs({ match }: MatchDetailTabsProps) {
   const hasTeams = match.home_team_id != null && match.away_team_id != null;
   const { tab, onTabChange } = useHashTab('summary');
 
+  const { data: ratingsData } = useGoalQuery(
+    getMatchRatingsPrisma,
+    [match.match_id],
+    { enabled: hasScore && hasTeams }
+  );
+  const { data: xtRatingsData } = useGoalQuery(
+    getMatchXtRatingsPrisma,
+    [match.match_id],
+    { enabled: hasScore && hasTeams }
+  );
+
+  const hasRatings =
+    (ratingsData?.ratings && ratingsData.ratings.length > 0) ||
+    (xtRatingsData?.ratings && xtRatingsData.ratings.length > 0);
+
   const completedTabs = [
     { value: 'summary', label: '요약' },
     { value: 'lineups', label: '라인업' },
     { value: 'stats', label: '통계' },
-    ...(hasTeams ? [{ value: 'ratings', label: '평점' }] : []),
+    ...(hasTeams && hasRatings ? [{ value: 'ratings', label: '평점' }] : []),
   ];
 
   const previewTabs = [

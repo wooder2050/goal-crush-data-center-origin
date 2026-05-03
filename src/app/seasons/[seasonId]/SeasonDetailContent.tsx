@@ -1,6 +1,8 @@
 'use client';
 
+import { ChevronLeft } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Section } from '@/components/ui';
@@ -49,6 +51,13 @@ export default function SeasonDetailContent({
 
   return (
     <Section padding="sm" className="pt-2 sm:pt-3">
+      <Link
+        href="/seasons"
+        className="mb-3 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
+      >
+        <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+        시즌 목록
+      </Link>
       <div className="space-y-6">
         <GoalWrapper fallback={<UpcomingMatchesSkeleton items={1} />}>
           <UpcomingMatches seasonId={season.season_id} limit={10} />

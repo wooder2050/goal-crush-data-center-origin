@@ -67,8 +67,8 @@ function PassMapSectionInner({
         {sortedPassMapData.map((teamData) => {
           const isHomeTeam = teamData.team_id === homeTeamId;
           return (
-            <Card key={teamData.team_id} className="h-full">
-              <CardContent className="px-2 py-2 sm:px-3 sm:py-3">
+            <Card key={teamData.team_id} className="p-1 sm:p-1 h-full">
+              <CardContent className="px-1 py-2 sm:px-2 sm:py-3">
                 <PassMap
                   players={teamData.players}
                   connections={teamData.connections}
