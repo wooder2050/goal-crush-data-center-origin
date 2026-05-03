@@ -78,7 +78,9 @@ const CoachTimeline: React.FC<CoachTimelineProps> = ({ mergedCareer }) => {
                   ? ` - ${new Date(item.end_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short' })}`
                   : ''}
               <span className="mx-1">·</span>
-              {item.role === 'head' || item.role === 'head_coach' ? '감독' : '코치'}
+              {item.role === 'head' || item.role === 'head_coach'
+                ? '감독'
+                : '코치'}
             </p>
           </div>
         </Link>

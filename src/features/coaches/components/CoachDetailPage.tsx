@@ -25,8 +25,6 @@ function CoachDetailPageInner({ coachId }: CoachDetailPageProps) {
   const currentTeamVerified = full?.current_team_verified;
   const trophies = overview?.trophies;
 
-
-
   // 현재 팀(또는 최신 팀) 기준 경기 결과 통계
   const currentTeamStats = useMemo(() => {
     const targetTeamId =
@@ -62,12 +60,8 @@ function CoachDetailPageInner({ coachId }: CoachDetailPageProps) {
         losses++;
       } else {
         // 동점 → 승부차기
-        const pkTeam = isHome
-          ? m.penalty_home_score
-          : m.penalty_away_score;
-        const pkOpp = isHome
-          ? m.penalty_away_score
-          : m.penalty_home_score;
+        const pkTeam = isHome ? m.penalty_home_score : m.penalty_away_score;
+        const pkOpp = isHome ? m.penalty_away_score : m.penalty_home_score;
         if (pkTeam != null && pkOpp != null) {
           if (pkTeam > pkOpp) pkWins++;
           else if (pkTeam < pkOpp) pkLosses++;
@@ -521,7 +515,9 @@ function CoachDetailPageInner({ coachId }: CoachDetailPageProps) {
                             ? ` - ${new Date(item.end_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short' })}`
                             : ''}
                         <span className="mx-1">·</span>
-                        {item.role === 'head' || item.role === 'head_coach' ? '감독' : '코치'}
+                        {item.role === 'head' || item.role === 'head_coach'
+                          ? '감독'
+                          : '코치'}
                       </p>
                     </div>
                   </Link>
@@ -533,7 +529,6 @@ function CoachDetailPageInner({ coachId }: CoachDetailPageProps) {
             {trophies && trophies.items.length > 0 && (
               <CoachTrophiesByTeam trophies={trophies} />
             )}
-
           </div>
         </div>
       </div>
@@ -551,7 +546,9 @@ function CoachMatchHistory({
   // 최신순 정렬, 스코어가 있는 경기만
   const sorted = useMemo(() => {
     return [...matches]
-      .filter((mc) => mc.match.home_score != null && mc.match.away_score != null)
+      .filter(
+        (mc) => mc.match.home_score != null && mc.match.away_score != null
+      )
       .sort(
         (a, b) =>
           new Date(b.match.match_date).getTime() -
@@ -578,12 +575,8 @@ function CoachMatchHistory({
           const teamScore = isHome ? m.home_score! : m.away_score!;
           const oppScore = isHome ? m.away_score! : m.home_score!;
           const opponent = isHome ? m.away_team : m.home_team;
-          const pkTeam = isHome
-            ? m.penalty_home_score
-            : m.penalty_away_score;
-          const pkOpp = isHome
-            ? m.penalty_away_score
-            : m.penalty_home_score;
+          const pkTeam = isHome ? m.penalty_home_score : m.penalty_away_score;
+          const pkOpp = isHome ? m.penalty_away_score : m.penalty_home_score;
 
           let result: 'W' | 'L' | 'D' = 'D';
           let resultLabel = '무';
@@ -737,9 +730,7 @@ function CoachTrophiesByTeam({
           team_id: teamId,
           team_name: it.team_name ?? 'Unknown',
           team_logo: it.team_logo ?? null,
-          items: [
-            { season_id: it.season_id, season_name: it.season_name },
-          ],
+          items: [{ season_id: it.season_id, season_name: it.season_name }],
         });
       }
     }
@@ -887,12 +878,8 @@ function CoachWinRateByTeam({
 
     return items.map((it) => ({
       ...it,
-      win_rate:
-        it.matches > 0 ? Math.round((it.wins / it.matches) * 100) : 0,
-      ppg:
-        it.matches > 0
-          ? ((it.wins * 3) / it.matches).toFixed(1)
-          : '0.0',
+      win_rate: it.matches > 0 ? Math.round((it.wins / it.matches) * 100) : 0,
+      ppg: it.matches > 0 ? ((it.wins * 3) / it.matches).toFixed(1) : '0.0',
     }));
   }, [seasonStats, teamColorMap]);
 
