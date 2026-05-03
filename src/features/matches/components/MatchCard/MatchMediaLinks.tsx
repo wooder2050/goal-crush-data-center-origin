@@ -3,6 +3,7 @@
 import { Tv } from 'lucide-react';
 import React from 'react';
 
+import { Button } from '@/components/ui/button';
 import { MatchWithTeams } from '@/lib/types/database';
 
 interface MatchMediaLinksProps {
@@ -26,7 +27,7 @@ const MatchMediaLinks: React.FC<MatchMediaLinksProps> = ({
       className={`mb-2 flex items-center justify-end gap-1.5 lg:hidden ${className}`}
     >
       {hasRating && (
-        <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-gray-500">
+        <span className="inline-flex items-center gap-1 text-[10px] text-gray-400">
           <Tv className="h-3 w-3" />
           {match.rating_nationwide != null && (
             <span>{Number(match.rating_nationwide)}%</span>
@@ -41,26 +42,28 @@ const MatchMediaLinks: React.FC<MatchMediaLinksProps> = ({
         </span>
       )}
       {match.highlight_url && (
-        <a
-          href={match.highlight_url}
-          target="_blank"
-          rel="noreferrer noopener"
-          onClick={(e) => e.stopPropagation()}
-          className="rounded px-1.5 py-0.5 text-[10px] font-medium text-blue-600 hover:underline"
-        >
-          하이라이트
-        </a>
+        <Button variant="outline" size="xs" asChild>
+          <a
+            href={match.highlight_url}
+            target="_blank"
+            rel="noreferrer noopener"
+            onClick={(e) => e.stopPropagation()}
+          >
+            하이라이트
+          </a>
+        </Button>
       )}
       {match.full_video_url && (
-        <a
-          href={match.full_video_url}
-          target="_blank"
-          rel="noreferrer noopener"
-          onClick={(e) => e.stopPropagation()}
-          className="rounded px-1.5 py-0.5 text-[10px] font-medium text-blue-600 hover:underline"
-        >
-          풀영상
-        </a>
+        <Button variant="outline" size="xs" asChild>
+          <a
+            href={match.full_video_url}
+            target="_blank"
+            rel="noreferrer noopener"
+            onClick={(e) => e.stopPropagation()}
+          >
+            풀영상
+          </a>
+        </Button>
       )}
     </div>
   );
