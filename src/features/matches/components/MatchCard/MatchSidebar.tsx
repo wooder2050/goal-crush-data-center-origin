@@ -219,10 +219,12 @@ export default function MatchSidebar({
                   <div className="shrink-0 w-14 text-center">
                     {isCompleted ? (
                       <span className="text-[10px] text-gray-400">FT</span>
-                    ) : (
+                    ) : m.is_date_confirmed ? (
                       <span className="text-[10px] text-gray-400 leading-tight">
                         {scheduledDate}
                       </span>
+                    ) : (
+                      <span className="text-[10px] text-gray-400">예정</span>
                     )}
                   </div>
                 </Link>

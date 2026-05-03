@@ -10,6 +10,7 @@ export type SeasonMatchItem = {
   home_score: number | null;
   away_score: number | null;
   status: string | null;
+  is_date_confirmed: boolean;
   home_team: { team_id: number; team_name: string; logo: string | null } | null;
   away_team: { team_id: number; team_name: string; logo: string | null } | null;
 };
@@ -326,6 +327,7 @@ export async function getInitialMatchDetailData(
       home_score: m.home_score,
       away_score: m.away_score,
       status: m.status,
+      is_date_confirmed: m.is_date_confirmed,
       home_team: m.home_team
         ? {
             team_id: m.home_team.team_id,
@@ -348,6 +350,7 @@ export async function getInitialMatchDetailData(
       home_score: match.home_score,
       away_score: match.away_score,
       status: match.status,
+      is_date_confirmed: match.is_date_confirmed,
       home_team: match.home_team
         ? {
             team_id: match.home_team.team_id,
