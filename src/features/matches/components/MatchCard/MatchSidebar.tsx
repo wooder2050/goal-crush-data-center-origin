@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, MapPin, MonitorPlay, Tv } from 'lucide-react';
+import { Calendar, ChevronRight, MapPin, MonitorPlay, Tv } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -132,19 +132,10 @@ export default function MatchSidebar({
             <h3 className="text-xs font-semibold text-gray-900 group-hover:underline truncate">
               {seasonName || '시즌'}
             </h3>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="shrink-0 text-gray-400 group-hover:text-gray-900"
-            >
-              <path d="M9 18l6-6-6-6" />
-            </svg>
+            <ChevronRight
+              className="h-3.5 w-3.5 shrink-0 text-gray-400 group-hover:text-gray-900"
+              aria-hidden="true"
+            />
           </Link>
           <div>
             {recentSeasonMatches.map((m) => {
@@ -161,6 +152,7 @@ export default function MatchSidebar({
                 <Link
                   key={m.match_id}
                   href={`/matches/${m.match_id}`}
+                  aria-current={isCurrent ? 'page' : undefined}
                   className={`flex items-center gap-2 rounded-lg px-2 py-2.5 transition-colors ${
                     isCurrent ? 'bg-gray-100' : 'hover:bg-gray-50'
                   }`}

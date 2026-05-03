@@ -34,11 +34,13 @@ function MatchTimelineSectionInner({ matchId, homeTeamId, awayTeamId }: Props) {
     return data.goals
       .map((goal) => {
         const scoringTeamId =
-          goal.goal_type === 'own_goal'
-            ? goal.team_id === homeTeamId
-              ? awayTeamId
-              : homeTeamId
-            : (goal.team_id ?? 0);
+          goal.team_id == null
+            ? 0
+            : goal.goal_type === 'own_goal'
+              ? goal.team_id === homeTeamId
+                ? awayTeamId
+                : homeTeamId
+              : goal.team_id;
         return { ...goal, scoringTeamId };
       })
       .sort((a, b) => (a.goal_time ?? 999) - (b.goal_time ?? 999))

@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
@@ -36,18 +37,7 @@ export default function MatchDetailPageContent({
               href={`/seasons/${match.season_id}`}
               className="mb-3 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               {match.season?.season_name || '시즌 목록'}
             </Link>
           )}
