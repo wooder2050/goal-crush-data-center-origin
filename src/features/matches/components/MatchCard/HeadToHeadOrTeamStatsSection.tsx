@@ -4,6 +4,14 @@ import { GoalWrapper } from '@/common/GoalWrapper';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 
 import { getMatchDetailedStatsPrisma } from '../../api-prisma';
+import CoachHeadToHeadList from './CoachHeadToHeadList';
+import CoachHeadToHeadListSkeleton from './CoachHeadToHeadListSkeleton';
+import CoachHeadToHeadSection from './CoachHeadToHeadSection';
+import CoachHeadToHeadSectionSkeleton from './CoachHeadToHeadSectionSkeleton';
+import HeadToHeadList from './HeadToHeadList';
+import HeadToHeadListSkeleton from './HeadToHeadListSkeleton';
+import HeadToHeadSection from './HeadToHeadSection';
+import HeadToHeadSectionSkeleton from './HeadToHeadSectionSkeleton';
 import MatchDetailedStatsSection from './MatchDetailedStatsSection';
 import MatchGoalkeeperStatsSection from './MatchGoalkeeperStatsSection';
 import MatchGoalkeeperStatsSectionSkeleton from './MatchGoalkeeperStatsSectionSkeleton';
@@ -41,27 +49,42 @@ export default function HeadToHeadOrTeamStatsSection({
     matchId,
   ]);
 
-  if (!stats || stats.length === 0) {
-    return null;
+  if (stats && stats.length > 0) {
+    return (
+      <MatchDetailedStatsSection
+        matchId={matchId}
+        homeTeamId={homeTeamId}
+        awayTeamId={awayTeamId}
+        homeTeamName={homeTeamName}
+        awayTeamName={awayTeamName}
+        homeTeamLogo={homeTeamLogo}
+        awayTeamLogo={awayTeamLogo}
+        homeScore={homeScore}
+        awayScore={awayScore}
+        variant="team-comparison"
+        homeTeamPrimaryColor={homeTeamPrimaryColor}
+        homeTeamSecondaryColor={homeTeamSecondaryColor}
+        awayTeamPrimaryColor={awayTeamPrimaryColor}
+        awayTeamSecondaryColor={awayTeamSecondaryColor}
+      />
+    );
   }
 
   return (
-    <MatchDetailedStatsSection
-      matchId={matchId}
-      homeTeamId={homeTeamId}
-      awayTeamId={awayTeamId}
-      homeTeamName={homeTeamName}
-      awayTeamName={awayTeamName}
-      homeTeamLogo={homeTeamLogo}
-      awayTeamLogo={awayTeamLogo}
-      homeScore={homeScore}
-      awayScore={awayScore}
-      variant="team-comparison"
-      homeTeamPrimaryColor={homeTeamPrimaryColor}
-      homeTeamSecondaryColor={homeTeamSecondaryColor}
-      awayTeamPrimaryColor={awayTeamPrimaryColor}
-      awayTeamSecondaryColor={awayTeamSecondaryColor}
-    />
+    <>
+      <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
+        <HeadToHeadSection matchId={matchId} />
+      </GoalWrapper>
+      <GoalWrapper fallback={<HeadToHeadListSkeleton />}>
+        <HeadToHeadList matchId={matchId} />
+      </GoalWrapper>
+      <GoalWrapper fallback={<CoachHeadToHeadSectionSkeleton />}>
+        <CoachHeadToHeadSection matchId={matchId} />
+      </GoalWrapper>
+      <GoalWrapper fallback={<CoachHeadToHeadListSkeleton />}>
+        <CoachHeadToHeadList matchId={matchId} />
+      </GoalWrapper>
+    </>
   );
 }
 

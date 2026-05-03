@@ -23,7 +23,7 @@ const MatchMediaLinks: React.FC<MatchMediaLinksProps> = ({
 
   return (
     <div
-      className={`mb-2 sm:mb-3 flex w-full items-center justify-center sm:justify-end gap-2 flex-wrap ${className}`}
+      className={`mb-2 sm:mb-3 flex w-full items-center justify-center sm:justify-end gap-2 flex-wrap lg:hidden ${className}`}
     >
       {hasRating && (
         <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-gray-700">
