@@ -59,7 +59,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
     <div className="flex items-center gap-2">
       <button
         onClick={handleTwitterShare}
-        className="flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-50"
+        className="flex min-h-[44px] items-center gap-1.5 rounded-md border border-gray-200 px-3 py-2 text-xs text-gray-600 transition-colors hover:bg-gray-50"
         aria-label="트위터에 공유"
       >
         <Twitter className="h-3.5 w-3.5" />
@@ -67,7 +67,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
       </button>
       <button
         onClick={handleNativeShare}
-        className="flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-50"
+        className="flex min-h-[44px] items-center gap-1.5 rounded-md border border-gray-200 px-3 py-2 text-xs text-gray-600 transition-colors hover:bg-gray-50"
         aria-label="공유하기"
       >
         <Share2 className="h-3.5 w-3.5" />
@@ -75,7 +75,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
       </button>
       <button
         onClick={handleCopyLink}
-        className="flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-50"
+        className="flex min-h-[44px] items-center gap-1.5 rounded-md border border-gray-200 px-3 py-2 text-xs text-gray-600 transition-colors hover:bg-gray-50"
         aria-label="링크 복사"
       >
         <Link2 className="h-3.5 w-3.5" />
