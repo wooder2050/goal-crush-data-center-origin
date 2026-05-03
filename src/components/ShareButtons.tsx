@@ -1,6 +1,6 @@
 'use client';
 
-import { Link2, MessageCircle, Twitter } from 'lucide-react';
+import { Link2, Share2, Twitter } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 interface ShareButtonsProps {
@@ -21,7 +21,6 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback
       const textarea = document.createElement('textarea');
       textarea.value = shareUrl;
       document.body.appendChild(textarea);
@@ -39,10 +38,22 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
     window.open(twitterUrl, '_blank', 'width=550,height=420');
   }, [title, description, shareUrl]);
 
-  const handleKakaoShare = useCallback(() => {
-    const kakaoUrl = `https://story.kakao.com/share?url=${encodeURIComponent(shareUrl)}`;
-    window.open(kakaoUrl, '_blank', 'width=550,height=420');
-  }, [shareUrl]);
+  const handleNativeShare = useCallback(async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text: description || title,
+          url: shareUrl,
+        });
+      } catch {
+        // 사용자가 공유 취소한 경우 무시
+      }
+    } else {
+      // Web Share API 미지원 시 링크 복사 폴백
+      await handleCopyLink();
+    }
+  }, [title, description, shareUrl, handleCopyLink]);
 
   return (
     <div className="flex items-center gap-2">
@@ -55,12 +66,12 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
         <span className="hidden sm:inline">트위터</span>
       </button>
       <button
-        onClick={handleKakaoShare}
+        onClick={handleNativeShare}
         className="flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-50"
-        aria-label="카카오스토리에 공유"
+        aria-label="공유하기"
       >
-        <MessageCircle className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">카카오</span>
+        <Share2 className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">공유</span>
       </button>
       <button
         onClick={handleCopyLink}
