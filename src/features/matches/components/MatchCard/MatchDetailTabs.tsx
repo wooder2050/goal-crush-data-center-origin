@@ -47,20 +47,20 @@ export default function MatchDetailTabs({ match }: MatchDetailTabsProps) {
         ))}
       </TabsList>
 
-      <TabsContent value="summary">
+      <TabsContent value="summary" className="mt-4">
         <SummaryTab match={match} />
       </TabsContent>
 
-      <TabsContent value="lineups">
+      <TabsContent value="lineups" className="mt-4">
         <LineupsTab match={match} />
       </TabsContent>
 
-      <TabsContent value="stats">
+      <TabsContent value="stats" className="mt-4">
         <StatsTab match={match} />
       </TabsContent>
 
       {hasScore && hasTeams && (
-        <TabsContent value="ratings">
+        <TabsContent value="ratings" className="mt-4">
           <RatingsTab match={match} />
         </TabsContent>
       )}

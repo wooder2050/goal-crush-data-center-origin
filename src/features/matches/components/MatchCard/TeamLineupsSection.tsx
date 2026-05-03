@@ -516,7 +516,7 @@ function TeamLineupsSectionInner({
   const showRatingTabs = showPitchView && hasStatsRatings && hasXtRatings;
 
   return (
-    <div className={`mt-4 pt-3 border-t border-gray-200 ${className}`}>
+    <div className={className}>
       <div className="mb-3 sm:mb-4 flex items-center justify-between">
         <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
           <span>👥 출전 선수</span>
