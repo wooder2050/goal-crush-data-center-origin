@@ -244,6 +244,7 @@ export interface Match {
   rating_nationwide?: number | null;
   rating_metropolitan?: number | null;
   broadcast_time?: string | null;
+  summary?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
 }

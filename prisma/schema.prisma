@@ -206,6 +206,7 @@ model Match {
   rating_nationwide           Decimal?                   @db.Decimal(4, 1)
   rating_metropolitan         Decimal?                   @db.Decimal(4, 1)
   broadcast_time              String?                    @db.VarChar(5)
+  summary                     String?
   assists                     Assist[]
   community_posts             CommunityPost[]
   fantasy_match_performances  FantasyMatchPerformance[]
