@@ -146,7 +146,7 @@ export default function MatchSidebar({
               <path d="M9 18l6-6-6-6" />
             </svg>
           </Link>
-          <div className="divide-y divide-gray-100">
+          <div>
             {recentSeasonMatches.map((m) => {
               const isCurrent = m.match_id === match.match_id;
               const isCompleted = m.status === 'completed';
@@ -161,13 +161,13 @@ export default function MatchSidebar({
                 <Link
                   key={m.match_id}
                   href={`/matches/${m.match_id}`}
-                  className={`block rounded-lg px-2 py-3 transition-colors ${
-                    isCurrent ? 'bg-gray-50' : 'hover:bg-gray-50'
+                  className={`flex items-center gap-2 rounded-lg px-2 py-2.5 transition-colors ${
+                    isCurrent ? 'bg-gray-100' : 'hover:bg-gray-50'
                   }`}
                 >
-                  {/* 홈팀 */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
+                  {/* 팀 정보 (왼쪽) */}
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex items-center gap-2">
                       {m.home_team?.logo ? (
                         <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden">
                           <Image
@@ -184,21 +184,13 @@ export default function MatchSidebar({
                       <span className="text-xs text-gray-800 truncate">
                         {m.home_team?.team_name || '홈'}
                       </span>
+                      {isCompleted && (
+                        <span className="ml-auto text-xs font-bold text-gray-900 tabular-nums">
+                          {m.home_score ?? '-'}
+                        </span>
+                      )}
                     </div>
-                    {isCompleted ? (
-                      <span className="text-xs font-bold text-gray-900 tabular-nums">
-                        {m.home_score ?? '-'}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-gray-400">
-                        {scheduledDate}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* 원정팀 */}
-                  <div className="flex items-center justify-between mt-1.5">
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2">
                       {m.away_team?.logo ? (
                         <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden">
                           <Image
@@ -215,10 +207,21 @@ export default function MatchSidebar({
                       <span className="text-xs text-gray-800 truncate">
                         {m.away_team?.team_name || '원정'}
                       </span>
+                      {isCompleted && (
+                        <span className="ml-auto text-xs font-bold text-gray-900 tabular-nums">
+                          {m.away_score ?? '-'}
+                        </span>
+                      )}
                     </div>
-                    {isCompleted && (
-                      <span className="text-xs font-bold text-gray-900 tabular-nums">
-                        {m.away_score ?? '-'}
+                  </div>
+
+                  {/* 상태 (오른쪽, 세로 중앙) */}
+                  <div className="shrink-0 w-14 text-center">
+                    {isCompleted ? (
+                      <span className="text-[10px] text-gray-400">FT</span>
+                    ) : (
+                      <span className="text-[10px] text-gray-400 leading-tight">
+                        {scheduledDate}
                       </span>
                     )}
                   </div>
