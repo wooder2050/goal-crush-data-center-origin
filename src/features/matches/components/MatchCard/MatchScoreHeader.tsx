@@ -20,6 +20,7 @@ interface MatchScoreHeaderProps {
 interface TeamWithLogoProps {
   team: Pick<Team, 'team_name' | 'logo'> | null;
   isWinner: boolean;
+  isLoser: boolean;
   teamId: number | null;
 }
 
@@ -28,10 +29,12 @@ const MatchScoreHeader: React.FC<MatchScoreHeaderProps> = ({
   className = '',
 }) => {
   const winner = getWinnerTeam(match);
+  const hasScore = match.home_score != null && match.away_score != null;
 
   const TeamWithLogo: React.FC<TeamWithLogoProps> = ({
     team,
     isWinner,
+    isLoser,
     teamId,
   }) => {
     const headCoachName =
@@ -48,19 +51,23 @@ const MatchScoreHeader: React.FC<MatchScoreHeaderProps> = ({
           : undefined;
 
     return (
-      <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-        <div className="w-5 h-5 relative flex-shrink-0 rounded-full overflow-hidden">
+      <div
+        className={`flex flex-col items-center gap-1.5 sm:gap-2 transition-opacity ${
+          isLoser ? 'opacity-50' : ''
+        }`}
+      >
+        <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full sm:h-12 sm:w-12">
           {team?.logo ? (
             <Image
               src={team.logo}
               alt={`${team.team_name} 로고`}
               fill
               className="object-cover"
-              sizes="20px"
+              sizes="48px"
             />
           ) : (
-            <div className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-[10px] text-gray-500 font-medium">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 sm:h-12 sm:w-12">
+              <span className="text-sm font-medium text-gray-500 sm:text-base">
                 {team?.team_name?.charAt(0) || '?'}
               </span>
             </div>
@@ -68,14 +75,14 @@ const MatchScoreHeader: React.FC<MatchScoreHeaderProps> = ({
         </div>
         <div className="flex flex-col items-center">
           <div
-            className={`text-xs sm:text-sm font-medium ${
-              isWinner ? 'text-black font-bold' : 'text-gray-700'
+            className={`text-sm font-medium sm:text-base ${
+              isWinner ? 'font-bold text-black' : 'text-gray-700'
             }`}
           >
             {teamId ? (
               <Link
                 href={`/teams/${teamId}`}
-                className="text-inherit no-underline"
+                className="py-1 text-inherit no-underline"
               >
                 {team?.team_name || '알 수 없음'}
               </Link>
@@ -84,11 +91,11 @@ const MatchScoreHeader: React.FC<MatchScoreHeaderProps> = ({
             )}
           </div>
           {headCoachName && (
-            <div className="text-[10px] text-gray-500 mt-0.5">
+            <div className="mt-0.5 text-xs text-gray-500">
               {headCoachId ? (
                 <Link
                   href={`/coaches/${headCoachId}`}
-                  className="text-inherit no-underline"
+                  className="py-0.5 text-inherit no-underline"
                 >
                   {headCoachName}
                 </Link>
@@ -109,19 +116,19 @@ const MatchScoreHeader: React.FC<MatchScoreHeaderProps> = ({
         <TeamWithLogo
           team={match.home_team}
           isWinner={winner === 'home'}
+          isLoser={hasScore && winner !== null && winner !== 'home'}
           teamId={match.home_team_id}
         />
       </div>
 
       {/* Score */}
-      <div className="flex-shrink-0 px-2 sm:px-4">
-        <div className="text-center bg-gray-50 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border border-gray-200">
-          <div className="text-xl font-bold sm:text-2xl">
+      <div className="flex-shrink-0 px-3 sm:px-6">
+        <div className="text-center">
+          <div className="text-3xl font-black sm:text-4xl">
             {getMatchResult(match)}
           </div>
-          {/* 승부차기 점수만 스코어 박스 안에 표시 */}
           {hasPenaltyShootout(match) && (
-            <div className="text-[10px] sm:text-xs text-gray-600 mt-1">
+            <div className="mt-1 text-xs text-gray-600 sm:text-sm">
               PK {match.penalty_home_score}:{match.penalty_away_score}
             </div>
           )}
@@ -133,6 +140,7 @@ const MatchScoreHeader: React.FC<MatchScoreHeaderProps> = ({
         <TeamWithLogo
           team={match.away_team}
           isWinner={winner === 'away'}
+          isLoser={hasScore && winner !== null && winner !== 'away'}
           teamId={match.away_team_id}
         />
       </div>
