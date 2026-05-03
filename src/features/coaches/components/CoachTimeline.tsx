@@ -1,99 +1,87 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
 
-import { Card, CardContent } from '@/components/ui/card';
-import type { CoachWithHistory } from '@/lib/types/database';
-
-interface CoachTimelineProps {
-  history: CoachWithHistory['team_coach_history'];
-  hasCurrent: boolean;
+export interface MergedCareerItem {
+  team_id: number;
+  team: {
+    team_id: number;
+    team_name: string;
+    logo: string | null;
+    primary_color: string | null;
+    secondary_color: string | null;
+  };
+  role: string;
+  start_date: Date;
+  end_date: Date | null;
+  is_current: boolean;
+  seasons: string[];
 }
 
-const CoachTimeline: React.FC<CoachTimelineProps> = ({
-  history,
-  hasCurrent,
-}) => {
-  if (!history || history.length === 0) {
+interface CoachTimelineProps {
+  mergedCareer: MergedCareerItem[];
+}
+
+const CoachTimeline: React.FC<CoachTimelineProps> = ({ mergedCareer }) => {
+  if (!mergedCareer || mergedCareer.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <p className="text-gray-500 text-center">팀 이력이 없습니다.</p>
-        </CardContent>
-      </Card>
+      <div className="px-6 py-8 text-center">
+        <p className="text-[14px] text-[#9F9F9F]">팀 이력이 없습니다.</p>
+      </div>
     );
   }
 
-  // 날짜순으로 정렬 (최신순)
-  const sortedHistory = [...history].sort(
-    (a, b) =>
-      new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
-  );
-
   return (
-    <div className="space-y-4">
-      {sortedHistory.map((item, index) => (
-        <Card key={item.id} className="relative">
-          <CardContent className="p-6">
-            <div className="flex items-start space-x-4">
-              {/* 타임라인 점 */}
-              <div className="flex-shrink-0">
-                <div
-                  className={`w-3 h-3 rounded-full ${
-                    item.is_current === true ? 'bg-green-500' : 'bg-gray-400'
-                  }`}
-                />
-                {index < sortedHistory.length - 1 && (
-                  <div className="w-0.5 h-8 bg-gray-200 mx-auto mt-2" />
-                )}
+    <div className="divide-y divide-gray-100">
+      {mergedCareer.map((item, index) => (
+        <Link
+          key={`${item.team_id}-${index}`}
+          href={`/teams/${item.team_id}`}
+          className="flex items-center gap-3 px-6 py-3.5 transition-colors hover:bg-gray-50"
+        >
+          <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gray-100">
+            {item.team?.logo ? (
+              <Image
+                src={item.team.logo}
+                alt={item.team.team_name}
+                fill
+                sizes="32px"
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xs font-medium text-gray-400">
+                {item.team?.team_name?.charAt(0) ?? '?'}
               </div>
-
-              {/* 내용 */}
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  {item.team.logo && (
-                    <div className="w-6 h-6 relative rounded-full overflow-hidden">
-                      <Image
-                        src={item.team.logo}
-                        alt={`${item.team.team_name} 로고`}
-                        fill
-                        className="object-cover"
-                        sizes="24px"
-                      />
-                    </div>
-                  )}
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {item.team.team_name}
-                  </h3>
-                  {hasCurrent && index === 0 && item.is_current === true && (
-                    <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                      현재
-                    </span>
-                  )}
-                </div>
-
-                <div className="text-sm text-gray-600 mb-2">
-                  <span className="font-medium">{item.season.season_name}</span>
-                  <span className="mx-2">•</span>
-                  <span className="capitalize">
-                    {item.role === 'head' ? '감독' : '코치'}
-                  </span>
-                </div>
-
-                <div className="text-sm text-gray-500">
-                  {new Date(item.start_date).toLocaleDateString('ko-KR')}
-                  {item.end_date && (
-                    <>
-                      <span className="mx-2">~</span>
-                      {new Date(item.end_date).toLocaleDateString('ko-KR')}
-                    </>
-                  )}
-                </div>
-              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="truncate text-[14px] font-medium text-gray-900">
+                {item.team?.team_name ?? '-'}
+              </p>
+              {item.is_current && (
+                <span className="shrink-0 rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">
+                  현재
+                </span>
+              )}
             </div>
-          </CardContent>
-        </Card>
+            <p className="text-[12px] text-[#9F9F9F]">
+              {new Date(item.start_date).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'short',
+              })}
+              {item.is_current
+                ? ' - 현재'
+                : item.end_date
+                  ? ` - ${new Date(item.end_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short' })}`
+                  : ''}
+              <span className="mx-1">·</span>
+              {item.role === 'head' || item.role === 'head_coach' ? '감독' : '코치'}
+            </p>
+          </div>
+        </Link>
       ))}
     </div>
   );
