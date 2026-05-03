@@ -154,13 +154,13 @@ export function PassMap({
   return (
     <div className="space-y-3">
       {/* 헤더 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-        <h3 className="text-sm font-semibold text-gray-800">
-          {teamName} 패스맵
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="truncate text-sm font-semibold text-gray-800">
+          {teamName}
         </h3>
-        <div className="text-xs text-gray-500">
-          패스 {totalPasses}회 (성공 {successPasses}) - {successRate}%
-        </div>
+        <span className="shrink-0 text-[10px] text-gray-400">
+          {successPasses}/{totalPasses} ({successRate}%)
+        </span>
       </div>
 
       {/* 피치 뷰 (반코트 배경 + 전체 피치 데이터 압축, 90도 회전하여 골대가 아래로) */}

@@ -22,8 +22,12 @@ const isLightColor = (hex: string | null | undefined): boolean => {
 
 export default function CoachHeadToHeadSection({
   matchId,
+  homeTeamColor,
+  awayTeamColor,
 }: {
   matchId: number;
+  homeTeamColor?: string;
+  awayTeamColor?: string;
 }) {
   const { data } = useGoalSuspenseQuery(getCoachHeadToHeadListByMatchIdPrisma, [
     matchId,
@@ -72,8 +76,9 @@ export default function CoachHeadToHeadSection({
     };
   }, [data]);
 
-  // 감독 A 팀 색상 (첫 경기 데이터에서 가져오기)
+  // 감독 A 팀 색상 (현재 경기 prop 우선, 없으면 이전 경기에서 가져오기)
   const coachAColor = useMemo(() => {
+    if (homeTeamColor && !isLightColor(homeTeamColor)) return homeTeamColor;
     if (!data || data.items.length === 0 || !summary) return '#22c55e';
     const coachAId = summary.a.id;
     for (const m of data.items) {
@@ -91,10 +96,11 @@ export default function CoachHeadToHeadSection({
       }
     }
     return '#22c55e';
-  }, [data, summary]);
+  }, [data, summary, homeTeamColor]);
 
   // 감독 B 팀 색상
   const coachBColor = useMemo(() => {
+    if (awayTeamColor && !isLightColor(awayTeamColor)) return awayTeamColor;
     if (!data || data.items.length === 0 || !summary) return '#3b82f6';
     const coachBId = summary.b.id;
     for (const m of data.items) {
@@ -112,7 +118,7 @@ export default function CoachHeadToHeadSection({
       }
     }
     return '#3b82f6';
-  }, [data, summary]);
+  }, [data, summary, awayTeamColor]);
 
   if (!summary) return null;
 

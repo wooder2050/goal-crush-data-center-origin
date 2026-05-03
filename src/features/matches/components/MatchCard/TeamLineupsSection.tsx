@@ -9,7 +9,7 @@ import {
   RatingTypeDescription,
   RatingTypeTabs,
 } from '@/components/ui/rating-type-tabs';
-import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { useGoalQuery, useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import type { Assist, Goal } from '@/lib/types';
 import { MatchWithTeams } from '@/lib/types/database';
 
@@ -184,21 +184,20 @@ function TeamLineupsSectionInner({
     match.match_id,
   ]);
 
-  // Fetch pass map data (for pitch view)
-  const { data: passMapData } = useGoalSuspenseQuery(getMatchPassMapPrisma, [
+  // Fetch pass map data (non-blocking, for pitch view)
+  const { data: passMapData } = useGoalQuery(getMatchPassMapPrisma, [
     match.match_id,
   ]) as { data: TeamPassNetworkData[] | undefined };
 
-  // Fetch match ratings (for pitch view - displayed on player images)
-  const { data: ratingsData } = useGoalSuspenseQuery(getMatchRatingsPrisma, [
+  // Fetch match ratings (non-blocking, for pitch view)
+  const { data: ratingsData } = useGoalQuery(getMatchRatingsPrisma, [
     match.match_id,
   ]) as { data: MatchRatingsResponse | undefined };
 
-  // Fetch xT ratings
-  const { data: xtRatingsData } = useGoalSuspenseQuery(
-    getMatchXtRatingsPrisma,
-    [match.match_id]
-  ) as { data: MatchXtRatingsResponse | undefined };
+  // Fetch xT ratings (non-blocking)
+  const { data: xtRatingsData } = useGoalQuery(getMatchXtRatingsPrisma, [
+    match.match_id,
+  ]) as { data: MatchXtRatingsResponse | undefined };
 
   // Build player_id -> rating map based on ratingType
   const playerRatings = new Map<number, number>();
@@ -516,7 +515,7 @@ function TeamLineupsSectionInner({
   const showRatingTabs = showPitchView && hasStatsRatings && hasXtRatings;
 
   return (
-    <div className={`mt-4 pt-3 border-t border-gray-200 ${className}`}>
+    <div className={className}>
       <div className="mb-3 sm:mb-4 flex items-center justify-between">
         <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
           <span>👥 출전 선수</span>

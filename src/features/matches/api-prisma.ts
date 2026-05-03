@@ -696,6 +696,7 @@ export const getMatchDetailedStatsPrisma = async (
     apiUrl(`/api/matches/${matchId}/detailed-stats`)
   );
   if (!response.ok) {
+    if (response.status === 404) return [];
     throw new Error(
       `Failed to fetch match detailed stats: ${response.statusText}`
     );

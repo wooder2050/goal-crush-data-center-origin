@@ -5,6 +5,7 @@ import React from 'react';
 import { ShareButtons } from '@/components/ShareButtons';
 import { Section } from '@/components/ui';
 import DetailMatchCard from '@/features/matches/components/MatchCard/DetailMatchCard';
+import MatchSidebar from '@/features/matches/components/MatchCard/MatchSidebar';
 import type { InitialMatchDetailData } from '@/features/matches/server';
 
 interface MatchDetailPageContentProps {
@@ -28,7 +29,7 @@ export default function MatchDetailPageContent({
   return (
     <main className="min-h-screen bg-white">
       <Section padding="sm">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-5xl">
           <div className="mb-4 flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">경기 상세</h1>
             <ShareButtons
@@ -48,7 +49,19 @@ export default function MatchDetailPageContent({
               </div>
             </div>
           ) : (
-            <DetailMatchCard matchId={id} initialMatch={initialData.match} />
+            <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-6">
+              <div className="min-w-0">
+                <DetailMatchCard
+                  matchId={id}
+                  initialMatch={initialData.match}
+                />
+              </div>
+              <aside className="hidden lg:block">
+                <div className="sticky top-4 space-y-4">
+                  <MatchSidebar match={initialData.match} />
+                </div>
+              </aside>
+            </div>
           )}
         </div>
       </Section>
