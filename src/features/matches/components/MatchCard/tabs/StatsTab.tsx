@@ -22,7 +22,7 @@ export default function StatsTab({ match }: { match: MatchWithTeams }) {
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      {hasTeams ? (
+      {hasTeams && (
         <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
           <HeadToHeadOrTeamStatsSection
             matchId={match.match_id}
@@ -44,22 +44,20 @@ export default function StatsTab({ match }: { match: MatchWithTeams }) {
             }
           />
         </GoalWrapper>
-      ) : (
-        <>
-          <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
-            <HeadToHeadSection matchId={match.match_id} />
-          </GoalWrapper>
-          <GoalWrapper fallback={<HeadToHeadListSkeleton />}>
-            <HeadToHeadList matchId={match.match_id} />
-          </GoalWrapper>
-          <GoalWrapper fallback={<CoachHeadToHeadSectionSkeleton />}>
-            <CoachHeadToHeadSection matchId={match.match_id} />
-          </GoalWrapper>
-          <GoalWrapper fallback={<CoachHeadToHeadListSkeleton />}>
-            <CoachHeadToHeadList matchId={match.match_id} />
-          </GoalWrapper>
-        </>
       )}
+
+      <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
+        <HeadToHeadSection matchId={match.match_id} />
+      </GoalWrapper>
+      <GoalWrapper fallback={<HeadToHeadListSkeleton />}>
+        <HeadToHeadList matchId={match.match_id} />
+      </GoalWrapper>
+      <GoalWrapper fallback={<CoachHeadToHeadSectionSkeleton />}>
+        <CoachHeadToHeadSection matchId={match.match_id} />
+      </GoalWrapper>
+      <GoalWrapper fallback={<CoachHeadToHeadListSkeleton />}>
+        <CoachHeadToHeadList matchId={match.match_id} />
+      </GoalWrapper>
 
       {hasScore && (
         <GoalWrapper fallback={<MatchGoalkeeperStatsSectionSkeleton />}>
