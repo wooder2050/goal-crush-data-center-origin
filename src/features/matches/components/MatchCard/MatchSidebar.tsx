@@ -1,14 +1,22 @@
 'use client';
 
 import { Calendar, MapPin, MonitorPlay, Tv } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 import type { MatchWithTeams } from '@/lib/types';
 
+import type { SeasonMatchItem } from '../../server';
+
 interface MatchSidebarProps {
   match: MatchWithTeams;
+  recentSeasonMatches?: SeasonMatchItem[];
 }
 
-export default function MatchSidebar({ match }: MatchSidebarProps) {
+export default function MatchSidebar({
+  match,
+  recentSeasonMatches = [],
+}: MatchSidebarProps) {
   const matchDate = match.match_date
     ? new Date(match.match_date).toLocaleDateString('ko-KR', {
         year: 'numeric',
@@ -113,6 +121,74 @@ export default function MatchSidebar({ match }: MatchSidebarProps) {
           )}
         </dl>
       </div>
+
+      {/* 이전 경기 */}
+      {recentSeasonMatches.length > 0 && (
+        <div className="rounded-xl border border-gray-100 bg-white p-4">
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+            이전 경기
+          </h3>
+          <div className="space-y-1">
+            {recentSeasonMatches.map((m) => (
+              <Link
+                key={m.match_id}
+                href={`/matches/${m.match_id}`}
+                className="block rounded-lg px-2 py-2 transition-colors hover:bg-gray-50"
+              >
+                {/* 홈팀 */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {m.home_team?.logo ? (
+                      <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden">
+                        <Image
+                          src={m.home_team.logo}
+                          alt={m.home_team.team_name}
+                          width={16}
+                          height={16}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-4 h-4 shrink-0 rounded-full bg-gray-200" />
+                    )}
+                    <span className="text-xs text-gray-800 truncate">
+                      {m.home_team?.team_name || '홈'}
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-gray-900 tabular-nums">
+                    {m.home_score ?? '-'}
+                  </span>
+                </div>
+
+                {/* 원정팀 */}
+                <div className="flex items-center justify-between mt-0.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {m.away_team?.logo ? (
+                      <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden">
+                        <Image
+                          src={m.away_team.logo}
+                          alt={m.away_team.team_name}
+                          width={16}
+                          height={16}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-4 h-4 shrink-0 rounded-full bg-gray-200" />
+                    )}
+                    <span className="text-xs text-gray-800 truncate">
+                      {m.away_team?.team_name || '원정'}
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-gray-900 tabular-nums">
+                    {m.away_score ?? '-'}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

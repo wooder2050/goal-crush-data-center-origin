@@ -79,7 +79,10 @@ export default function MatchDetailPageContent({
               </div>
               <aside className="hidden lg:block">
                 <div className="sticky top-4 space-y-4">
-                  <MatchSidebar match={initialData.match} />
+                  <MatchSidebar
+                    match={initialData.match}
+                    recentSeasonMatches={initialData.recentSeasonMatches}
+                  />
                 </div>
               </aside>
             </div>

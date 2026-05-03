@@ -4,8 +4,19 @@ import type { MatchWithTeams } from '@/lib/types';
 
 // ── Types ──────────────────────────────────────────────
 
+export type SeasonMatchItem = {
+  match_id: number;
+  match_date: string;
+  home_score: number | null;
+  away_score: number | null;
+  status: string | null;
+  home_team: { team_id: number; team_name: string; logo: string | null } | null;
+  away_team: { team_id: number; team_name: string; logo: string | null } | null;
+};
+
 export type InitialMatchDetailData = {
   match: MatchWithTeams;
+  recentSeasonMatches: SeasonMatchItem[];
 };
 
 // Prisma 클라이언트에 teamSeasonName 메서드가 없는 문제를 해결하기 위한 타입 확장
@@ -281,5 +292,37 @@ export async function getInitialMatchDetailData(
     away_coach: match.away_coach ? serializeCoach(match.away_coach) : null,
   };
 
-  return { match: serializedMatch };
+  // 같은 시즌의 이전 5경기 조회
+  let recentSeasonMatches: SeasonMatchItem[] = [];
+  if (match.season_id && match.match_date) {
+    const recentRaw = await prisma.match.findMany({
+      where: {
+        season_id: match.season_id,
+        match_date: { lt: match.match_date },
+        status: 'completed',
+      },
+      orderBy: { match_date: 'desc' },
+      take: 5,
+      include: {
+        home_team: { select: { team_id: true, team_name: true, logo: true } },
+        away_team: { select: { team_id: true, team_name: true, logo: true } },
+      },
+    });
+
+    recentSeasonMatches = recentRaw.map((m) => ({
+      match_id: m.match_id,
+      match_date: m.match_date.toISOString(),
+      home_score: m.home_score,
+      away_score: m.away_score,
+      status: m.status,
+      home_team: m.home_team
+        ? { team_id: m.home_team.team_id, team_name: m.home_team.team_name, logo: m.home_team.logo }
+        : null,
+      away_team: m.away_team
+        ? { team_id: m.away_team.team_id, team_name: m.away_team.team_name, logo: m.away_team.logo }
+        : null,
+    }));
+  }
+
+  return { match: serializedMatch, recentSeasonMatches };
 }
