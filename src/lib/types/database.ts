@@ -452,6 +452,8 @@ export interface Coach {
   birth_date: string | null;
   nationality: string | null;
   profile_image_url: string | null;
+  about?: string | null;
+  about_updated_at?: string | null;
   created_at: string | null;
 }
 
