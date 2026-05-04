@@ -11,6 +11,7 @@ import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 import { isLightColor, shortenSeasonName } from '@/lib/utils';
 
 import { fetchCoachFull } from '../api-prisma';
+import CoachAboutCard from './CoachAboutCard';
 import CoachDetailSkeleton from './CoachDetailSkeleton';
 import CoachSeasonStats from './CoachSeasonStats';
 
@@ -476,6 +477,9 @@ function CoachDetailPageInner({ coachId }: CoachDetailPageProps) {
                 stats={overview?.season_stats}
               />
             </div>
+
+            {/* About card */}
+            <CoachAboutCard about={coach.about} />
           </div>
 
           {/* Right column: Career */}
