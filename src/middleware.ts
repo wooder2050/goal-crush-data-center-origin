@@ -28,6 +28,14 @@ function setCorsHeaders(response: NextResponse, origin: string): NextResponse {
   return response;
 }
 
+const PROTECTED_PATHS = ['/supports', '/admin', '/profile'];
+
+function isProtectedPath(pathname: string): boolean {
+  return PROTECTED_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(path + '/')
+  );
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const origin = request.headers.get('origin');
@@ -51,6 +59,14 @@ export async function middleware(request: NextRequest) {
       setCorsHeaders(response, origin);
     }
     return response;
+  }
+
+  // 공개 페이지(보호 라우트 아님 + API 아님)는 auth 검사 스킵.
+  // auth/세션 갱신은 Set-Cookie를 만들 수 있고, 이 응답이 ISR/CDN에
+  // 캐시되면 세션 누출 위험이 있으므로 공개 페이지 응답을 캐시 가능 상태로
+  // 두기 위해 미들웨어 단계에서 auth 호출을 건너뜁니다.
+  if (!isProtectedPath(pathname) && !pathname.startsWith('/api/')) {
+    return NextResponse.next({ request });
   }
 
   let supabaseResponse = NextResponse.next({
@@ -88,13 +104,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 보호된 라우트들
-  const protectedPaths = ['/supports', '/admin', '/profile'];
-  const isProtectedPath = protectedPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  );
-
-  if (isProtectedPath && !user) {
+  if (isProtectedPath(pathname) && !user) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = '/sign-in';
