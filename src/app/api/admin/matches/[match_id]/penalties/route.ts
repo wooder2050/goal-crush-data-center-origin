@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches/[match_id]/penalties - 특정 경기의 페널티킥 목록 조회
@@ -58,6 +59,9 @@ export async function POST(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -194,6 +198,17 @@ export async function POST(
 
     return NextResponse.json(penalty, { status: 201 });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to create penalty:', error);
     return NextResponse.json(
       { error: 'Failed to create penalty' },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { invalidateXtGridCache } from '@/features/matches/lib/xT/xtGrid';
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches/[match_id]/actions - 경기 이벤트 액션 조회
@@ -56,6 +57,9 @@ export async function POST(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -146,6 +150,17 @@ export async function POST(
     invalidateXtGridCache();
     return NextResponse.json(action);
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to create match action:', error);
     return NextResponse.json(
       { error: 'Failed to create match action' },
@@ -160,6 +175,9 @@ export async function DELETE(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -196,6 +214,17 @@ export async function DELETE(
     invalidateXtGridCache();
     return NextResponse.json({ success: true, deleted: lastAction });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to delete last action:', error);
     return NextResponse.json(
       { error: 'Failed to delete last action' },

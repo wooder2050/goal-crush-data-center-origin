@@ -39,6 +39,7 @@ export async function GET(
     const posts = await prisma.communityPost.findMany({
       where: {
         team_id: parseInt(teamId),
+        is_deleted: false,
       },
       orderBy: {
         created_at: 'desc',
@@ -72,6 +73,7 @@ export async function GET(
     const totalCount = await prisma.communityPost.count({
       where: {
         team_id: parseInt(teamId),
+        is_deleted: false,
       },
     });
 

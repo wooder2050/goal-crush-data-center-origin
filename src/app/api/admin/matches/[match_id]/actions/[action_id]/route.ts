@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { invalidateXtGridCache } from '@/features/matches/lib/xT/xtGrid';
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches/[match_id]/actions/[action_id] - 특정 액션 조회
@@ -62,6 +63,9 @@ export async function PATCH(
   { params }: { params: { match_id: string; action_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
     const actionId = parseInt(params.action_id);
 
@@ -132,6 +136,17 @@ export async function PATCH(
     invalidateXtGridCache();
     return NextResponse.json(updatedAction);
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to update action:', error);
     return NextResponse.json(
       { error: 'Failed to update action' },
@@ -146,6 +161,9 @@ export async function DELETE(
   { params }: { params: { match_id: string; action_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
     const actionId = parseInt(params.action_id);
 
@@ -175,6 +193,17 @@ export async function DELETE(
     invalidateXtGridCache();
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to delete action:', error);
     return NextResponse.json(
       { error: 'Failed to delete action' },

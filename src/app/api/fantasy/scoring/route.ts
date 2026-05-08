@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { requireAdminAuth } from '@/lib/auth';
 import {
   calculateMatchFantasyScores,
   recalculateSeasonFantasyScores,
@@ -19,6 +20,8 @@ const seasonScoringSchema = z.object({
 // POST - 판타지 점수 계산
 export async function POST(request: NextRequest) {
   try {
+    await requireAdminAuth();
+
     const body = await request.json();
     const { type } = body;
 
@@ -49,6 +52,17 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('판타지 점수 계산 중 오류:', error);
 
     if (error instanceof z.ZodError) {

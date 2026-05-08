@@ -2,7 +2,7 @@
 buildCommand = "cd backend && npm ci && mkdir -p prisma && cp ../prisma/schema.prisma prisma/schema.prisma && npx prisma generate && npx nest build"
 
 [deploy]
-startCommand = "node backend/dist/main"
+startCommand = "NODE_ENV=production node backend/dist/main"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"

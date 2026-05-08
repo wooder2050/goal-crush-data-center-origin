@@ -9,8 +9,19 @@ import {
 } from '@/lib/points';
 import { prisma } from '@/lib/prisma';
 
+// prod에서는 테스트 엔드포인트 비활성화
+function ensureNotProduction(): NextResponse | null {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+  }
+  return null;
+}
+
 // GET /api/test/points - 포인트 시스템 테스트
 export async function GET() {
+  const guard = ensureNotProduction();
+  if (guard) return guard;
+
   try {
     // 첫 번째 활성 사용자 찾기
     const user = await prisma.user.findFirst({
@@ -56,6 +67,9 @@ export async function GET() {
 
 // POST /api/test/points - 포인트 테스트 (게시글 작성 시뮬레이션)
 export async function POST(request: NextRequest) {
+  const guard = ensureNotProduction();
+  if (guard) return guard;
+
   try {
     const body = await request.json();
     const { action, userId } = body;

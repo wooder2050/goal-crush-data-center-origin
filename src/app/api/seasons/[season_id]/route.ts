@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // Force dynamic rendering for this route
@@ -11,6 +12,8 @@ export async function PUT(
   { params }: { params: { season_id: string } }
 ) {
   try {
+    await requireAdminAuth();
+
     const seasonId = parseInt(params.season_id);
 
     if (isNaN(seasonId)) {
@@ -115,6 +118,17 @@ export async function PUT(
       season: updatedSeason,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Error updating season:', error);
     return NextResponse.json(
       {
@@ -132,6 +146,8 @@ export async function DELETE(
   { params }: { params: { season_id: string } }
 ) {
   try {
+    await requireAdminAuth();
+
     const seasonId = parseInt(params.season_id);
 
     if (isNaN(seasonId)) {
@@ -194,6 +210,17 @@ export async function DELETE(
       },
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Error deleting season:', error);
     return NextResponse.json(
       {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -57,6 +58,8 @@ export async function GET(request: NextRequest) {
 // POST - 판타지 시즌 생성 (관리자용)
 export async function POST(request: NextRequest) {
   try {
+    await requireAdminAuth();
+
     const body = await request.json();
     const validatedData = createFantasySeasonSchema.parse(body);
 
@@ -107,6 +110,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(fantasySeason, { status: 201 });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('판타지 시즌 생성 중 오류:', error);
 
     if (error instanceof z.ZodError) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -7,6 +8,9 @@ export const dynamic = 'force-dynamic';
 // POST /api/admin/stats/restore-h2h - H2H 통계 복구
 export async function POST() {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     console.log('H2H 상대전적 통계 복구 시작...');
 
     // 기존 h2hPairStats 삭제
@@ -141,6 +145,17 @@ export async function POST() {
       },
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('H2H 통계 복구 실패:', error);
     return NextResponse.json(
       {

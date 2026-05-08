@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches - 모든 경기 목록 조회 (관리자용)
@@ -61,6 +62,9 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/matches - 새 경기 등록
 export async function POST(request: NextRequest) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const data = await request.json();
 
     // 필수 필드 검증
@@ -109,6 +113,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(match, { status: 201 });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to create match:', error);
     return NextResponse.json(
       { error: 'Failed to create match' },

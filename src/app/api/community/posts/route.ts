@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getCurrentUser } from '@/lib/auth';
 import { addPostCreatePoints } from '@/lib/points';
 import { prisma } from '@/lib/prisma';
 
@@ -134,6 +135,15 @@ export async function GET(request: NextRequest) {
 // POST /api/community/posts - 새 게시글 작성
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { success: false, error: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+    const user = { user_id: currentUser.userId };
+
     const body = await request.json();
     const { title, content, category, team_id } = body;
 
@@ -157,23 +167,6 @@ export async function POST(request: NextRequest) {
           error: '유효하지 않은 카테고리입니다.',
         },
         { status: 400 }
-      );
-    }
-
-    // TODO: 실제 사용자 인증 로직 구현
-    // 현재는 임시로 첫 번째 사용자를 작성자로 설정
-    const user = await prisma.user.findFirst({
-      where: { is_active: true },
-      select: { user_id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: '사용자를 찾을 수 없습니다.',
-        },
-        { status: 404 }
       );
     }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // DELETE /api/admin/matches/[match_id]/substitutions/[substitution_id] - 교체 삭제
@@ -8,6 +9,9 @@ export async function DELETE(
   { params }: { params: Promise<{ match_id: string; substitution_id: string }> }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const { match_id, substitution_id } = await params;
     const matchId = parseInt(match_id);
     const substitutionId = parseInt(substitution_id);
@@ -41,6 +45,17 @@ export async function DELETE(
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to delete substitution:', error);
     return NextResponse.json(
       { error: 'Failed to delete substitution' },
