@@ -59,6 +59,7 @@ export interface HomeMatch {
   penalty_away_score: number | null;
   status: string | null;
   is_date_confirmed?: boolean;
+  tournament_stage?: string | null;
   season: {
     season_id: number;
     season_name: string;
@@ -111,7 +112,7 @@ export interface HomePageData {
   };
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
-  semiFinalMatches: HomeMatch[];
+  knockoutMatches: HomeMatch[];
   standings: StandingsGroup[];
   topScorers: PlayerStatRow[];
   topAssists: PlayerStatRow[];

@@ -6,6 +6,7 @@ import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { fetchHomePageData } from '../api-prisma';
 import type { HomePageData } from '../types';
 import CareerStatsWidget from './CareerStatsWidget';
+import KnockoutBracketWidget from './KnockoutBracketWidget';
 import MatchesWidget from './MatchesWidget';
 import PlayerCompareBanner from './PlayerCompareBanner';
 import PlayerStatsWidget from './PlayerStatsWidget';
@@ -37,6 +38,12 @@ export default function HomePageDashboard({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
         {/* Left Column - Standings + Player Stats */}
         <div className="lg:col-span-7 space-y-4">
+          {pageData.knockoutMatches.length > 0 && (
+            <KnockoutBracketWidget
+              seasonId={pageData.currentSeason.season_id}
+              knockoutMatches={pageData.knockoutMatches}
+            />
+          )}
           <StandingsWidget
             standings={pageData.standings}
             seasonName={pageData.currentSeason.season_name}
@@ -57,7 +64,7 @@ export default function HomePageDashboard({
             seasonId={pageData.currentSeason.season_id}
             recentMatches={pageData.recentMatches}
             upcomingMatches={pageData.upcomingMatches}
-            semiFinalMatches={pageData.semiFinalMatches}
+            knockoutMatches={pageData.knockoutMatches}
           />
           <PowerRankingWidget />
           <PlayerCompareBanner
