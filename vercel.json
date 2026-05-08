@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "prisma generate && DATABASE_URL=\"$DIRECT_URL\" next build"
+}
