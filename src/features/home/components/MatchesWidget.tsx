@@ -40,7 +40,9 @@ export default function MatchesWidget({
     if (list) list.push(match);
     else knockoutByStage.set(stage, [match]);
   }
-  const orderedStages = STAGE_ORDER.filter((s) => knockoutByStage.has(s)).concat(
+  const orderedStages = STAGE_ORDER.filter((s) =>
+    knockoutByStage.has(s)
+  ).concat(
     Array.from(knockoutByStage.keys()).filter((s) => !STAGE_ORDER.includes(s))
   );
 

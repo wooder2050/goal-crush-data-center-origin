@@ -171,7 +171,9 @@ async function getKnockoutMatchesList(seasonId: number): Promise<HomeMatch[]> {
   const matches = await prisma.match.findMany({
     where: {
       season_id: seasonId,
-      tournament_stage: { in: ['semi_final', 'relegation', 'last_place_match'] },
+      tournament_stage: {
+        in: ['semi_final', 'relegation', 'last_place_match'],
+      },
     },
     orderBy: [{ is_date_confirmed: 'desc' }, { match_date: 'asc' }],
     include: {
