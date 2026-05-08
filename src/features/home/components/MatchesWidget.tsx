@@ -11,19 +11,40 @@ interface MatchesWidgetProps {
   seasonId: number;
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
-  semiFinalMatches?: HomeMatch[];
+  knockoutMatches?: HomeMatch[];
 }
+
+const STAGE_LABELS: Record<string, string> = {
+  semi_final: '4강전',
+  last_place_match: '꼴찌 결정전',
+  relegation: '방출전',
+};
+
+const STAGE_ORDER = ['semi_final', 'last_place_match', 'relegation'];
 
 export default function MatchesWidget({
   seasonId,
   recentMatches,
   upcomingMatches,
-  semiFinalMatches = [],
+  knockoutMatches = [],
 }: MatchesWidgetProps) {
   const hasNoMatches =
     recentMatches.length === 0 &&
     upcomingMatches.length === 0 &&
-    semiFinalMatches.length === 0;
+    knockoutMatches.length === 0;
+
+  const knockoutByStage = new Map<string, HomeMatch[]>();
+  for (const match of knockoutMatches) {
+    const stage = match.tournament_stage ?? 'other';
+    const list = knockoutByStage.get(stage);
+    if (list) list.push(match);
+    else knockoutByStage.set(stage, [match]);
+  }
+  const orderedStages = STAGE_ORDER.filter((s) =>
+    knockoutByStage.has(s)
+  ).concat(
+    Array.from(knockoutByStage.keys()).filter((s) => !STAGE_ORDER.includes(s))
+  );
 
   return (
     <Card className="shadow-sm">
@@ -69,17 +90,21 @@ export default function MatchesWidget({
               </>
             )}
 
-            {/* Semi-Final Matches */}
-            {semiFinalMatches.length > 0 && (
-              <>
-                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1.5 mt-2">
-                  4강전
+            {/* Knockout Matches by Stage */}
+            {orderedStages.map((stage) => {
+              const stageMatches = knockoutByStage.get(stage) ?? [];
+              if (stageMatches.length === 0) return null;
+              return (
+                <div key={stage}>
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1.5 mt-2">
+                    {STAGE_LABELS[stage] ?? stage}
+                  </div>
+                  {stageMatches.map((match) => (
+                    <InterleagueMatchRow key={match.match_id} match={match} />
+                  ))}
                 </div>
-                {semiFinalMatches.map((match) => (
-                  <InterleagueMatchRow key={match.match_id} match={match} />
-                ))}
-              </>
-            )}
+              );
+            })}
           </div>
         )}
       </CardContent>

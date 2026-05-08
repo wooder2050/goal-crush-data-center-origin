@@ -331,6 +331,10 @@ export default function CreateMatchPage() {
                           <SelectItem value="quarter_final">8강</SelectItem>
                           <SelectItem value="semi_final">준결승</SelectItem>
                           <SelectItem value="final">결승</SelectItem>
+                          <SelectItem value="last_place_match">
+                            꼴찌 결정전
+                          </SelectItem>
+                          <SelectItem value="relegation">방출전</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
