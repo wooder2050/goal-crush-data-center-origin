@@ -3,6 +3,8 @@
 import { ChevronLeft } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Section } from '@/components/ui';
@@ -36,13 +38,35 @@ const categoryToComponent = {
 interface SeasonDetailContentProps {
   seasonId: string;
   initialData: InitialSeasonDetailData;
-  initialTab?: string;
 }
 
 export default function SeasonDetailContent({
   initialData,
-  initialTab,
 }: SeasonDetailContentProps) {
+  return (
+    <Suspense fallback={<SeasonDetailBody initialData={initialData} />}>
+      <SeasonDetailBodyWithTab initialData={initialData} />
+    </Suspense>
+  );
+}
+
+function SeasonDetailBodyWithTab({
+  initialData,
+}: {
+  initialData: InitialSeasonDetailData;
+}) {
+  const searchParams = useSearchParams();
+  const tab = searchParams?.get('tab') ?? undefined;
+  return <SeasonDetailBody initialData={initialData} initialTab={tab} />;
+}
+
+function SeasonDetailBody({
+  initialData,
+  initialTab,
+}: {
+  initialData: InitialSeasonDetailData;
+  initialTab?: string;
+}) {
   const season = initialData.season;
 
   const category = (season.category ??
