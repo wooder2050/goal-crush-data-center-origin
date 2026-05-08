@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // Force dynamic rendering for this route
@@ -44,6 +45,8 @@ export async function PUT(
   { params }: { params: Promise<{ player_id: string }> }
 ) {
   try {
+    await requireAdminAuth();
+
     const { player_id } = await params;
     const playerId = parseInt(player_id);
 
@@ -153,6 +156,17 @@ export async function PUT(
       player: updatedPlayer,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Error updating player:', error);
     return NextResponse.json(
       {
@@ -170,6 +184,8 @@ export async function DELETE(
   { params }: { params: Promise<{ player_id: string }> }
 ) {
   try {
+    await requireAdminAuth();
+
     const { player_id } = await params;
     const playerId = parseInt(player_id);
 
@@ -248,6 +264,17 @@ export async function DELETE(
       message: '선수가 성공적으로 삭제되었습니다.',
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Error deleting player:', error);
     return NextResponse.json(
       {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -7,6 +8,8 @@ export const dynamic = 'force-dynamic';
 // GET /api/admin/stats/validate - 통계 데이터 무결성 검증
 export async function GET(request: NextRequest) {
   try {
+    await requireAdminAuth();
+
     const { searchParams } = new URL(request.url);
     const seasonId = searchParams.get('season_id');
 
@@ -241,6 +244,17 @@ export async function GET(request: NextRequest) {
       season_id: seasonId ? parseInt(seasonId) : null,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('데이터 검증 실패:', error);
     return NextResponse.json(
       {

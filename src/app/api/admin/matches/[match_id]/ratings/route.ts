@@ -4,6 +4,7 @@ import {
   calculateMatchRating,
   type PlayerMatchRatingInput,
 } from '@/features/matches/lib/calculateMatchRating';
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // POST /api/admin/matches/[match_id]/ratings - 평점 계산 후 DB 저장
@@ -12,6 +13,9 @@ export async function POST(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -216,6 +220,17 @@ export async function POST(
       ratings,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to generate match ratings:', error);
     return NextResponse.json(
       { error: 'Failed to generate match ratings' },
@@ -230,6 +245,9 @@ export async function DELETE(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -245,6 +263,17 @@ export async function DELETE(
       deleted_count: deleted.count,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to delete match ratings:', error);
     return NextResponse.json(
       { error: 'Failed to delete match ratings' },

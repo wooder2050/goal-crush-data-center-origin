@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // Force dynamic rendering for this route
@@ -11,6 +12,9 @@ export async function DELETE(
   { params }: { params: { match_id: string; coach_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
     const coachId = parseInt(params.coach_id);
 
@@ -51,6 +55,17 @@ export async function DELETE(
       },
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Error deleting match coach:', error);
     return NextResponse.json(
       {

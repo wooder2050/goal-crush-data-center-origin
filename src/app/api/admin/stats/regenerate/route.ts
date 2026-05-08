@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -7,6 +8,9 @@ export const dynamic = 'force-dynamic';
 // POST /api/admin/stats/regenerate - 모든 통계 데이터 재생성
 export async function POST(request: NextRequest) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const { searchParams } = new URL(request.url);
     const seasonId = searchParams.get('season_id');
     const statsType = searchParams.get('type'); // 'all', 'standings', 'player_stats', 'team_stats', 'h2h'
@@ -591,6 +595,17 @@ export async function POST(request: NextRequest) {
       type: statsType,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('통계 재생성 실패:', error);
     return NextResponse.json(
       {

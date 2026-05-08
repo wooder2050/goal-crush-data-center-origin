@@ -12,7 +12,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
-import { AuthGuard, AuthUser } from '../common/guards/auth.guard';
+import { AdminGuard, AuthGuard, AuthUser } from '../common/guards/auth.guard';
 import { FantasyService } from './fantasy.service';
 
 @ApiTags('Fantasy')
@@ -57,6 +57,7 @@ export class FantasyController {
   // ── POST /fantasy/players/recommendations ──
 
   @Post('players/recommendations')
+  @UseGuards(AdminGuard)
   @ApiOperation({
     summary: 'AI 추천 데이터 새로 생성 (관리자용)',
     description: '판타지 시즌에 대한 AI 추천 데이터를 새로 생성합니다',
@@ -86,6 +87,7 @@ export class FantasyController {
   // ── POST /fantasy/rankings ──
 
   @Post('rankings')
+  @UseGuards(AdminGuard)
   @ApiOperation({
     summary: '월간 랭킹 스냅샷 생성 (관리자용)',
     description: '현재 랭킹 상태를 스냅샷으로 저장합니다',
@@ -124,6 +126,7 @@ export class FantasyController {
   // ── POST /fantasy/scoring ──
 
   @Post('scoring')
+  @UseGuards(AdminGuard)
   @ApiOperation({
     summary: '판타지 점수 계산',
     description: '경기별 또는 시즌별 판타지 점수를 계산합니다',
@@ -153,6 +156,7 @@ export class FantasyController {
   // ── POST /fantasy/seasons ──
 
   @Post('seasons')
+  @UseGuards(AdminGuard)
   @ApiOperation({
     summary: '판타지 시즌 생성 (관리자용)',
     description: '새로운 판타지 시즌을 생성합니다',

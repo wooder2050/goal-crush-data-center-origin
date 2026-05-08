@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -7,6 +8,8 @@ export const dynamic = 'force-dynamic';
 // GET /api/admin/stats/player-stats-debug - 선수 통계 디버깅 정보
 export async function GET(request: NextRequest) {
   try {
+    await requireAdminAuth();
+
     const { searchParams } = new URL(request.url);
     const seasonId = searchParams.get('season_id');
     const playerId = searchParams.get('player_id');
@@ -159,6 +162,17 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('선수 통계 디버깅 정보 조회 실패:', error);
     return NextResponse.json(
       {

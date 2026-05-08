@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -7,6 +8,9 @@ export const dynamic = 'force-dynamic';
 // POST /api/admin/stats/backup - 통계 데이터 백업 생성
 export async function POST(request: NextRequest) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const { searchParams } = new URL(request.url);
     const seasonId = searchParams.get('season_id');
 
@@ -53,6 +57,17 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('백업 생성 실패:', error);
     return NextResponse.json(
       {
@@ -67,6 +82,9 @@ export async function POST(request: NextRequest) {
 // PUT /api/admin/stats/backup - 백업 데이터 복원
 export async function PUT(request: NextRequest) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const body = await request.json();
     const { data: backupData, season_id } = body;
 
@@ -132,6 +150,17 @@ export async function PUT(request: NextRequest) {
       season_id: season_id || null,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('백업 복원 실패:', error);
     return NextResponse.json(
       {

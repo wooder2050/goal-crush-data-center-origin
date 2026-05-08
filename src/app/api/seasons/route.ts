@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { inferLeague } from '@/lib/utils';
 
@@ -33,6 +34,8 @@ export const dynamic = 'force-dynamic';
 // POST /api/seasons - 새 시즌 생성
 export async function POST(request: NextRequest) {
   try {
+    await requireAdminAuth();
+
     const body = await request.json();
     const { season_name, year, category, start_date, end_date } = body;
 
@@ -123,6 +126,17 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Error creating season:', error);
     return NextResponse.json(
       {
@@ -137,6 +151,8 @@ export async function POST(request: NextRequest) {
 // DELETE /api/seasons - 시즌 삭제
 export async function DELETE(request: NextRequest) {
   try {
+    await requireAdminAuth();
+
     const { searchParams } = new URL(request.url);
     const seasonId = searchParams.get('id');
 
@@ -212,6 +228,17 @@ export async function DELETE(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Error deleting season:', error);
     return NextResponse.json(
       {
