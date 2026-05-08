@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { calculateMatchXtRatings } from '@/features/matches/lib/xT/calculateXtRating';
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 function parseMatchId(raw: string): number | null {
@@ -14,6 +15,9 @@ export async function POST(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseMatchId(params.match_id);
 
     if (matchId === null) {
@@ -79,6 +83,17 @@ export async function POST(
 
     return NextResponse.json({ match_id: matchId, ratings: saved });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to generate xT ratings:', error);
     return NextResponse.json(
       { error: 'Failed to generate xT ratings' },
@@ -133,6 +148,9 @@ export async function DELETE(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseMatchId(params.match_id);
 
     if (matchId === null) {
@@ -148,6 +166,17 @@ export async function DELETE(
       deleted_count: deleted.count,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to delete xT ratings:', error);
     return NextResponse.json(
       { error: 'Failed to delete xT ratings' },

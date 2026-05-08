@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // 피치 크기
@@ -9,6 +10,9 @@ const PITCH_HEIGHT = 20;
 // POST /api/admin/matches/migrate-coordinates - 특정 경기들의 좌표 반전
 export async function POST(request: NextRequest) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const body = await request.json();
     const { matchIds } = body;
 
@@ -57,6 +61,17 @@ export async function POST(request: NextRequest) {
       results,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('좌표 마이그레이션 오류:', error);
     return NextResponse.json(
       { error: '좌표 마이그레이션 중 오류가 발생했습니다.' },

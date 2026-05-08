@@ -4,7 +4,18 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+// prod에서는 테스트 엔드포인트 비활성화
+function ensureNotProduction(): NextResponse | null {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+  }
+  return null;
+}
+
 export async function GET(request: NextRequest) {
+  const guard = ensureNotProduction();
+  if (guard) return guard;
+
   try {
     const { searchParams } = new URL(request.url);
     const teamId = searchParams.get('teamId');

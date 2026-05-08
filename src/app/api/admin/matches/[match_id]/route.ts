@@ -1,6 +1,7 @@
 import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches/[match_id] - 특정 경기 상세 조회 (관리자용)
@@ -109,6 +110,9 @@ export async function PUT(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -127,6 +131,17 @@ export async function PUT(
 
     return NextResponse.json(updatedMatch);
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to update match:', error);
     return NextResponse.json(
       { error: 'Failed to update match' },
@@ -141,6 +156,9 @@ export async function PATCH(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -159,6 +177,17 @@ export async function PATCH(
 
     return NextResponse.json(updatedMatch);
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to update match:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
@@ -174,6 +203,9 @@ export async function DELETE(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    // 관리자 권한 확인
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -202,6 +234,17 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Match deleted successfully' });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Failed to delete match:', error);
     return NextResponse.json(
       { error: 'Failed to delete match' },

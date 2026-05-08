@@ -2,8 +2,19 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 
+// prod에서는 테스트 엔드포인트 비활성화
+function ensureNotProduction(): NextResponse | null {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+  }
+  return null;
+}
+
 // GET /api/test - 데이터베이스 연결 및 기본 쿼리 테스트
 export async function GET() {
+  const guard = ensureNotProduction();
+  if (guard) return guard;
+
   try {
     console.log('🧪 테스트 API 시작...');
 

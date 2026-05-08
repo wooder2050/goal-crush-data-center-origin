@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -156,6 +157,8 @@ export async function GET(request: NextRequest) {
 // POST - AI 추천 데이터 새로 생성 (관리자용)
 export async function POST(request: NextRequest) {
   try {
+    await requireAdminAuth();
+
     const body = await request.json();
     const { fantasy_season_id } = body;
 
@@ -190,6 +193,17 @@ export async function POST(request: NextRequest) {
       recommendations_count: result.length,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('AI 추천 생성 중 오류:', error);
     return NextResponse.json(
       { error: 'AI 추천 생성 중 오류가 발생했습니다.' },

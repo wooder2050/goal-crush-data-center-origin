@@ -5,6 +5,7 @@ import {
   PLAYER_DEFAULT_ORDER_BY,
   PLAYER_LIST_SELECT,
 } from '@/features/players/utils/mapPlayers';
+import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // Force dynamic rendering for this route
@@ -450,6 +451,8 @@ export async function GET(request: NextRequest) {
 // POST /api/players - Create a new player
 export async function POST(request: NextRequest) {
   try {
+    await requireAdminAuth();
+
     const body = await request.json();
     const {
       name,
@@ -541,6 +544,17 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === '인증이 필요합니다' ||
+        error.message === '관리자 권한이 필요합니다')
+    ) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+      );
+    }
+
     console.error('Error creating player:', error);
     return NextResponse.json(
       {

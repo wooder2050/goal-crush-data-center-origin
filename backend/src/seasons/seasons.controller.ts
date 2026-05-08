@@ -10,8 +10,10 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { AdminGuard } from '../common/guards/auth.guard';
 import { SeasonsService } from './seasons.service';
 
 @ApiTags('Seasons')
@@ -90,6 +92,7 @@ export class SeasonsController {
   }
 
   @Post()
+  @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: '시즌 생성', description: '새 시즌을 생성합니다' })
   create(
@@ -106,6 +109,7 @@ export class SeasonsController {
   }
 
   @Put(':seasonId')
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: '시즌 수정', description: '시즌 정보를 수정합니다' })
   @ApiParam({ name: 'seasonId', type: Number, description: '시즌 ID' })
   update(
@@ -123,6 +127,7 @@ export class SeasonsController {
   }
 
   @Delete(':seasonId')
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: '시즌 삭제', description: '시즌을 삭제합니다' })
   @ApiParam({ name: 'seasonId', type: Number, description: '시즌 ID' })
   remove(@Param('seasonId', ParseIntPipe) seasonId: number) {

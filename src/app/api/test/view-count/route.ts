@@ -2,8 +2,19 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 
+// prod에서는 테스트 엔드포인트 비활성화
+function ensureNotProduction(): NextResponse | null {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+  }
+  return null;
+}
+
 // GET /api/test/view-count - 게시글 조회수 확인
 export async function GET() {
+  const guard = ensureNotProduction();
+  if (guard) return guard;
+
   try {
     // 모든 게시글의 조회수 확인
     const posts = await prisma.communityPost.findMany({

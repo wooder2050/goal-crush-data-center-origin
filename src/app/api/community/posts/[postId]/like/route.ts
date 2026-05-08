@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getCurrentUser } from '@/lib/auth';
 import { addLikeReceivedPoints } from '@/lib/points';
 import { prisma } from '@/lib/prisma';
 
@@ -9,11 +10,20 @@ export async function POST(
   { params }: { params: { postId: string } }
 ) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { success: false, error: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
     const { postId } = params;
     const body = await request.json();
-    const { user_id, action } = body; // action: 'like' | 'unlike'
+    const { action } = body; // action: 'like' | 'unlike'
+    const actualUserId = currentUser.userId;
 
-    if (!postId || !user_id || !action) {
+    if (!postId || !action) {
       return NextResponse.json(
         {
           success: false,
@@ -21,28 +31,6 @@ export async function POST(
         },
         { status: 400 }
       );
-    }
-
-    // 테스트용: 사용자가 존재하지 않으면 첫 번째 사용자 사용
-    let actualUserId = user_id;
-    if (user_id === 'test-user-001') {
-      const existingUser = await prisma.user.findFirst({
-        where: { is_active: true },
-        select: { user_id: true },
-      });
-
-      if (!existingUser) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: '사용자를 찾을 수 없습니다.',
-          },
-          { status: 404 }
-        );
-      }
-
-      actualUserId = existingUser.user_id;
-      console.log('테스트 사용자 ID를 실제 사용자 ID로 변경:', actualUserId);
     }
 
     const postIdNum = parseInt(postId);

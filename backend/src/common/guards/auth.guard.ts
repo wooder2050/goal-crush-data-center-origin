@@ -1,4 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from '@supabase/supabase-js';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -226,7 +232,7 @@ export class AdminGuard implements CanActivate {
     });
 
     if (!dbUser?.is_admin) {
-      throw new UnauthorizedException('관리자 권한이 필요합니다');
+      throw new ForbiddenException('관리자 권한이 필요합니다');
     }
 
     request.user = {
