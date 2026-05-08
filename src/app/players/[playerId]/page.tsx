@@ -7,13 +7,6 @@ import { prisma } from '@/lib/prisma';
 
 import PlayerDetailContent from './PlayerDetailContent';
 
-export const revalidate = 3600;
-
-// 빈 배열을 반환해 빌드 시 정적 생성은 건너뛰되, 런타임 ISR을 활성화한다.
-export async function generateStaticParams() {
-  return [];
-}
-
 interface Props {
   params: Promise<{ playerId: string }>;
 }
