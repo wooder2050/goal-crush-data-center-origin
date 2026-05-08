@@ -9,6 +9,13 @@ import MatchDetailPageContent from './MatchDetailPageContent';
 
 export const revalidate = 3600;
 
+// 빈 배열을 반환해 빌드 시 정적 생성은 건너뛰되, 런타임 ISR을 활성화한다.
+// dynamicParams 기본값(true)에 따라 모든 matchId가 첫 요청 시 생성·캐시되고
+// `revalidate` 주기로 재생성된다.
+export async function generateStaticParams() {
+  return [];
+}
+
 interface Props {
   params: Promise<{ matchId: string }>;
 }
