@@ -46,6 +46,7 @@ function serializeMatch(
     home_team_id: number | null;
     away_team_id: number | null;
     is_date_confirmed: boolean;
+    tournament_stage?: string | null;
     home_team: {
       team_id: number;
       team_name: string;
@@ -81,6 +82,7 @@ function serializeMatch(
     penalty_away_score: match.penalty_away_score,
     status: match.status,
     is_date_confirmed: match.is_date_confirmed,
+    tournament_stage: match.tournament_stage ?? null,
     season: match.season
       ? {
           season_id: match.season.season_id,
@@ -165,11 +167,11 @@ async function getRecentCompletedMatches(): Promise<HomeMatch[]> {
   return matches.map((m) => serializeMatch(m, teamNameMap));
 }
 
-async function getSemiFinalMatchesList(seasonId: number): Promise<HomeMatch[]> {
+async function getKnockoutMatchesList(seasonId: number): Promise<HomeMatch[]> {
   const matches = await prisma.match.findMany({
     where: {
       season_id: seasonId,
-      tournament_stage: 'semi_final',
+      tournament_stage: { in: ['semi_final', 'relegation', 'last_place_match'] },
     },
     orderBy: [{ is_date_confirmed: 'desc' }, { match_date: 'asc' }],
     include: {
@@ -351,6 +353,7 @@ async function buildRecentFormMap(
     where: {
       season_id: seasonId,
       status: 'completed',
+      tournament_stage: 'group_stage',
       OR: [
         { home_team_id: { in: teamIds } },
         { away_team_id: { in: teamIds } },
@@ -879,7 +882,7 @@ export async function getHomePageData(): Promise<HomePageData> {
       currentSeason: { season_id: 0, season_name: '' },
       recentMatches: [],
       upcomingMatches: [],
-      semiFinalMatches: [],
+      knockoutMatches: [],
       standings: [],
       topScorers: [],
       topAssists: [],
@@ -905,7 +908,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   const [
     recentMatches,
     upcomingMatches,
-    semiFinalMatches,
+    knockoutMatches,
     standings,
     topScorers,
     topAssists,
@@ -917,7 +920,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   ] = await Promise.all([
     getRecentCompletedMatches(),
     getUpcomingMatchesList(),
-    getSemiFinalMatchesList(currentSeason.season_id),
+    getKnockoutMatchesList(currentSeason.season_id),
     getStandings(currentSeason.season_id),
     getTopScorersList(currentSeason.season_id),
     getTopAssistsList(currentSeason.season_id),
@@ -934,7 +937,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     currentSeason,
     recentMatches,
     upcomingMatches,
-    semiFinalMatches,
+    knockoutMatches,
     standings,
     topScorers,
     topAssists,
