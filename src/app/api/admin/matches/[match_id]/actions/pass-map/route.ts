@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // 피치 크기 (골때녀 풋살 규격)
@@ -63,8 +62,6 @@ export async function GET(
   { params }: { params: Promise<{ match_id: string }> }
 ) {
   try {
-    await requireAdminAuth();
-
     const { match_id } = await params;
     const matchId = parseInt(match_id, 10);
 
@@ -268,17 +265,6 @@ export async function GET(
 
     return NextResponse.json(result);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message === '인증이 필요합니다' ||
-        error.message === '관리자 권한이 필요합니다')
-    ) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.message === '인증이 필요합니다' ? 401 : 403 }
-      );
-    }
-
     console.error('패스맵 데이터 조회 오류:', error);
     return NextResponse.json(
       { error: '패스맵 데이터를 불러오는 중 오류가 발생했습니다.' },
