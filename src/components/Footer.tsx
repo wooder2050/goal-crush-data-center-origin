@@ -15,7 +15,7 @@ export default function Footer() {
               골 때리는 그녀들 데이터센터
             </h3>
             <p className="text-gray-300 leading-relaxed mb-4">
-              &ldquo;골 때리는 그녀들&rdquo; 방송과 함께하는 공식 데이터
+              &ldquo;골 때리는 그녀들&rdquo; 방송 데이터를 정리하는 비공식 팬
               아카이브입니다. 매주 업데이트되는 경기 데이터와 선수 통계를
               제공합니다.
             </p>
