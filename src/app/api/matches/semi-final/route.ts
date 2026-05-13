@@ -19,7 +19,9 @@ export async function GET(request: NextRequest) {
     const matches = await prisma.match.findMany({
       where: {
         season_id: seasonId,
-        tournament_stage: 'semi_final',
+        tournament_stage: {
+          in: ['semi_final', 'last_place_match', 'final'],
+        },
       },
       include: {
         home_team: true,
