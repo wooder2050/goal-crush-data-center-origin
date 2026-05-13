@@ -172,7 +172,7 @@ async function getKnockoutMatchesList(seasonId: number): Promise<HomeMatch[]> {
     where: {
       season_id: seasonId,
       tournament_stage: {
-        in: ['semi_final', 'relegation', 'last_place_match'],
+        in: ['semi_final', 'relegation', 'last_place_match', 'final'],
       },
     },
     orderBy: [{ is_date_confirmed: 'desc' }, { match_date: 'asc' }],
