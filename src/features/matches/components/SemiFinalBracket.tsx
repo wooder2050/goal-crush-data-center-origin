@@ -107,12 +107,31 @@ function MatchRow({ match }: { match: MatchWithTeams }) {
   );
 }
 
+const STAGE_LABELS: Record<string, string> = {
+  semi_final: '4강',
+  last_place_match: '꼴찌 결정전',
+  final: '결승전',
+};
+
+const STAGE_ORDER = ['semi_final', 'last_place_match', 'final'];
+
 function SemiFinalBracketInner({ seasonId, className = '' }: Props) {
   const { data: matches } = useGoalSuspenseQuery(getSemiFinalMatchesPrisma, [
     seasonId,
   ]);
 
   if (!matches || matches.length === 0) return null;
+
+  const grouped = new Map<string, MatchWithTeams[]>();
+  for (const match of matches) {
+    const stage = match.tournament_stage ?? 'other';
+    const list = grouped.get(stage);
+    if (list) list.push(match);
+    else grouped.set(stage, [match]);
+  }
+  const orderedStages = STAGE_ORDER.filter((s) => grouped.has(s)).concat(
+    Array.from(grouped.keys()).filter((s) => !STAGE_ORDER.includes(s))
+  );
 
   return (
     <Card
@@ -122,7 +141,7 @@ function SemiFinalBracketInner({ seasonId, className = '' }: Props) {
         <CardTitle className="text-base p-0 sm:p-0 md:p-0 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Swords className="h-4 w-4 text-indigo-500" />
-            <span>4강 대진표</span>
+            <span>토너먼트 대진표</span>
           </div>
           <Badge
             variant="outline"
@@ -133,10 +152,23 @@ function SemiFinalBracketInner({ seasonId, className = '' }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="px-2 sm:px-4 py-0 sm:py-0 md:py-0">
-        <div className="divide-y divide-gray-100">
-          {matches.map((m: MatchWithTeams) => (
-            <MatchRow key={m.match_id} match={m} />
-          ))}
+        <div className="space-y-2">
+          {orderedStages.map((stage) => {
+            const stageMatches = grouped.get(stage) ?? [];
+            if (stageMatches.length === 0) return null;
+            return (
+              <div key={stage}>
+                <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide pt-2 pb-1 px-1">
+                  {STAGE_LABELS[stage] ?? stage}
+                </div>
+                <div className="divide-y divide-gray-100">
+                  {stageMatches.map((m: MatchWithTeams) => (
+                    <MatchRow key={m.match_id} match={m} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
