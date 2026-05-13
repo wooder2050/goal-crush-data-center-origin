@@ -17,10 +17,11 @@ interface MatchesWidgetProps {
 const STAGE_LABELS: Record<string, string> = {
   semi_final: '4강전',
   last_place_match: '꼴찌 결정전',
+  final: '결승전',
   relegation: '방출전',
 };
 
-const STAGE_ORDER = ['semi_final', 'last_place_match', 'relegation'];
+const STAGE_ORDER = ['semi_final', 'last_place_match', 'final', 'relegation'];
 
 export default function MatchesWidget({
   seasonId,
