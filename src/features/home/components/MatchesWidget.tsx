@@ -21,7 +21,9 @@ const STAGE_LABELS: Record<string, string> = {
   relegation: '방출전',
 };
 
-const STAGE_ORDER = ['semi_final', 'last_place_match', 'final', 'relegation'];
+// 4강전은 토너먼트 섹션에서 표시하지 않음 (꼴찌 결정전/결승전만 노출)
+const STAGE_ORDER = ['last_place_match', 'final', 'relegation'];
+const HIDDEN_STAGES = ['semi_final'];
 
 export default function MatchesWidget({
   seasonId,
@@ -44,7 +46,9 @@ export default function MatchesWidget({
   const orderedStages = STAGE_ORDER.filter((s) =>
     knockoutByStage.has(s)
   ).concat(
-    Array.from(knockoutByStage.keys()).filter((s) => !STAGE_ORDER.includes(s))
+    Array.from(knockoutByStage.keys()).filter(
+      (s) => !STAGE_ORDER.includes(s) && !HIDDEN_STAGES.includes(s)
+    )
   );
 
   return (

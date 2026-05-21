@@ -19,7 +19,9 @@ const STAGE_LABELS: Record<string, string> = {
   relegation: '방출전',
 };
 
-const STAGE_ORDER = ['semi_final', 'last_place_match', 'final', 'relegation'];
+// 4강전은 대진표에서 표시하지 않음 (꼴찌 결정전/결승전만 노출)
+const STAGE_ORDER = ['last_place_match', 'final', 'relegation'];
+const HIDDEN_STAGES = ['semi_final'];
 
 export default function KnockoutBracketWidget({
   seasonId,
@@ -36,8 +38,13 @@ export default function KnockoutBracketWidget({
   }
 
   const orderedStages = STAGE_ORDER.filter((s) => grouped.has(s)).concat(
-    Array.from(grouped.keys()).filter((s) => !STAGE_ORDER.includes(s))
+    Array.from(grouped.keys()).filter(
+      (s) => !STAGE_ORDER.includes(s) && !HIDDEN_STAGES.includes(s)
+    )
   );
+
+  // 표시할 단계가 없으면(예: 4강만 존재) 위젯 전체를 숨김
+  if (orderedStages.length === 0) return null;
 
   return (
     <Card className="shadow-sm">
