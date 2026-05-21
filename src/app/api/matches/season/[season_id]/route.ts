@@ -44,14 +44,24 @@ export async function GET(
     const limitNum = limit ? parseInt(limit) : undefined;
     const isPaginated = pageNum && limitNum;
 
+    // 토너먼트 필터 → 실제 tournament_stage 값 매핑
+    // 우승 토너먼트 = 4강 + 결승전, 멸망 토너먼트 = 꼴찌 결정전
+    const TOURNAMENT_STAGE_GROUPS: Record<string, string[]> = {
+      championship: ['semi_final', 'final'],
+      relegation: ['last_place_match'],
+    };
+
     // 필터 조건 구성
     const whereCondition: {
       season_id: number;
-      tournament_stage?: string;
+      tournament_stage?: string | { in: string[] };
       group_stage?: string;
     } = { season_id: seasonId };
     if (tournamentStage && tournamentStage !== 'all') {
-      whereCondition.tournament_stage = tournamentStage;
+      const mappedStages = TOURNAMENT_STAGE_GROUPS[tournamentStage];
+      whereCondition.tournament_stage = mappedStages
+        ? { in: mappedStages }
+        : tournamentStage;
     }
     if (groupStage && groupStage !== 'all') {
       whereCondition.group_stage = groupStage;
@@ -170,6 +180,7 @@ export async function GET(
       const nextPage = hasNextPage ? pageNum + 1 : null;
 
       // 토너먼트별 통계 변환
+      // 우승 토너먼트 = 4강 + 결승전, 멸망 토너먼트 = 꼴찌 결정전
       const tournamentStatsObject = {
         group_stage: 0,
         championship: 0,
@@ -177,13 +188,15 @@ export async function GET(
       };
 
       tournamentStats.forEach((stat) => {
-        const stage = stat.tournament_stage as
-          | 'group_stage'
-          | 'championship'
-          | 'relegation'
-          | null;
-        if (stage && stage in tournamentStatsObject) {
-          tournamentStatsObject[stage] = stat._count;
+        const stage = stat.tournament_stage;
+        if (stage === 'group_stage') {
+          tournamentStatsObject.group_stage += stat._count;
+        } else if (
+          TOURNAMENT_STAGE_GROUPS.championship.includes(stage ?? '')
+        ) {
+          tournamentStatsObject.championship += stat._count;
+        } else if (TOURNAMENT_STAGE_GROUPS.relegation.includes(stage ?? '')) {
+          tournamentStatsObject.relegation += stat._count;
         }
       });
 

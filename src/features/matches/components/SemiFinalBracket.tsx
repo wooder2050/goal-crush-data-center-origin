@@ -113,7 +113,9 @@ const STAGE_LABELS: Record<string, string> = {
   final: '결승전',
 };
 
-const STAGE_ORDER = ['semi_final', 'last_place_match', 'final'];
+// 4강전은 대진표에서 표시하지 않음 (꼴찌 결정전/결승전만 노출)
+const STAGE_ORDER = ['last_place_match', 'final'];
+const HIDDEN_STAGES = ['semi_final'];
 
 function SemiFinalBracketInner({ seasonId, className = '' }: Props) {
   const { data: matches } = useGoalSuspenseQuery(getSemiFinalMatchesPrisma, [
@@ -130,7 +132,18 @@ function SemiFinalBracketInner({ seasonId, className = '' }: Props) {
     else grouped.set(stage, [match]);
   }
   const orderedStages = STAGE_ORDER.filter((s) => grouped.has(s)).concat(
-    Array.from(grouped.keys()).filter((s) => !STAGE_ORDER.includes(s))
+    Array.from(grouped.keys()).filter(
+      (s) => !STAGE_ORDER.includes(s) && !HIDDEN_STAGES.includes(s)
+    )
+  );
+
+  // 표시할 단계가 없으면(예: 4강만 존재) 대진표 카드를 숨김
+  if (orderedStages.length === 0) return null;
+
+  // 실제로 표시되는 단계의 경기만 카운트 (4강 등 제외 단계는 제외)
+  const visibleMatchCount = orderedStages.reduce(
+    (sum, stage) => sum + (grouped.get(stage)?.length ?? 0),
+    0
   );
 
   return (
@@ -147,7 +160,7 @@ function SemiFinalBracketInner({ seasonId, className = '' }: Props) {
             variant="outline"
             className="text-[10px] flex-shrink-0 text-gray-500 border-gray-200"
           >
-            {matches.length}경기
+            {visibleMatchCount}경기
           </Badge>
         </CardTitle>
       </CardHeader>
