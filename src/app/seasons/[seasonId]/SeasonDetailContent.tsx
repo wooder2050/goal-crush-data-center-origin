@@ -13,7 +13,6 @@ import GLeagueTournamentResults from '@/features/matches/components/GLeagueTourn
 import OtherLeagueResults from '@/features/matches/components/OtherLeagueResults';
 import PlayoffResults from '@/features/matches/components/PlayoffResults';
 import SbsCupResults from '@/features/matches/components/SbsCupResults';
-import SemiFinalBracket from '@/features/matches/components/SemiFinalBracket';
 import SuperResults from '@/features/matches/components/SuperResults';
 import UpcomingMatches from '@/features/matches/components/UpcomingMatches';
 import UpcomingMatchesSkeleton from '@/features/matches/components/UpcomingMatchesSkeleton';
@@ -86,9 +85,6 @@ function SeasonDetailBody({
         <GoalWrapper fallback={<UpcomingMatchesSkeleton items={1} />}>
           <UpcomingMatches seasonId={season.season_id} limit={10} />
         </GoalWrapper>
-        {category === 'G_LEAGUE' && (
-          <SemiFinalBracket seasonId={season.season_id} />
-        )}
         <SeasonViewershipChart seasonId={season.season_id} />
         <Component
           seasonId={season.season_id}
