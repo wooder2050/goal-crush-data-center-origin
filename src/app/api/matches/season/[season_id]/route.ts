@@ -191,9 +191,7 @@ export async function GET(
         const stage = stat.tournament_stage;
         if (stage === 'group_stage') {
           tournamentStatsObject.group_stage += stat._count;
-        } else if (
-          TOURNAMENT_STAGE_GROUPS.championship.includes(stage ?? '')
-        ) {
+        } else if (TOURNAMENT_STAGE_GROUPS.championship.includes(stage ?? '')) {
           tournamentStatsObject.championship += stat._count;
         } else if (TOURNAMENT_STAGE_GROUPS.relegation.includes(stage ?? '')) {
           tournamentStatsObject.relegation += stat._count;
