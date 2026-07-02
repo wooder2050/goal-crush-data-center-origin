@@ -169,8 +169,12 @@ async function resolveStatsSeason(currentSeason: {
     };
   }
 
+  // 완료 경기가 있는 가장 최근 이전 시즌으로 폴백 (빈 시즌 건너뜀)
   const previousSeason = await prisma.season.findFirst({
-    where: { season_id: { lt: currentSeason.season_id } },
+    where: {
+      season_id: { lt: currentSeason.season_id },
+      matches: { some: { status: 'completed' } },
+    },
     orderBy: { season_id: 'desc' },
     select: { season_id: true, season_name: true },
   });
@@ -220,6 +224,26 @@ async function getKnockoutMatchesList(seasonId: number): Promise<HomeMatch[]> {
 
   const teamNameMap = await buildTeamNameMap(matches);
   return matches.map((m) => serializeMatch(m, teamNameMap));
+}
+
+// 새 시즌 개막전(가장 이른 미완료 경기) — 개막 배너용
+async function getSeasonKickoffMatch(
+  seasonId: number
+): Promise<HomeMatch | null> {
+  const match = await prisma.match.findFirst({
+    where: { season_id: seasonId, status: 'scheduled' },
+    orderBy: { match_date: 'asc' },
+    include: {
+      home_team: { select: { team_id: true, team_name: true, logo: true } },
+      away_team: { select: { team_id: true, team_name: true, logo: true } },
+      season: { select: { season_id: true, season_name: true } },
+    },
+  });
+
+  if (!match) return null;
+
+  const teamNameMap = await buildTeamNameMap([match]);
+  return serializeMatch(match, teamNameMap);
 }
 
 async function getUpcomingMatchesList(limit: number = 5): Promise<HomeMatch[]> {
@@ -918,6 +942,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     return {
       currentSeason: { season_id: 0, season_name: '', start_date: null },
       statsSeason: { season_id: 0, season_name: '', is_fallback: false },
+      kickoffMatch: null,
       recentMatches: [],
       upcomingMatches: [],
       knockoutMatches: [],
@@ -949,6 +974,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     recentMatches,
     upcomingMatches,
     knockoutMatches,
+    kickoffMatch,
     standings,
     topScorers,
     topAssists,
@@ -961,6 +987,9 @@ export async function getHomePageData(): Promise<HomePageData> {
     getRecentCompletedMatches(),
     getUpcomingMatchesList(),
     getKnockoutMatchesList(currentSeason.season_id),
+    statsSeason.is_fallback
+      ? getSeasonKickoffMatch(currentSeason.season_id)
+      : Promise.resolve(null),
     getStandings(statsSeason.season_id),
     getTopScorersList(statsSeason.season_id),
     getTopAssistsList(statsSeason.season_id),
@@ -982,6 +1011,7 @@ export async function getHomePageData(): Promise<HomePageData> {
         : null,
     },
     statsSeason,
+    kickoffMatch,
     recentMatches,
     upcomingMatches,
     knockoutMatches,

@@ -117,6 +117,8 @@ export interface HomePageData {
     season_name: string;
     is_fallback: boolean;
   };
+  /** 새 시즌 개막전 (개막 배너용, 폴백 상태에서만 조회됨) */
+  kickoffMatch: HomeMatch | null;
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
   knockoutMatches: HomeMatch[];

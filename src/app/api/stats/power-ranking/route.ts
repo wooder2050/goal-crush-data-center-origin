@@ -27,21 +27,19 @@ export async function GET(request: NextRequest) {
 
     // 새 시즌에 평점 데이터가 아직 없으면 데이터가 있는 가장 최근 시즌으로 폴백
     let isFallback = false;
-    const currentSeasonRatingCount = await prisma.playerMatchRating.count({
+    const currentSeasonRating = await prisma.playerMatchRating.findFirst({
       where: { match: { season_id: currentSeason.season_id } },
+      select: { rating_id: true },
     });
-    if (currentSeasonRatingCount === 0) {
-      const latestRated = await prisma.playerMatchRating.findFirst({
-        orderBy: { match: { match_date: 'desc' } },
+    if (!currentSeasonRating) {
+      const latestRatedMatch = await prisma.match.findFirst({
+        where: { player_match_ratings: { some: {} } },
+        orderBy: { match_date: 'desc' },
         select: {
-          match: {
-            select: {
-              season: { select: { season_id: true, season_name: true } },
-            },
-          },
+          season: { select: { season_id: true, season_name: true } },
         },
       });
-      const ratedSeason = latestRated?.match?.season;
+      const ratedSeason = latestRatedMatch?.season;
       if (ratedSeason && ratedSeason.season_id !== currentSeason.season_id) {
         currentSeason = ratedSeason;
         isFallback = true;

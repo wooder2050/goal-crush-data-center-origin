@@ -35,9 +35,11 @@ export default function HomePageDashboard({
     is_fallback: false,
   };
   const kickoffMatch = statsSeason.is_fallback
-    ? (pageData.upcomingMatches.find(
+    ? (pageData.kickoffMatch ??
+      pageData.upcomingMatches.find(
         (m) => m.season?.season_id === pageData.currentSeason.season_id
-      ) ?? null)
+      ) ??
+      null)
     : null;
 
   return (
