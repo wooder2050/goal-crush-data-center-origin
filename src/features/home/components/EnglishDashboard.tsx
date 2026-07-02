@@ -42,6 +42,8 @@ type CareerStatKey =
    Main Dashboard
    ═══════════════════════════════════════════ */
 export function EnglishDashboard({ data }: { data: HomePageData }) {
+  const isFallback = data.statsSeason?.is_fallback ?? false;
+
   return (
     <section className="min-h-screen bg-gray-50 py-6 px-4">
       <div className="mx-auto max-w-6xl">
@@ -51,6 +53,13 @@ export function EnglishDashboard({ data }: { data: HomePageData }) {
         </h1>
         <p className="text-sm text-gray-500 mb-4">
           SBS Kick a Goal — Current Season
+          {isFallback && (
+            <>
+              {' '}
+              · Standings and player rankings below are from the previous season
+              ({data.statsSeason.season_name}) until the new season kicks off.
+            </>
+          )}
         </p>
 
         {/* 2-Column Grid */}
