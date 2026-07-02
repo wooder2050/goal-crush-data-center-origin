@@ -22,6 +22,7 @@ interface PlayerStatsWidgetProps {
   topAssists: PlayerStatRow[];
   topRatings: PlayerStatRow[];
   topXtRatings: PlayerStatRow[];
+  isFallback?: boolean;
 }
 
 export default function PlayerStatsWidget({
@@ -30,6 +31,7 @@ export default function PlayerStatsWidget({
   topAssists,
   topRatings,
   topXtRatings,
+  isFallback = false,
 }: PlayerStatsWidgetProps) {
   const [ratingType, setRatingType] = useState<'stats' | 'xt'>('stats');
 
@@ -44,7 +46,14 @@ export default function PlayerStatsWidget({
     <Card className="shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">선수 순위</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-base">선수 순위</CardTitle>
+            {isFallback && (
+              <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+                지난 시즌
+              </span>
+            )}
+          </div>
           <Link
             href={`/seasons/${seasonId}?tab=players`}
             className="text-xs text-[#ff4800] hover:underline"
