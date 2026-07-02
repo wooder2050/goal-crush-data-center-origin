@@ -109,7 +109,16 @@ export interface HomePageData {
   currentSeason: {
     season_id: number;
     season_name: string;
+    start_date: string | null;
   };
+  /** 순위표·선수 스탯이 실제로 어느 시즌 데이터인지 (개막 전엔 직전 시즌으로 폴백) */
+  statsSeason: {
+    season_id: number;
+    season_name: string;
+    is_fallback: boolean;
+  };
+  /** 새 시즌 개막전 (개막 배너용, 폴백 상태에서만 조회됨) */
+  kickoffMatch: HomeMatch | null;
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
   knockoutMatches: HomeMatch[];

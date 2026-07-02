@@ -12,12 +12,22 @@ interface StandingsWidgetProps {
   standings: StandingsGroup[];
   seasonName: string;
   seasonId: number;
+  isFallback?: boolean;
+}
+
+function FallbackBadge() {
+  return (
+    <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+      지난 시즌
+    </span>
+  );
 }
 
 export default function StandingsWidget({
   standings,
   seasonName,
   seasonId,
+  isFallback = false,
 }: StandingsWidgetProps) {
   const hasData = standings.some((g) => g.standings.length > 0);
 
@@ -42,7 +52,10 @@ export default function StandingsWidget({
     <Card className="shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">시즌 순위표</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-base">시즌 순위표</CardTitle>
+            {isFallback && <FallbackBadge />}
+          </div>
           <Link
             href={`/seasons/${seasonId}?tab=teams`}
             className="text-xs text-[#ff4800] hover:underline"

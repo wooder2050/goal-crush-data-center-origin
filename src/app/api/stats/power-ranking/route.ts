@@ -16,13 +16,34 @@ export async function GET(request: NextRequest) {
     );
 
     // 현재 시즌
-    const currentSeason = await prisma.season.findFirst({
+    let currentSeason = await prisma.season.findFirst({
       orderBy: { season_id: 'desc' },
       select: { season_id: true, season_name: true },
     });
 
     if (!currentSeason) {
       return NextResponse.json({ rankings: [], season: null });
+    }
+
+    // 새 시즌에 평점 데이터가 아직 없으면 데이터가 있는 가장 최근 시즌으로 폴백
+    let isFallback = false;
+    const currentSeasonRating = await prisma.playerMatchRating.findFirst({
+      where: { match: { season_id: currentSeason.season_id } },
+      select: { rating_id: true },
+    });
+    if (!currentSeasonRating) {
+      const latestRatedMatch = await prisma.match.findFirst({
+        where: { player_match_ratings: { some: {} } },
+        orderBy: { match_date: 'desc' },
+        select: {
+          season: { select: { season_id: true, season_name: true } },
+        },
+      });
+      const ratedSeason = latestRatedMatch?.season;
+      if (ratedSeason && ratedSeason.season_id !== currentSeason.season_id) {
+        currentSeason = ratedSeason;
+        isFallback = true;
+      }
     }
 
     const seasonId = currentSeason.season_id;
@@ -533,6 +554,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       rankings: rankings.slice(0, limit),
       season: currentSeason,
+      is_fallback: isFallback,
     });
   } catch (error) {
     console.error('Error calculating power ranking:', error);
