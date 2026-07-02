@@ -11,6 +11,7 @@ import MatchesWidget from './MatchesWidget';
 import PlayerCompareBanner from './PlayerCompareBanner';
 import PlayerStatsWidget from './PlayerStatsWidget';
 import PowerRankingWidget from './PowerRankingWidget';
+import SeasonKickoffBanner from './SeasonKickoffBanner';
 import StandingsWidget from './StandingsWidget';
 
 interface HomePageDashboardProps {
@@ -27,12 +28,35 @@ export default function HomePageDashboard({
 
   const pageData = data ?? initialData;
 
+  // 개막 전(새 시즌 데이터 없음)에는 스탯 위젯이 직전 시즌으로 폴백됨
+  const statsSeason = pageData.statsSeason ?? {
+    season_id: pageData.currentSeason.season_id,
+    season_name: pageData.currentSeason.season_name,
+    is_fallback: false,
+  };
+  const kickoffMatch = statsSeason.is_fallback
+    ? (pageData.upcomingMatches.find(
+        (m) => m.season?.season_id === pageData.currentSeason.season_id
+      ) ?? null)
+    : null;
+
   return (
     <Section padding="sm" className="min-h-screen bg-gray-50 py-6">
       {/* Season Header */}
       <h2 className="text-lg font-bold text-gray-900 mb-4">
         {pageData.currentSeason.season_name}
       </h2>
+
+      {/* Kickoff Banner (개막 전에만 노출) */}
+      {statsSeason.is_fallback && (
+        <div className="mb-4">
+          <SeasonKickoffBanner
+            seasonName={pageData.currentSeason.season_name}
+            startDate={pageData.currentSeason.start_date ?? null}
+            kickoffMatch={kickoffMatch}
+          />
+        </div>
+      )}
 
       {/* 2-Column Grid: FotMob style */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
@@ -46,15 +70,17 @@ export default function HomePageDashboard({
           )}
           <StandingsWidget
             standings={pageData.standings}
-            seasonName={pageData.currentSeason.season_name}
-            seasonId={pageData.currentSeason.season_id}
+            seasonName={statsSeason.season_name}
+            seasonId={statsSeason.season_id}
+            isFallback={statsSeason.is_fallback}
           />
           <PlayerStatsWidget
-            seasonId={pageData.currentSeason.season_id}
+            seasonId={statsSeason.season_id}
             topScorers={pageData.topScorers}
             topAssists={pageData.topAssists}
             topRatings={pageData.topRatings}
             topXtRatings={pageData.topXtRatings}
+            isFallback={statsSeason.is_fallback}
           />
         </div>
 

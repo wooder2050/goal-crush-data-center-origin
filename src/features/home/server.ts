@@ -143,12 +143,47 @@ async function buildTeamNameMap(
 async function getLatestSeason(): Promise<{
   season_id: number;
   season_name: string;
+  start_date: Date | null;
 } | null> {
   const season = await prisma.season.findFirst({
     orderBy: { season_id: 'desc' },
-    select: { season_id: true, season_name: true },
+    select: { season_id: true, season_name: true, start_date: true },
   });
   return season;
+}
+
+// 새 시즌 개막 전(완료 경기 없음)에는 순위표·선수 스탯을 직전 시즌 데이터로 폴백
+async function resolveStatsSeason(currentSeason: {
+  season_id: number;
+  season_name: string;
+}): Promise<{ season_id: number; season_name: string; is_fallback: boolean }> {
+  const completedCount = await prisma.match.count({
+    where: { season_id: currentSeason.season_id, status: 'completed' },
+  });
+
+  if (completedCount > 0) {
+    return {
+      season_id: currentSeason.season_id,
+      season_name: currentSeason.season_name,
+      is_fallback: false,
+    };
+  }
+
+  const previousSeason = await prisma.season.findFirst({
+    where: { season_id: { lt: currentSeason.season_id } },
+    orderBy: { season_id: 'desc' },
+    select: { season_id: true, season_name: true },
+  });
+
+  if (!previousSeason) {
+    return {
+      season_id: currentSeason.season_id,
+      season_name: currentSeason.season_name,
+      is_fallback: false,
+    };
+  }
+
+  return { ...previousSeason, is_fallback: true };
 }
 
 async function getRecentCompletedMatches(): Promise<HomeMatch[]> {
@@ -881,7 +916,8 @@ export async function getHomePageData(): Promise<HomePageData> {
 
   if (!currentSeason) {
     return {
-      currentSeason: { season_id: 0, season_name: '' },
+      currentSeason: { season_id: 0, season_name: '', start_date: null },
+      statsSeason: { season_id: 0, season_name: '', is_fallback: false },
       recentMatches: [],
       upcomingMatches: [],
       knockoutMatches: [],
@@ -907,6 +943,8 @@ export async function getHomePageData(): Promise<HomePageData> {
     };
   }
 
+  const statsSeason = await resolveStatsSeason(currentSeason);
+
   const [
     recentMatches,
     upcomingMatches,
@@ -923,11 +961,11 @@ export async function getHomePageData(): Promise<HomePageData> {
     getRecentCompletedMatches(),
     getUpcomingMatchesList(),
     getKnockoutMatchesList(currentSeason.season_id),
-    getStandings(currentSeason.season_id),
-    getTopScorersList(currentSeason.season_id),
-    getTopAssistsList(currentSeason.season_id),
-    getTopRatingsList(currentSeason.season_id),
-    getTopXtRatingsList(currentSeason.season_id).catch(
+    getStandings(statsSeason.season_id),
+    getTopScorersList(statsSeason.season_id),
+    getTopAssistsList(statsSeason.season_id),
+    getTopRatingsList(statsSeason.season_id),
+    getTopXtRatingsList(statsSeason.season_id).catch(
       () => [] as PlayerStatRow[]
     ),
     getLatestMatchGoalScorers(),
@@ -936,7 +974,14 @@ export async function getHomePageData(): Promise<HomePageData> {
   ]);
 
   return {
-    currentSeason,
+    currentSeason: {
+      season_id: currentSeason.season_id,
+      season_name: currentSeason.season_name,
+      start_date: currentSeason.start_date
+        ? currentSeason.start_date.toISOString()
+        : null,
+    },
+    statsSeason,
     recentMatches,
     upcomingMatches,
     knockoutMatches,

@@ -28,12 +28,16 @@ const POSITION_STYLES: Record<string, string> = {
 
 export default function PowerRankingWidget() {
   const [rankings, setRankings] = useState<RankingRow[]>([]);
+  const [isFallback, setIsFallback] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch(apiUrl('/api/stats/power-ranking?limit=5'))
       .then((r) => r.json())
-      .then((d) => setRankings(d.rankings ?? []))
+      .then((d) => {
+        setRankings(d.rankings ?? []);
+        setIsFallback(d.is_fallback ?? false);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -42,7 +46,14 @@ export default function PowerRankingWidget() {
     <Card className="shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">파워랭킹</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-base">파워랭킹</CardTitle>
+            {isFallback && (
+              <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+                지난 시즌
+              </span>
+            )}
+          </div>
           <Link
             href="/stats/power-ranking"
             className="text-xs text-[#ff4800] hover:underline"
