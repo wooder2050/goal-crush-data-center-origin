@@ -10,7 +10,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const seasonId = searchParams.get('season_id');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const limit = Math.max(
+      1,
+      Math.min(parseInt(searchParams.get('limit') || '10') || 10, 50)
+    );
 
     if (!seasonId || isNaN(parseInt(seasonId))) {
       return NextResponse.json(
