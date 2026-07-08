@@ -122,6 +122,24 @@ export const getTopAssistsPrisma = async (
   return response.json();
 };
 
+// Get top attack points (goals + assists)
+export const getTopAttackPointsPrisma = async (
+  seasonId: number,
+  limit: number = 10
+): Promise<(PlayerSeasonStatsWithNames & { attack_points: number })[]> => {
+  const response = await fetch(
+    apiUrl(
+      `/api/stats/player-season/top-attack-points?season_id=${seasonId}&limit=${limit}`
+    )
+  );
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch top attack points: ${response.statusText}`
+    );
+  }
+  return response.json();
+};
+
 // ========== Player Match Ratings ==========
 
 export interface TopRatedPlayerRow {
