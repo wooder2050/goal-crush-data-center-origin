@@ -297,8 +297,27 @@ export async function GET(request: NextRequest) {
         issues.push(`${label}: 완료 경기인데 스코어 미입력`);
       }
 
+      const homeLineupCount = pms.filter(
+        (p) => p.team_id === m.home_team_id
+      ).length;
+      const awayLineupCount = pms.filter(
+        (p) => p.team_id === m.away_team_id
+      ).length;
+      const foreignLineupCount = pms.filter(
+        (p) => p.team_id !== m.home_team_id && p.team_id !== m.away_team_id
+      ).length;
+      if (homeLineupCount === 0) {
+        issues.push(`${label}: 홈 팀 라인업(player_match_stats) 미입력`);
+      }
+      if (awayLineupCount === 0) {
+        issues.push(`${label}: 원정 팀 라인업(player_match_stats) 미입력`);
+      }
+      if (foreignLineupCount > 0) {
+        issues.push(
+          `${label}: 경기 참가팀이 아닌 team_id의 라인업 행 ${foreignLineupCount}건`
+        );
+      }
       if (pms.length === 0) {
-        issues.push(`${label}: 라인업(player_match_stats) 미입력`);
         continue; // 라인업 없이는 이하 스탯 검증 불가
       }
 
@@ -339,22 +358,24 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // GK 실점 합 vs 상대 득점
-      const homeConceded = pms
-        .filter((p) => p.team_id === m.home_team_id)
-        .reduce((a, p) => a + (p.goals_conceded ?? 0), 0);
-      const awayConceded = pms
-        .filter((p) => p.team_id === m.away_team_id)
-        .reduce((a, p) => a + (p.goals_conceded ?? 0), 0);
-      if (homeConceded !== (m.away_score ?? 0)) {
-        issues.push(
-          `${label}: 홈 GK 실점 합(${homeConceded}) ≠ 원정 득점(${m.away_score})`
-        );
-      }
-      if (awayConceded !== (m.home_score ?? 0)) {
-        issues.push(
-          `${label}: 원정 GK 실점 합(${awayConceded}) ≠ 홈 득점(${m.home_score})`
-        );
+      // GK 실점 합 vs 상대 득점 (스코어가 입력된 경우만 — null이면 위에서 이미 보고)
+      if (m.home_score !== null && m.away_score !== null) {
+        const homeConceded = pms
+          .filter((p) => p.team_id === m.home_team_id)
+          .reduce((a, p) => a + (p.goals_conceded ?? 0), 0);
+        const awayConceded = pms
+          .filter((p) => p.team_id === m.away_team_id)
+          .reduce((a, p) => a + (p.goals_conceded ?? 0), 0);
+        if (homeConceded !== m.away_score) {
+          issues.push(
+            `${label}: 홈 GK 실점 합(${homeConceded}) ≠ 원정 득점(${m.away_score})`
+          );
+        }
+        if (awayConceded !== m.home_score) {
+          issues.push(
+            `${label}: 원정 GK 실점 합(${awayConceded}) ≠ 홈 득점(${m.home_score})`
+          );
+        }
       }
 
       // 어시스트 행 자체의 정합성: 연결된 골이 이 경기에 존재하고, 선수는 라인업에 있어야 함
