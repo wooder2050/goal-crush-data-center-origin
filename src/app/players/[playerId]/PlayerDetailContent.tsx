@@ -18,6 +18,7 @@ export default function PlayerDetailContent({
     <PlayerDetailPage
       playerId={resolvedId}
       initialPlayer={initialData.player}
+      initialSummary={initialData.summary}
     />
   );
 }
