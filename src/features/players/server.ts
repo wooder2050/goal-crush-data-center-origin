@@ -3,6 +3,10 @@ import type {
   PlayersPageResponse,
 } from '@/features/players/api-prisma';
 import {
+  type PlayerSummaryData,
+  readPlayerSummary,
+} from '@/features/players/summary-server';
+import {
   mapPlayers,
   PLAYER_DEFAULT_ORDER_BY,
   PLAYER_LIST_SELECT,
@@ -14,18 +18,21 @@ import type { Player } from '@/lib/types';
 
 export type InitialPlayerDetailData = {
   player: Player;
+  summary: PlayerSummaryData;
 };
 
 /**
- * Fetches a single player by ID for SSR (basic info only).
- * PlayerSummary (complex aggregation) remains CSR.
+ * Fetches a single player by ID for SSR.
+ * summary는 Prisma 직접 집계로 프리패치해 클라이언트 쿼리의 initialData로 사용
+ * (SSR 중 자체 API HTTP 호출 제거).
  */
 export async function getInitialPlayerDetailData(
   playerId: number
 ): Promise<InitialPlayerDetailData | null> {
-  const player = await prisma.player.findUnique({
-    where: { player_id: playerId },
-  });
+  const [player, summary] = await Promise.all([
+    prisma.player.findUnique({ where: { player_id: playerId } }),
+    readPlayerSummary(playerId),
+  ]);
 
   if (!player) return null;
 
@@ -43,6 +50,7 @@ export async function getInitialPlayerDetailData(
       about: player.about ?? null,
       about_updated_at: player.about_updated_at?.toISOString() ?? null,
     },
+    summary,
   };
 }
 

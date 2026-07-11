@@ -8,11 +8,12 @@ export const revalidate = 600;
 
 export const metadata: Metadata = {
   title: {
-    absolute: '2026 골때녀 GIFA컵 일정·경기결과·선수 통계 | 골때녀 데이터센터',
+    absolute: '골때녀 일정·경기결과·순위·선수 기록 | 골때녀 데이터센터',
   },
   description:
-    '골 때리는 그녀들 2026 제2회 GIFA컵 경기 일정과 대진, 경기 결과, 선수 스탯을 실시간 제공합니다. 골때녀 팀 순위부터 득점·도움·평점 랭킹, 선수 프로필, 출연진 정보까지 한곳에서 확인하세요.',
+    '골 때리는 그녀들 최신 경기 일정과 결과, 팀 순위, 선수별 골·도움 기록을 한눈에 확인하세요. 제2회 GIFA컵 진행 중 — 시즌·대회별 기록과 출연진 프로필까지 제공합니다.',
   keywords: [
+    '골때녀 일정',
     '골때녀 GIFA컵',
     '골때녀 기파컵',
     '2026 골때녀 GIFA컵',
@@ -31,9 +32,9 @@ export const metadata: Metadata = {
     '골때녀 순위표',
   ],
   openGraph: {
-    title: '2026 골때녀 GIFA컵 일정·경기결과·선수 통계 | 골때녀 데이터센터',
+    title: '골때녀 일정·경기결과·순위·선수 기록 | 골때녀 데이터센터',
     description:
-      '골 때리는 그녀들 2026 제2회 GIFA컵 경기 일정과 대진, 경기 결과, 선수 스탯을 실시간 제공. 팀 순위부터 득점·도움·평점 랭킹까지 한곳에서.',
+      '골 때리는 그녀들 최신 경기 일정과 결과, 팀 순위, 선수별 골·도움 기록을 한눈에. 제2회 GIFA컵 진행 중.',
     type: 'website',
     url: 'https://www.gtndatacenter.com',
     siteName: '골때녀 데이터센터',
@@ -41,9 +42,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '2026 골때녀 GIFA컵 일정·경기결과·선수 통계 | 골때녀 데이터센터',
+    title: '골때녀 일정·경기결과·순위·선수 기록 | 골때녀 데이터센터',
     description:
-      '골 때리는 그녀들 2026 제2회 GIFA컵 경기 일정, 경기 결과, 선수 스탯을 실시간 제공. 팀 순위부터 득점·도움·평점 랭킹까지.',
+      '골 때리는 그녀들 최신 경기 일정과 결과, 팀 순위, 선수별 골·도움 기록을 한눈에. 제2회 GIFA컵 진행 중.',
   },
   alternates: {
     canonical: 'https://www.gtndatacenter.com',
@@ -79,8 +80,7 @@ export default async function Page() {
         ]}
       />
       <h1 className="sr-only">
-        골때녀 데이터센터 - 골 때리는 그녀들 2026 GIFA컵 일정, 경기 결과, 선수
-        통계
+        골때녀 데이터센터 - 골 때리는 그녀들 경기 일정, 결과, 순위, 선수 기록
       </h1>
       <p className="sr-only">
         골 때리는 그녀들(골때녀) 2026 제2회 GIFA컵의 경기 일정과 대진, 최신 경기

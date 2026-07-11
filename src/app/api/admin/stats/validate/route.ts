@@ -102,22 +102,29 @@ export async function GET(request: NextRequest) {
 
     for (const playerStat of playerSeasonStats) {
       // player_match_stats에서 해당 선수의 통계 집계
-      const actualStats = await prisma.playerMatchStats.aggregate({
-        where: {
-          player_id: playerStat.player_id,
-          match: {
-            season_id: playerStat.season_id,
+      // 재생성 로직과 동일 범위: 완료 경기만, (선수, 팀, 시즌) 단위,
+      // 출장 수는 minutes_played > 0만 카운트 (벤치 제외)
+      const pmsScope = {
+        player_id: playerStat.player_id,
+        team_id: playerStat.team_id,
+        match: {
+          season_id: playerStat.season_id,
+          status: 'completed',
+        },
+      };
+      const [actualStats, appearances] = await Promise.all([
+        prisma.playerMatchStats.aggregate({
+          where: pmsScope,
+          _sum: {
+            goals: true,
+            assists: true,
+            minutes_played: true,
           },
-        },
-        _sum: {
-          goals: true,
-          assists: true,
-          minutes_played: true,
-        },
-        _count: {
-          match_id: true,
-        },
-      });
+        }),
+        prisma.playerMatchStats.count({
+          where: { ...pmsScope, minutes_played: { gt: 0 } },
+        }),
+      ]);
 
       if (playerStat.goals !== (actualStats._sum?.goals || 0)) {
         issues.push(
@@ -129,9 +136,9 @@ export async function GET(request: NextRequest) {
           `${playerStat.player?.name} (${playerStat.season?.season_name}): 어시스트 수 불일치 (DB: ${playerStat.assists}, 실제: ${actualStats._sum?.assists || 0})`
         );
       }
-      if (playerStat.matches_played !== actualStats._count?.match_id) {
+      if (playerStat.matches_played !== appearances) {
         issues.push(
-          `${playerStat.player?.name} (${playerStat.season?.season_name}): 출장 수 불일치 (DB: ${playerStat.matches_played}, 실제: ${actualStats._count?.match_id || 0})`
+          `${playerStat.player?.name} (${playerStat.season?.season_name}): 출장 수 불일치 (DB: ${playerStat.matches_played}, 실제: ${appearances})`
         );
       }
     }
@@ -226,6 +233,249 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // 5. 경기 단위 정합성 검증 (완료 경기)
+    //    실제 입력 실수 사례 기반: 스코어≠골 합, 어시스트 미연결(assists 테이블),
+    //    GK 실점≠상대 득점, 라인업/감독/시청률 누락
+    const completedMatches = await prisma.match.findMany({
+      where: {
+        ...(seasonId ? { season_id: parseInt(seasonId) } : {}),
+        status: 'completed',
+      },
+      select: {
+        match_id: true,
+        home_team_id: true,
+        away_team_id: true,
+        home_score: true,
+        away_score: true,
+        penalty_home_score: true,
+        penalty_away_score: true,
+        rating_nationwide: true,
+        home_team: { select: { team_name: true } },
+        away_team: { select: { team_name: true } },
+        goals: {
+          select: {
+            goal_id: true,
+            player_id: true,
+            goal_type: true,
+            assist_id: true,
+          },
+        },
+        assists: {
+          select: { assist_id: true, goal_id: true, player_id: true },
+        },
+        match_coaches: { select: { team_id: true, role: true } },
+        player_match_stats: {
+          select: {
+            player_id: true,
+            team_id: true,
+            goals: true,
+            assists: true,
+            goals_conceded: true,
+          },
+        },
+      },
+    });
+
+    for (const m of completedMatches) {
+      const label = `${m.home_team?.team_name} vs ${m.away_team?.team_name} (경기 ${m.match_id})`;
+      const pms = m.player_match_stats;
+
+      // 라인업과 독립적인 누락 검사 (라인업이 없어도 함께 보고)
+      const headCoachTeams = new Set(
+        m.match_coaches.filter((c) => c.role === 'head').map((c) => c.team_id)
+      );
+      if (m.home_team_id != null && !headCoachTeams.has(m.home_team_id)) {
+        issues.push(`${label}: 홈 팀 경기 감독(match_coaches) 미입력`);
+      }
+      if (m.away_team_id != null && !headCoachTeams.has(m.away_team_id)) {
+        issues.push(`${label}: 원정 팀 경기 감독(match_coaches) 미입력`);
+      }
+      if (m.rating_nationwide === null) {
+        issues.push(`${label}: 시청률 미입력`);
+      }
+      if (m.home_score === null || m.away_score === null) {
+        issues.push(`${label}: 완료 경기인데 스코어 미입력`);
+      }
+
+      const homeLineupCount = pms.filter(
+        (p) => p.team_id === m.home_team_id
+      ).length;
+      const awayLineupCount = pms.filter(
+        (p) => p.team_id === m.away_team_id
+      ).length;
+      const foreignLineupCount = pms.filter(
+        (p) => p.team_id !== m.home_team_id && p.team_id !== m.away_team_id
+      ).length;
+      if (homeLineupCount === 0) {
+        issues.push(`${label}: 홈 팀 라인업(player_match_stats) 미입력`);
+      }
+      if (awayLineupCount === 0) {
+        issues.push(`${label}: 원정 팀 라인업(player_match_stats) 미입력`);
+      }
+      if (foreignLineupCount > 0) {
+        issues.push(
+          `${label}: 경기 참가팀이 아닌 team_id의 라인업 행 ${foreignLineupCount}건`
+        );
+      }
+      if (pms.length === 0) {
+        continue; // 라인업 없이는 이하 스탯 검증 불가
+      }
+
+      const playerTeam = new Map<number, number | null>();
+      pms.forEach((p) => {
+        if (p.player_id != null) playerTeam.set(p.player_id, p.team_id);
+      });
+
+      // 스코어 vs 골 기록 (자책골은 상대 팀 득점으로 귀속)
+      let homeGoals = 0;
+      let awayGoals = 0;
+      for (const g of m.goals) {
+        const scorerTeam = playerTeam.get(g.player_id);
+        if (scorerTeam == null) {
+          issues.push(
+            `${label}: 골 기록의 선수(id ${g.player_id})가 라인업에 없음`
+          );
+          continue;
+        }
+        const isOwnGoal = g.goal_type === 'own_goal';
+        const creditedToHome =
+          (scorerTeam === m.home_team_id) !== isOwnGoal ? true : false;
+        if (creditedToHome) homeGoals++;
+        else awayGoals++;
+      }
+      if (m.home_score !== null && m.away_score !== null) {
+        if (homeGoals !== m.home_score || awayGoals !== m.away_score) {
+          issues.push(
+            `${label}: 스코어 불일치 (matches: ${m.home_score}:${m.away_score}, goals 집계: ${homeGoals}:${awayGoals})`
+          );
+        }
+        // 골때녀는 무승부 없음 — 동점이면 승부차기 스코어 필수
+        if (
+          m.home_score === m.away_score &&
+          (m.penalty_home_score === null || m.penalty_away_score === null)
+        ) {
+          issues.push(`${label}: 동점 경기인데 승부차기 스코어 미입력`);
+        }
+      }
+
+      // GK 실점 합 vs 상대 득점 (스코어가 입력된 경우만 — null이면 위에서 이미 보고)
+      if (m.home_score !== null && m.away_score !== null) {
+        const homeConceded = pms
+          .filter((p) => p.team_id === m.home_team_id)
+          .reduce((a, p) => a + (p.goals_conceded ?? 0), 0);
+        const awayConceded = pms
+          .filter((p) => p.team_id === m.away_team_id)
+          .reduce((a, p) => a + (p.goals_conceded ?? 0), 0);
+        if (homeConceded !== m.away_score) {
+          issues.push(
+            `${label}: 홈 GK 실점 합(${homeConceded}) ≠ 원정 득점(${m.away_score})`
+          );
+        }
+        if (awayConceded !== m.home_score) {
+          issues.push(
+            `${label}: 원정 GK 실점 합(${awayConceded}) ≠ 홈 득점(${m.home_score})`
+          );
+        }
+      }
+
+      // 어시스트 행 자체의 정합성: 연결된 골이 이 경기에 존재하고, 선수는 라인업에 있어야 함
+      const goalIds = new Set(m.goals.map((g) => g.goal_id));
+      for (const a of m.assists) {
+        if (!goalIds.has(a.goal_id)) {
+          issues.push(
+            `${label}: 어시스트(assist ${a.assist_id})가 이 경기에 없는 골(${a.goal_id})에 연결됨`
+          );
+        }
+        if (!playerTeam.has(a.player_id)) {
+          issues.push(
+            `${label}: 어시스트 선수(id ${a.player_id})가 라인업에 없음`
+          );
+        }
+      }
+
+      // goals.assist_id는 assists.assist_id를 가리키는 FK — 참조가 이 경기 골의
+      //  어시스트 행을 가리키는지만 확인 (선수 ID를 잘못 넣는 실수 검출)
+      const assistRowByPk = new Map(m.assists.map((a) => [a.assist_id, a]));
+      for (const g of m.goals) {
+        if (g.assist_id == null) continue;
+        const ref = assistRowByPk.get(g.assist_id);
+        if (!ref || ref.goal_id !== g.goal_id) {
+          issues.push(
+            `${label}: 골 ${g.goal_id}의 assist_id(${g.assist_id})가 이 골의 assists 행을 가리키지 않음`
+          );
+        }
+      }
+
+      // 개인 골/어시스트 스탯 vs 골·어시스트 기록 (화면 표시는 assists 테이블 기준)
+      const goalsByPlayer = new Map<number, number>();
+      for (const g of m.goals) {
+        if (g.goal_type !== 'own_goal') {
+          goalsByPlayer.set(
+            g.player_id,
+            (goalsByPlayer.get(g.player_id) ?? 0) + 1
+          );
+        }
+      }
+      const assistsByPlayer = new Map<number, number>();
+      for (const a of m.assists) {
+        assistsByPlayer.set(
+          a.player_id,
+          (assistsByPlayer.get(a.player_id) ?? 0) + 1
+        );
+      }
+      for (const p of pms) {
+        if (p.player_id == null) continue;
+        const expectedGoals = goalsByPlayer.get(p.player_id) ?? 0;
+        const expectedAssists = assistsByPlayer.get(p.player_id) ?? 0;
+        if ((p.goals ?? 0) !== expectedGoals) {
+          issues.push(
+            `${label}: 선수 ${p.player_id} 개인 득점(${p.goals}) ≠ 골 기록(${expectedGoals})`
+          );
+        }
+        if ((p.assists ?? 0) !== expectedAssists) {
+          issues.push(
+            `${label}: 선수 ${p.player_id} 개인 도움(${p.assists}) ≠ 어시스트 기록(${expectedAssists})`
+          );
+        }
+      }
+    }
+
+    // 6. 감독 현재 팀 테이블 드리프트 (수동 관리 테이블 ↔ is_current 원본)
+    const [currentHeadCoaches, currentHistory] = await Promise.all([
+      prisma.team_current_head_coach.findMany({
+        select: {
+          coach_id: true,
+          team_id: true,
+          coaches: { select: { name: true } },
+        },
+      }),
+      prisma.teamCoachHistory.findMany({
+        where: { is_current: true, role: 'head' },
+        select: { coach_id: true, team_id: true },
+      }),
+    ]);
+    const historyPairs = new Set(
+      currentHistory.map((h) => `${h.coach_id}-${h.team_id}`)
+    );
+    const currentTablePairs = new Set(
+      currentHeadCoaches.map((c) => `${c.coach_id}-${c.team_id}`)
+    );
+    for (const c of currentHeadCoaches) {
+      if (!historyPairs.has(`${c.coach_id}-${c.team_id}`)) {
+        issues.push(
+          `감독 테이블 드리프트: ${c.coaches?.name}(coach ${c.coach_id})의 team_current_head_coach(팀 ${c.team_id})가 team_coach_history의 is_current와 불일치`
+        );
+      }
+    }
+    // 역방향: is_current 감독인데 수동 테이블(team_current_head_coach)에 누락된 경우
+    for (const h of currentHistory) {
+      if (!currentTablePairs.has(`${h.coach_id}-${h.team_id}`)) {
+        issues.push(
+          `감독 테이블 드리프트: coach ${h.coach_id}(팀 ${h.team_id})가 is_current인데 team_current_head_coach에 없음 (감독 상세 페이지 미반영)`
+        );
+      }
+    }
+
     console.log('데이터 검증 완료:', { 총문제수: issues.length });
 
     return NextResponse.json({
@@ -240,6 +490,8 @@ export async function GET(request: NextRequest) {
         player_season_stats: playerSeasonStats.length,
         team_season_stats: teamSeasonStats.length,
         h2h_pair_stats: h2hStats.length,
+        matches: completedMatches.length,
+        current_head_coaches: currentHeadCoaches.length,
       },
       season_id: seasonId ? parseInt(seasonId) : null,
     });

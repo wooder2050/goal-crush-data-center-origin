@@ -118,34 +118,18 @@ export default async function Page({ params }: Props) {
   if (!initialData) notFound();
 
   const player = initialData.player;
+  const summary = initialData.summary;
 
-  // 구조화 데이터용 추가 정보 조회
-  const [teamHistory, seasonStats, positions] = await Promise.all([
-    prisma.playerTeamHistory.findFirst({
-      where: { player_id: id },
-      orderBy: { created_at: 'desc' },
-      include: { team: { select: { team_name: true } } },
-    }),
-    prisma.playerSeasonStats.findMany({
-      where: { player_id: id },
-      select: { goals: true, assists: true, matches_played: true },
-    }),
-    prisma.playerPosition.findFirst({
-      where: { player_id: id },
-      orderBy: { created_at: 'desc' },
-      select: { position: true },
-    }),
-  ]);
-
-  const currentTeamName = teamHistory?.team?.team_name;
-  const careerStats = seasonStats.reduce(
-    (acc, s) => ({
-      matches: acc.matches + (s.matches_played ?? 0),
-      goals: acc.goals + (s.goals ?? 0),
-      assists: acc.assists + (s.assists ?? 0),
-    }),
-    { matches: 0, goals: 0, assists: 0 }
-  );
+  // 구조화 데이터는 이미 조회한 summary에서 파생 (추가 DB 왕복 제거)
+  const currentTeamName =
+    summary.team_history?.find((t) => !t.end_date)?.team_name ??
+    summary.team_history?.[0]?.team_name ??
+    undefined;
+  const careerStats = {
+    matches: summary.totals.appearances,
+    goals: summary.totals.goals,
+    assists: summary.totals.assists,
+  };
 
   return (
     <>
@@ -161,7 +145,7 @@ export default async function Page({ params }: Props) {
         image={player.profile_image_url || undefined}
         url={`https://www.gtndatacenter.com/players/${playerId}`}
         teamName={currentTeamName || undefined}
-        position={positions?.position || undefined}
+        position={summary.primary_position || undefined}
         height={player.height_cm || undefined}
         stats={careerStats.matches > 0 ? careerStats : undefined}
       />

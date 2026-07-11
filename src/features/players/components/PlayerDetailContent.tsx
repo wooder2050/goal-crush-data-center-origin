@@ -66,14 +66,16 @@ function getMatchOutcome(gm: {
 export default function PlayerDetailContent({
   playerId,
   initialPlayer,
+  initialSummary,
 }: {
   playerId: number;
   initialPlayer?: NonNullable<PlayerData>;
+  initialSummary?: NonNullable<PlayerSummaryData>;
 }) {
   return (
     <PlayerDataProvider playerId={playerId} initialData={initialPlayer}>
       {(player) => (
-        <PlayerSummaryProvider playerId={playerId}>
+        <PlayerSummaryProvider playerId={playerId} initialData={initialSummary}>
           {(summary) => (
             <PlayerDetailContentInner
               player={player}
