@@ -1,5 +1,6 @@
 'use client';
 
+import { useSuspenseQueries } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FC, useMemo, useState } from 'react';
@@ -26,7 +27,7 @@ import {
   getTopScorersPrisma,
   getTopXtRatingsPrisma,
 } from '@/features/stats/api-prisma';
-import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { goalQueryOptions } from '@/hooks/useGoalQuery';
 import type { PlayerSeasonStats } from '@/lib/types';
 import { getRatingBgColor, getRatingTextColor } from '@/lib/utils';
 
@@ -42,6 +43,180 @@ interface PlayerSeasonRankingTableProps {
   className?: string;
 }
 
+// ── 공유 셀 ──────────────────────────────────────────────
+
+/** 순위 셀 — 1~3위 금/은/동 색상 */
+function RankCell({ rank }: { rank: number }) {
+  return (
+    <TableCell className="text-center">
+      <span
+        className={`font-bold ${
+          rank === 1
+            ? 'text-yellow-600'
+            : rank === 2
+              ? 'text-gray-500'
+              : rank === 3
+                ? 'text-orange-600'
+                : 'text-gray-500'
+        }`}
+      >
+        {rank}
+      </span>
+    </TableCell>
+  );
+}
+
+/** 선수 셀 — 프로필 이미지 + 팀 로고 오버레이 + 이름/팀 (FotMob 스타일) */
+function PlayerCell({
+  playerId,
+  playerName,
+  playerImage,
+  teamName,
+  teamLogo,
+}: {
+  playerId: number | null;
+  playerName: string | null;
+  playerImage?: string | null;
+  teamName: string | null;
+  teamLogo?: string | null;
+}) {
+  return (
+    <TableCell>
+      <div className="flex items-center gap-2">
+        <div className="relative flex-shrink-0">
+          {playerImage ? (
+            <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-100">
+              <Image
+                src={playerImage}
+                alt={playerName ?? '선수'}
+                fill
+                sizes="36px"
+                className="object-cover"
+              />
+            </div>
+          ) : (
+            <div className="h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
+              {(playerName ?? '-').charAt(0)}
+            </div>
+          )}
+          {teamLogo && (
+            <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-white p-0.5 shadow-sm">
+              <div className="relative h-full w-full overflow-hidden rounded-full">
+                <Image
+                  src={teamLogo}
+                  alt="팀 로고"
+                  fill
+                  sizes="14px"
+                  className="object-cover"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="min-w-0">
+          <Link
+            href={`/players/${playerId}`}
+            className="font-medium hover:underline hover:text-blue-600 transition-colors block truncate"
+          >
+            {playerName ?? '알 수 없음'}
+          </Link>
+          <div className="text-xs text-gray-500 truncate">
+            {teamName ?? '알 수 없음'}
+          </div>
+        </div>
+      </div>
+    </TableCell>
+  );
+}
+
+// ── 스탯 순위 테이블 (득점/도움/공격포인트/출전 공용) ──────
+
+type StatColumn = {
+  header: string;
+  value: (row: PlayerSeasonStatsWithNames) => number;
+  /** 강조 컬럼 — 모바일에서도 표시, 파란색 볼드 */
+  highlight?: boolean;
+  /** 비강조인데 볼드 처리 (기존 도움/출전 테이블의 골 컬럼 스타일 유지) */
+  bold?: boolean;
+};
+
+function StatRankingTable({
+  title,
+  rows,
+  columns,
+}: {
+  title: string;
+  rows: PlayerSeasonStatsWithNames[];
+  columns: StatColumn[];
+}) {
+  return (
+    <div>
+      <h4 className="mb-3 sm:mb-4 font-semibold">{title}</h4>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-12 text-center whitespace-nowrap">
+              순위
+            </TableHead>
+            <TableHead className="whitespace-nowrap">선수</TableHead>
+            {columns.map((c) => (
+              <TableHead
+                key={c.header}
+                className={`whitespace-nowrap text-center ${
+                  c.highlight ? '' : 'hidden sm:table-cell'
+                }`}
+              >
+                {c.header}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={2 + columns.length}
+                className="text-center text-gray-500 py-6"
+              >
+                개인 순위 데이터가 없습니다.
+              </TableCell>
+            </TableRow>
+          ) : (
+            rows.map((row, idx) => (
+              <TableRow key={row.stat_id}>
+                <RankCell rank={idx + 1} />
+                <PlayerCell
+                  playerId={row.player_id}
+                  playerName={row.player_name}
+                  playerImage={row.player_image}
+                  teamName={row.team_name}
+                  teamLogo={row.team_logo}
+                />
+                {columns.map((c) => (
+                  <TableCell
+                    key={c.header}
+                    className={
+                      c.highlight
+                        ? 'text-center font-semibold text-blue-600'
+                        : `hidden sm:table-cell text-center text-gray-600${
+                            c.bold ? ' font-semibold' : ''
+                          }`
+                    }
+                  >
+                    {c.value(row)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// ── 스켈레톤 ─────────────────────────────────────────────
+
 function PlayerSeasonRankingTableSkeleton({
   className = '',
 }: {
@@ -49,19 +224,15 @@ function PlayerSeasonRankingTableSkeleton({
 }) {
   const SkeletonRow = () => (
     <div className="flex items-center gap-3 p-2 border-b border-gray-100">
-      {/* 순위 */}
       <div className="w-6 h-5 bg-gray-200 rounded animate-pulse"></div>
-      {/* 선수 이미지 + 팀 로고 오버레이 */}
       <div className="relative flex-shrink-0">
         <div className="w-9 h-9 bg-gray-200 rounded-full animate-pulse"></div>
         <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-gray-300 rounded-full animate-pulse"></div>
       </div>
-      {/* 선수 이름 + 팀 이름 */}
       <div className="flex-1 min-w-0">
         <div className="w-20 h-4 bg-gray-200 rounded mb-1 animate-pulse"></div>
         <div className="w-14 h-3 bg-gray-200 rounded animate-pulse"></div>
       </div>
-      {/* 통계 */}
       <div className="w-8 h-4 bg-gray-200 rounded animate-pulse hidden sm:block"></div>
       <div className="w-8 h-4 bg-gray-200 rounded animate-pulse"></div>
       <div className="w-8 h-4 bg-gray-200 rounded animate-pulse hidden sm:block"></div>
@@ -72,71 +243,47 @@ function PlayerSeasonRankingTableSkeleton({
     <div className={className}>
       <h3 className="text-lg font-bold mb-2">개인 순위</h3>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
-        <div>
-          <h4 className="mb-3 sm:mb-4 font-semibold">득점 TOP 10</h4>
-          <div>
-            {Array.from({ length: 10 }).map((_, index) => (
-              <SkeletonRow key={index} />
-            ))}
-          </div>
-        </div>
-        <div>
-          <h4 className="mb-3 sm:mb-4 font-semibold">도움 TOP 10</h4>
-          <div>
-            {Array.from({ length: 10 }).map((_, index) => (
-              <SkeletonRow key={index} />
-            ))}
-          </div>
-        </div>
-        <div>
-          <h4 className="mb-3 sm:mb-4 font-semibold">공격포인트 TOP 10</h4>
-          <div>
-            {Array.from({ length: 10 }).map((_, index) => (
-              <SkeletonRow key={index} />
-            ))}
-          </div>
-        </div>
-        <div>
-          <h4 className="mb-3 sm:mb-4 font-semibold">출전 TOP 10</h4>
-          <div>
-            {Array.from({ length: 10 }).map((_, index) => (
-              <SkeletonRow key={index} />
-            ))}
-          </div>
-        </div>
+        {['득점 TOP 10', '도움 TOP 10', '공격포인트 TOP 10', '출전 TOP 10'].map(
+          (title) => (
+            <div key={title}>
+              <h4 className="mb-3 sm:mb-4 font-semibold">{title}</h4>
+              <div>
+                {Array.from({ length: 10 }).map((_, index) => (
+                  <SkeletonRow key={index} />
+                ))}
+              </div>
+            </div>
+          )
+        )}
       </div>
     </div>
   );
 }
 
+// ── 본체 ─────────────────────────────────────────────────
+
 function PlayerSeasonRankingTableInner({
   seasonId,
   className,
 }: PlayerSeasonRankingTableProps) {
-  const { data: topScorers = [] } = useGoalSuspenseQuery(getTopScorersPrisma, [
-    seasonId,
-    10,
-  ]);
-  const { data: topAppearances = [] } = useGoalSuspenseQuery(
-    getTopAppearancesPrisma,
-    [seasonId, 10]
-  );
-  const { data: topAssists = [] } = useGoalSuspenseQuery(getTopAssistsPrisma, [
-    seasonId,
-    10,
-  ]);
-  const { data: topAttackPoints = [] } = useGoalSuspenseQuery(
-    getTopAttackPointsPrisma,
-    [seasonId, 10]
-  );
-  const { data: topRatings = [] } = useGoalSuspenseQuery(getTopRatingsPrisma, [
-    seasonId,
-    10,
-  ]);
-  const { data: topXtRatings = [] } = useGoalSuspenseQuery(
-    getTopXtRatingsPrisma,
-    [seasonId, 10]
-  );
+  // 6개 쿼리를 병렬 실행 — 직렬 suspense 체인(RTT×6) 방지
+  const [
+    { data: topScorers },
+    { data: topAppearances },
+    { data: topAssists },
+    { data: topAttackPoints },
+    { data: topRatings },
+    { data: topXtRatings },
+  ] = useSuspenseQueries({
+    queries: [
+      goalQueryOptions(getTopScorersPrisma, [seasonId, 10]),
+      goalQueryOptions(getTopAppearancesPrisma, [seasonId, 10]),
+      goalQueryOptions(getTopAssistsPrisma, [seasonId, 10]),
+      goalQueryOptions(getTopAttackPointsPrisma, [seasonId, 10]),
+      goalQueryOptions(getTopRatingsPrisma, [seasonId, 10]),
+      goalQueryOptions(getTopXtRatingsPrisma, [seasonId, 10]),
+    ],
+  });
 
   const sortedAppearances = useMemo(() => {
     return [...topAppearances].sort((a, b) => {
@@ -176,457 +323,50 @@ function PlayerSeasonRankingTableInner({
             topXtRatings={topXtRatings}
           />
         )}
-        <div>
-          <h4 className="mb-3 sm:mb-4 font-semibold">득점 TOP 10</h4>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12 text-center whitespace-nowrap">
-                  순위
-                </TableHead>
-                <TableHead className="whitespace-nowrap">선수</TableHead>
-                <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
-                  경기
-                </TableHead>
-                <TableHead className="whitespace-nowrap text-center">
-                  골
-                </TableHead>
-                <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
-                  도움
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {topScorers.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-gray-500 py-6"
-                  >
-                    개인 순위 데이터가 없습니다.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                topScorers.map(
-                  (row: PlayerSeasonStatsWithNames, idx: number) => (
-                    <TableRow key={row.stat_id}>
-                      <TableCell className="text-center">
-                        <span
-                          className={`font-bold ${
-                            idx === 0
-                              ? 'text-yellow-600'
-                              : idx === 1
-                                ? 'text-gray-500'
-                                : idx === 2
-                                  ? 'text-orange-600'
-                                  : 'text-gray-500'
-                          }`}
-                        >
-                          {idx + 1}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {/* 선수 프로필 이미지 + 팀 로고 오버레이 - FotMob 스타일 */}
-                          <div className="relative flex-shrink-0">
-                            {row.player_image ? (
-                              <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-100">
-                                <Image
-                                  src={row.player_image}
-                                  alt={row.player_name ?? '선수'}
-                                  fill
-                                  sizes="36px"
-                                  className="object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
-                                {(row.player_name ?? '-').charAt(0)}
-                              </div>
-                            )}
-                            {/* 팀 로고 오버레이 */}
-                            {row.team_logo && (
-                              <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-white p-0.5 shadow-sm">
-                                <div className="relative h-full w-full overflow-hidden rounded-full">
-                                  <Image
-                                    src={row.team_logo}
-                                    alt="팀 로고"
-                                    fill
-                                    sizes="14px"
-                                    className="object-cover"
-                                  />
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <Link
-                              href={`/players/${row.player_id}`}
-                              className="font-medium hover:underline hover:text-blue-600 transition-colors block truncate"
-                            >
-                              {row.player_name ?? '알 수 없음'}
-                            </Link>
-                            <div className="text-xs text-gray-500 truncate">
-                              {row.team_name ?? '알 수 없음'}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-center text-gray-600">
-                        {row.matches_played ?? 0}
-                      </TableCell>
-                      <TableCell className="text-center font-semibold text-blue-600">
-                        {row.goals ?? 0}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-center text-gray-600">
-                        {row.assists ?? 0}
-                      </TableCell>
-                    </TableRow>
-                  )
-                )
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <div>
-          <h4 className="mb-3 sm:mb-4 font-semibold">도움 TOP 10</h4>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12 text-center whitespace-nowrap">
-                  순위
-                </TableHead>
-                <TableHead className="whitespace-nowrap">선수</TableHead>
-                <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
-                  경기
-                </TableHead>
-                <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
-                  골
-                </TableHead>
-                <TableHead className="whitespace-nowrap text-center">
-                  도움
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedAssists.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-gray-500 py-6"
-                  >
-                    개인 순위 데이터가 없습니다.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                sortedAssists.map(
-                  (row: PlayerSeasonStatsWithNames, idx: number) => (
-                    <TableRow key={row.stat_id}>
-                      <TableCell className="text-center">
-                        <span
-                          className={`font-bold ${
-                            idx === 0
-                              ? 'text-yellow-600'
-                              : idx === 1
-                                ? 'text-gray-500'
-                                : idx === 2
-                                  ? 'text-orange-600'
-                                  : 'text-gray-500'
-                          }`}
-                        >
-                          {idx + 1}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {/* 선수 프로필 이미지 + 팀 로고 오버레이 - FotMob 스타일 */}
-                          <div className="relative flex-shrink-0">
-                            {row.player_image ? (
-                              <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-100">
-                                <Image
-                                  src={row.player_image}
-                                  alt={row.player_name ?? '선수'}
-                                  fill
-                                  sizes="36px"
-                                  className="object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
-                                {(row.player_name ?? '-').charAt(0)}
-                              </div>
-                            )}
-                            {/* 팀 로고 오버레이 */}
-                            {row.team_logo && (
-                              <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-white p-0.5 shadow-sm">
-                                <div className="relative h-full w-full overflow-hidden rounded-full">
-                                  <Image
-                                    src={row.team_logo}
-                                    alt="팀 로고"
-                                    fill
-                                    sizes="14px"
-                                    className="object-cover"
-                                  />
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <Link
-                              href={`/players/${row.player_id}`}
-                              className="font-medium hover:underline hover:text-blue-600 transition-colors block truncate"
-                            >
-                              {row.player_name ?? '알 수 없음'}
-                            </Link>
-                            <div className="text-xs text-gray-500 truncate">
-                              {row.team_name ?? '알 수 없음'}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-center text-gray-600">
-                        {row.matches_played ?? 0}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-center font-semibold text-gray-600">
-                        {row.goals ?? 0}
-                      </TableCell>
-                      <TableCell className="text-center font-semibold text-blue-600">
-                        {row.assists ?? 0}
-                      </TableCell>
-                    </TableRow>
-                  )
-                )
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <div>
-          <h4 className="mb-3 sm:mb-4 font-semibold">공격포인트 TOP 10</h4>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12 text-center whitespace-nowrap">
-                  순위
-                </TableHead>
-                <TableHead className="whitespace-nowrap">선수</TableHead>
-                <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
-                  골
-                </TableHead>
-                <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
-                  도움
-                </TableHead>
-                <TableHead className="whitespace-nowrap text-center">
-                  포인트
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {topAttackPoints.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-gray-500 py-6"
-                  >
-                    개인 순위 데이터가 없습니다.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                topAttackPoints.map(
-                  (
-                    row: PlayerSeasonStatsWithNames & { attack_points: number },
-                    idx: number
-                  ) => (
-                    <TableRow key={row.stat_id}>
-                      <TableCell className="text-center">
-                        <span
-                          className={`font-bold ${
-                            idx === 0
-                              ? 'text-yellow-600'
-                              : idx === 1
-                                ? 'text-gray-500'
-                                : idx === 2
-                                  ? 'text-orange-600'
-                                  : 'text-gray-500'
-                          }`}
-                        >
-                          {idx + 1}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {/* 선수 프로필 이미지 + 팀 로고 오버레이 - FotMob 스타일 */}
-                          <div className="relative flex-shrink-0">
-                            {row.player_image ? (
-                              <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-100">
-                                <Image
-                                  src={row.player_image}
-                                  alt={row.player_name ?? '선수'}
-                                  fill
-                                  sizes="36px"
-                                  className="object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
-                                {(row.player_name ?? '-').charAt(0)}
-                              </div>
-                            )}
-                            {/* 팀 로고 오버레이 */}
-                            {row.team_logo && (
-                              <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-white p-0.5 shadow-sm">
-                                <div className="relative h-full w-full overflow-hidden rounded-full">
-                                  <Image
-                                    src={row.team_logo}
-                                    alt="팀 로고"
-                                    fill
-                                    sizes="14px"
-                                    className="object-cover"
-                                  />
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <Link
-                              href={`/players/${row.player_id}`}
-                              className="font-medium hover:underline hover:text-blue-600 transition-colors block truncate"
-                            >
-                              {row.player_name ?? '알 수 없음'}
-                            </Link>
-                            <div className="text-xs text-gray-500 truncate">
-                              {row.team_name ?? '알 수 없음'}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-center text-gray-600">
-                        {row.goals ?? 0}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-center text-gray-600">
-                        {row.assists ?? 0}
-                      </TableCell>
-                      <TableCell className="text-center font-semibold text-blue-600">
-                        {row.attack_points ?? 0}
-                      </TableCell>
-                    </TableRow>
-                  )
-                )
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <div>
-          <h4 className="mb-3 sm:mb-4 font-semibold">출전 TOP 10</h4>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12 text-center whitespace-nowrap">
-                  순위
-                </TableHead>
-                <TableHead className="whitespace-nowrap">선수</TableHead>
-                <TableHead className="whitespace-nowrap text-center">
-                  경기
-                </TableHead>
-                <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
-                  골
-                </TableHead>
-                <TableHead className="hidden sm:table-cell whitespace-nowrap text-center">
-                  도움
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedAppearances.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-gray-500 py-6"
-                  >
-                    개인 순위 데이터가 없습니다.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                sortedAppearances.map(
-                  (row: PlayerSeasonStatsWithNames, idx: number) => (
-                    <TableRow key={row.stat_id}>
-                      <TableCell className="text-center">
-                        <span
-                          className={`font-bold ${
-                            idx === 0
-                              ? 'text-yellow-600'
-                              : idx === 1
-                                ? 'text-gray-500'
-                                : idx === 2
-                                  ? 'text-orange-600'
-                                  : 'text-gray-500'
-                          }`}
-                        >
-                          {idx + 1}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {/* 선수 프로필 이미지 + 팀 로고 오버레이 - FotMob 스타일 */}
-                          <div className="relative flex-shrink-0">
-                            {row.player_image ? (
-                              <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-100">
-                                <Image
-                                  src={row.player_image}
-                                  alt={row.player_name ?? '선수'}
-                                  fill
-                                  sizes="36px"
-                                  className="object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
-                                {(row.player_name ?? '-').charAt(0)}
-                              </div>
-                            )}
-                            {/* 팀 로고 오버레이 */}
-                            {row.team_logo && (
-                              <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-white p-0.5 shadow-sm">
-                                <div className="relative h-full w-full overflow-hidden rounded-full">
-                                  <Image
-                                    src={row.team_logo}
-                                    alt="팀 로고"
-                                    fill
-                                    sizes="14px"
-                                    className="object-cover"
-                                  />
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <Link
-                              href={`/players/${row.player_id}`}
-                              className="font-medium hover:underline hover:text-blue-600 transition-colors block truncate"
-                            >
-                              {row.player_name ?? '알 수 없음'}
-                            </Link>
-                            <div className="text-xs text-gray-500 truncate">
-                              {row.team_name ?? '알 수 없음'}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center font-semibold text-blue-600">
-                        {row.matches_played ?? 0}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-center font-semibold text-gray-600">
-                        {row.goals ?? 0}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-center text-gray-600">
-                        {row.assists ?? 0}
-                      </TableCell>
-                    </TableRow>
-                  )
-                )
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <StatRankingTable
+          title="득점 TOP 10"
+          rows={topScorers}
+          columns={[
+            { header: '경기', value: (r) => r.matches_played ?? 0 },
+            { header: '골', value: (r) => r.goals ?? 0, highlight: true },
+            { header: '도움', value: (r) => r.assists ?? 0 },
+          ]}
+        />
+        <StatRankingTable
+          title="도움 TOP 10"
+          rows={sortedAssists}
+          columns={[
+            { header: '경기', value: (r) => r.matches_played ?? 0 },
+            { header: '골', value: (r) => r.goals ?? 0, bold: true },
+            { header: '도움', value: (r) => r.assists ?? 0, highlight: true },
+          ]}
+        />
+        <StatRankingTable
+          title="공격포인트 TOP 10"
+          rows={topAttackPoints}
+          columns={[
+            { header: '골', value: (r) => r.goals ?? 0 },
+            { header: '도움', value: (r) => r.assists ?? 0 },
+            {
+              header: '포인트',
+              value: (r) => (r.goals ?? 0) + (r.assists ?? 0),
+              highlight: true,
+            },
+          ]}
+        />
+        <StatRankingTable
+          title="출전 TOP 10"
+          rows={sortedAppearances}
+          columns={[
+            {
+              header: '경기',
+              value: (r) => r.matches_played ?? 0,
+              highlight: true,
+            },
+            { header: '골', value: (r) => r.goals ?? 0, bold: true },
+            { header: '도움', value: (r) => r.assists ?? 0 },
+          ]}
+        />
       </div>
     </div>
   );
@@ -679,66 +419,14 @@ function RatingRankingTable({
         <TableBody>
           {displayData.map((row, idx) => (
             <TableRow key={row.player_id}>
-              <TableCell className="text-center">
-                <span
-                  className={`font-bold ${
-                    idx === 0
-                      ? 'text-yellow-600'
-                      : idx === 1
-                        ? 'text-gray-500'
-                        : idx === 2
-                          ? 'text-orange-600'
-                          : 'text-gray-500'
-                  }`}
-                >
-                  {idx + 1}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-shrink-0">
-                    {row.player_image ? (
-                      <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-100">
-                        <Image
-                          src={row.player_image}
-                          alt={row.player_name ?? '선수'}
-                          fill
-                          sizes="36px"
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-9 w-9 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
-                        {(row.player_name ?? '-').charAt(0)}
-                      </div>
-                    )}
-                    {row.team_logo && (
-                      <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-white p-0.5 shadow-sm">
-                        <div className="relative h-full w-full overflow-hidden rounded-full">
-                          <Image
-                            src={row.team_logo}
-                            alt="팀 로고"
-                            fill
-                            sizes="14px"
-                            className="object-cover"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <Link
-                      href={`/players/${row.player_id}`}
-                      className="font-medium hover:underline hover:text-blue-600 transition-colors block truncate"
-                    >
-                      {row.player_name ?? '알 수 없음'}
-                    </Link>
-                    <div className="text-xs text-gray-500 truncate">
-                      {row.team_name ?? '알 수 없음'}
-                    </div>
-                  </div>
-                </div>
-              </TableCell>
+              <RankCell rank={idx + 1} />
+              <PlayerCell
+                playerId={row.player_id}
+                playerName={row.player_name}
+                playerImage={row.player_image}
+                teamName={row.team_name}
+                teamLogo={row.team_logo}
+              />
               <TableCell className="hidden sm:table-cell text-center text-gray-600">
                 {row.matches_rated}
               </TableCell>

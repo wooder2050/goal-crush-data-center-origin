@@ -44,6 +44,26 @@ export function useGoalQuery<
 }
 
 /**
+ * useGoalSuspenseQuery와 동일한 queryKey 규약의 쿼리 옵션 생성기.
+ * useSuspenseQueries로 여러 쿼리를 병렬 실행할 때 사용 (직렬 suspense 체인 방지).
+ * 키 규약이 같아 개별 useGoal*Query 사용처와 캐시가 공유된다.
+ */
+export function goalQueryOptions<
+  TQueryFn extends (...args: any[]) => Promise<any>,
+>(apiFn: TQueryFn, params: Parameters<TQueryFn>) {
+  const customKey = (apiFn as any)?.queryKey as string | undefined;
+  const safeName =
+    customKey ||
+    (typeof apiFn === 'function' && (apiFn as { name?: string }).name) ||
+    'anonymous';
+
+  return {
+    queryKey: [safeName, JSON.stringify(params)] as QueryKey,
+    queryFn: () => apiFn(...params) as Promise<Awaited<ReturnType<TQueryFn>>>,
+  };
+}
+
+/**
  * Suspense-enabled query hook
  */
 export function useGoalSuspenseQuery<
