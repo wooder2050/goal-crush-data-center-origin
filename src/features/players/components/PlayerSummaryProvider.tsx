@@ -17,10 +17,14 @@ export function PlayerSummaryProvider({
   initialData,
   children,
 }: PlayerSummaryProviderProps) {
+  // refetchOnMount: 전역이 false라 initialData가 stale 이후에도 고착될 수 있음 —
+  // 이 쿼리는 재마운트 시 stale(5분 경과)이면 다시 가져오도록 복구
   const { data: summary } = useGoalSuspenseQuery(
     getPlayerSummaryPrisma,
     [playerId],
-    initialData ? { initialData } : undefined
+    initialData
+      ? { initialData, refetchOnMount: true }
+      : { refetchOnMount: true }
   );
 
   if (!summary) {

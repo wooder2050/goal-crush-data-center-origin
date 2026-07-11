@@ -13,54 +13,55 @@ export async function readPlayerSummary(
   playerId: number,
   filterTeamId?: number
 ): Promise<PlayerSummaryData> {
-  // Prefer season totals from player_season_stats
-  const seasonStats = await prisma.playerSeasonStats.findMany({
-    where: { player_id: playerId },
-    select: {
-      season_id: true,
-      goals: true,
-      assists: true,
-      matches_played: true,
-      season: { select: { season_id: true, season_name: true, year: true } },
-      team: { select: { team_id: true, team_name: true, logo: true } },
-    },
-    orderBy: [{ season_id: 'asc' }],
-  });
-
-  // Team history (latest first; end_date null first if current)
-  const teamHistoryRows = await prisma.playerTeamHistory.findMany({
-    where: { player_id: playerId },
-    include: {
-      team: {
-        select: {
-          team_id: true,
-          team_name: true,
-          logo: true,
-          primary_color: true,
-          secondary_color: true,
+  // 독립적인 3개 조회는 병렬 실행 (SSR 핵심 경로 waterfall 방지)
+  const [seasonStats, teamHistoryRows, pmsRows] = await Promise.all([
+    // Prefer season totals from player_season_stats
+    prisma.playerSeasonStats.findMany({
+      where: { player_id: playerId },
+      select: {
+        season_id: true,
+        goals: true,
+        assists: true,
+        matches_played: true,
+        season: { select: { season_id: true, season_name: true, year: true } },
+        team: { select: { team_id: true, team_name: true, logo: true } },
+      },
+      orderBy: [{ season_id: 'asc' }],
+    }),
+    // Team history (latest first; end_date null first if current)
+    prisma.playerTeamHistory.findMany({
+      where: { player_id: playerId },
+      include: {
+        team: {
+          select: {
+            team_id: true,
+            team_name: true,
+            logo: true,
+            primary_color: true,
+            secondary_color: true,
+          },
         },
       },
-    },
-    orderBy: [
-      { end_date: { sort: 'desc', nulls: 'last' } },
-      { created_at: 'desc' },
-    ],
-  });
-
-  // Backfill map from player_match_stats if needed
-  const pmsRows = await prisma.playerMatchStats.findMany({
-    where: { player_id: playerId },
-    select: {
-      goals: true,
-      assists: true,
-      match_id: true,
-      team_id: true,
-      match: { select: { season_id: true } },
-      position: true,
-      minutes_played: true,
-      goals_conceded: true,
-    },
-  });
+      orderBy: [
+        { end_date: { sort: 'desc', nulls: 'last' } },
+        { created_at: 'desc' },
+      ],
+    }),
+    // Backfill map from player_match_stats if needed
+    prisma.playerMatchStats.findMany({
+      where: { player_id: playerId },
+      select: {
+        goals: true,
+        assists: true,
+        match_id: true,
+        team_id: true,
+        match: { select: { season_id: true } },
+        position: true,
+        minutes_played: true,
+        goals_conceded: true,
+      },
+    }),
+  ]);
 
   type SeasonAgg = {
     goals: number;
