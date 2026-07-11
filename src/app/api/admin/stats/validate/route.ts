@@ -280,11 +280,7 @@ export async function GET(request: NextRequest) {
       const label = `${m.home_team?.team_name} vs ${m.away_team?.team_name} (경기 ${m.match_id})`;
       const pms = m.player_match_stats;
 
-      // 기록 누락
-      if (pms.length === 0) {
-        issues.push(`${label}: 라인업(player_match_stats) 미입력`);
-        continue; // 라인업 없이는 이하 검증 불가
-      }
+      // 라인업과 독립적인 누락 검사 (라인업이 없어도 함께 보고)
       const headCoachTeams = new Set(
         m.match_coaches.filter((c) => c.role === 'head').map((c) => c.team_id)
       );
@@ -296,6 +292,14 @@ export async function GET(request: NextRequest) {
       }
       if (m.rating_nationwide === null) {
         issues.push(`${label}: 시청률 미입력`);
+      }
+      if (m.home_score === null || m.away_score === null) {
+        issues.push(`${label}: 완료 경기인데 스코어 미입력`);
+      }
+
+      if (pms.length === 0) {
+        issues.push(`${label}: 라인업(player_match_stats) 미입력`);
+        continue; // 라인업 없이는 이하 스탯 검증 불가
       }
 
       const playerTeam = new Map<number, number | null>();
@@ -320,9 +324,7 @@ export async function GET(request: NextRequest) {
         if (creditedToHome) homeGoals++;
         else awayGoals++;
       }
-      if (m.home_score === null || m.away_score === null) {
-        issues.push(`${label}: 완료 경기인데 스코어 미입력`);
-      } else {
+      if (m.home_score !== null && m.away_score !== null) {
         if (homeGoals !== m.home_score || awayGoals !== m.away_score) {
           issues.push(
             `${label}: 스코어 불일치 (matches: ${m.home_score}:${m.away_score}, goals 집계: ${homeGoals}:${awayGoals})`
@@ -353,6 +355,21 @@ export async function GET(request: NextRequest) {
         issues.push(
           `${label}: 원정 GK 실점 합(${awayConceded}) ≠ 홈 득점(${m.home_score})`
         );
+      }
+
+      // 어시스트 행 자체의 정합성: 연결된 골이 이 경기에 존재하고, 선수는 라인업에 있어야 함
+      const goalIds = new Set(m.goals.map((g) => g.goal_id));
+      for (const a of m.assists) {
+        if (!goalIds.has(a.goal_id)) {
+          issues.push(
+            `${label}: 어시스트(assist ${a.assist_id})가 이 경기에 없는 골(${a.goal_id})에 연결됨`
+          );
+        }
+        if (!playerTeam.has(a.player_id)) {
+          issues.push(
+            `${label}: 어시스트 선수(id ${a.player_id})가 라인업에 없음`
+          );
+        }
       }
 
       // goals.assist_id는 assists.assist_id를 가리키는 FK — 참조가 이 경기 골의
