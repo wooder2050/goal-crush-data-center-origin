@@ -2,8 +2,11 @@
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Section } from '@/components/ui';
+import type { getPlayerSummaryPrisma } from '@/features/players/api-prisma';
 import PlayerDetailContent from '@/features/players/components/PlayerDetailContent';
 import type { Player } from '@/lib/types';
+
+type PlayerSummaryData = Awaited<ReturnType<typeof getPlayerSummaryPrisma>>;
 
 function SkeletonBlock({ className }: { className?: string }) {
   return (
@@ -191,9 +194,11 @@ function PlayerDetailSkeleton() {
 export default function PlayerDetailPage({
   playerId,
   initialPlayer,
+  initialSummary,
 }: {
   playerId: number | null;
   initialPlayer?: Player;
+  initialSummary?: PlayerSummaryData;
 }) {
   return (
     <Section padding="sm">
@@ -207,6 +212,7 @@ export default function PlayerDetailPage({
             <PlayerDetailContent
               playerId={playerId}
               initialPlayer={initialPlayer}
+              initialSummary={initialSummary}
             />
           );
         }
