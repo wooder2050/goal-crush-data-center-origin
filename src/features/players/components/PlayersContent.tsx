@@ -1,7 +1,7 @@
 'use client';
 
 import { Search as SearchIcon } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   Select,
@@ -87,6 +87,12 @@ export default function PlayersContent({
   const [seasonId, setSeasonId] = useState<number | null>(
     initialSeasonId ?? null
   );
+
+  // 같은 페이지에서 쿼리만 바뀌는 내비게이션(홈 카드 재클릭 등)에도 필터 동기화
+  useEffect(() => {
+    setSeasonId(initialSeasonId ?? null);
+    setTeamId(initialTeamId ?? null);
+  }, [initialSeasonId, initialTeamId]);
 
   const teamOptions = useMemo(() => {
     // teams가 배열이 아니거나 undefined/null인 경우 빈 배열 반환
