@@ -6,7 +6,7 @@
 
 - [ ] 참가팀 `team_seasons` 등록 — **경기를 등록하는 두 팀이 시즌 참가팀에 있어야 함**
 - [ ] 감독 등록: `team_coach_history`에 시즌 행 추가 (`is_current=true`), 이전 시즌 행 닫기(`end_date`, `is_current=false`)
-- [ ] **`team_current_head_coach` 테이블도 함께 갱신** — 감독 상세 페이지가 읽는 수동 관리 테이블. 여기만 빼먹으면 상세 페이지에 옛 팀이 표시됨
+  - `team_current_head_coach`는 DB 트리거가 `is_current` 기준으로 자동 재계산 (2026-07-13부터) — **직접 UPDATE 금지**, 다음 재계산 때 덮어써짐. 감독 프로필 이미지는 `coaches.profile_image_url`이 원본
 - [ ] 신규/이적 선수: `players` + `player_team_history`(시즌 행) + `player_positions`(시즌 행)
 - [ ] 경기 등록 시: `description` 관례 준수 ("YYYY 골 때리는 그녀들 [대회명] N라운드 N경기"), `home_coach_id`/`away_coach_id` 연결
 
