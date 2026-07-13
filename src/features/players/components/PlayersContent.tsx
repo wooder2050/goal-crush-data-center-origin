@@ -34,6 +34,8 @@ export default function PlayersContent({
   initialTeams,
   initialSeasons,
   initialPlayersPage,
+  initialSeasonId,
+  initialTeamId,
   onTotalChange,
   controlledKeyword,
   onApplyControlledKeyword,
@@ -51,6 +53,9 @@ export default function PlayersContent({
     year: number;
   }>;
   initialPlayersPage?: PlayersPageResponse;
+  /** URL 딥링크(?season=&team=)로 진입 시 초기 필터 */
+  initialSeasonId?: number | null;
+  initialTeamId?: number | null;
   onTotalChange?: (n: number) => void;
   controlledKeyword?: string;
   onApplyControlledKeyword?: () => void;
@@ -78,8 +83,10 @@ export default function PlayersContent({
   const [isFocused, setIsFocused] = useState(false);
   const [order, setOrder] = useState<OrderValue>('apps');
   const [position, setPosition] = useState<PositionValue>('ALL');
-  const [teamId, setTeamId] = useState<number | null>(null);
-  const [seasonId, setSeasonId] = useState<number | null>(null);
+  const [teamId, setTeamId] = useState<number | null>(initialTeamId ?? null);
+  const [seasonId, setSeasonId] = useState<number | null>(
+    initialSeasonId ?? null
+  );
 
   const teamOptions = useMemo(() => {
     // teams가 배열이 아니거나 undefined/null인 경우 빈 배열 반환

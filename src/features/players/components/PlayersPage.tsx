@@ -1,16 +1,53 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useState } from 'react';
 
 import { Section } from '@/components/ui';
 import PlayersContent from '@/features/players/components/PlayersContent';
 import { PlayersHeader } from '@/features/players/components/PlayersHeader';
 import type { InitialPlayersData } from '@/features/players/server';
 
+// ISR 페이지라 page searchParams 대신 client useSearchParams + Suspense로 처리
 export default function PlayersPage({
   initialData,
 }: {
   initialData: InitialPlayersData;
+}) {
+  return (
+    <Suspense fallback={<PlayersPageBody initialData={initialData} />}>
+      <PlayersPageWithParams initialData={initialData} />
+    </Suspense>
+  );
+}
+
+function PlayersPageWithParams({
+  initialData,
+}: {
+  initialData: InitialPlayersData;
+}) {
+  const searchParams = useSearchParams();
+  const parseId = (v: string | null) => {
+    const n = v ? parseInt(v, 10) : NaN;
+    return Number.isInteger(n) && n > 0 ? n : null;
+  };
+  return (
+    <PlayersPageBody
+      initialData={initialData}
+      initialSeasonId={parseId(searchParams?.get('season') ?? null)}
+      initialTeamId={parseId(searchParams?.get('team') ?? null)}
+    />
+  );
+}
+
+function PlayersPageBody({
+  initialData,
+  initialSeasonId,
+  initialTeamId,
+}: {
+  initialData: InitialPlayersData;
+  initialSeasonId?: number | null;
+  initialTeamId?: number | null;
 }) {
   const [total, setTotal] = useState<number | null>(
     initialData.playersPage.totalCount
@@ -43,6 +80,8 @@ export default function PlayersPage({
         initialTeams={initialData.teams}
         initialSeasons={initialData.seasons}
         initialPlayersPage={initialData.playersPage}
+        initialSeasonId={initialSeasonId}
+        initialTeamId={initialTeamId}
         onTotalChange={setTotal}
         controlledKeyword={keyword}
         hideInternalSearch
