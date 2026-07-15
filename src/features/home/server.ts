@@ -144,12 +144,37 @@ async function getLatestSeason(): Promise<{
   season_id: number;
   season_name: string;
   start_date: Date | null;
+  category: string | null;
 } | null> {
   const season = await prisma.season.findFirst({
     orderBy: { season_id: 'desc' },
-    select: { season_id: true, season_name: true, start_date: true },
+    select: {
+      season_id: true,
+      season_name: true,
+      start_date: true,
+      category: true,
+    },
   });
   return season;
+}
+
+/** 컵(토너먼트) 대회 카테고리 — 순위표 대신 라운드별 토너먼트 현황을 표시 */
+export const CUP_CATEGORIES = ['GIFA_CUP', 'SBS_CUP', 'CHAMPION_MATCH'];
+
+// 컵 대회: 시즌 전 경기 (라운드 정보 포함, 홈 토너먼트 현황 위젯용)
+async function getCupMatchesList(seasonId: number): Promise<HomeMatch[]> {
+  const matches = await prisma.match.findMany({
+    where: { season_id: seasonId },
+    orderBy: [{ match_date: 'asc' }],
+    include: {
+      home_team: { select: { team_id: true, team_name: true, logo: true } },
+      away_team: { select: { team_id: true, team_name: true, logo: true } },
+      season: { select: { season_id: true, season_name: true } },
+    },
+  });
+
+  const teamNameMap = await buildTeamNameMap(matches);
+  return matches.map((m) => serializeMatch(m, teamNameMap));
 }
 
 // 새 시즌 개막 전(완료 경기 없음)에는 순위표·선수 스탯을 직전 시즌 데이터로 폴백
@@ -940,8 +965,14 @@ export async function getHomePageData(): Promise<HomePageData> {
 
   if (!currentSeason) {
     return {
-      currentSeason: { season_id: 0, season_name: '', start_date: null },
+      currentSeason: {
+        season_id: 0,
+        season_name: '',
+        start_date: null,
+        category: null,
+      },
       statsSeason: { season_id: 0, season_name: '', is_fallback: false },
+      cupMatches: [],
       kickoffMatch: null,
       recentMatches: [],
       upcomingMatches: [],
@@ -970,10 +1001,13 @@ export async function getHomePageData(): Promise<HomePageData> {
 
   const statsSeason = await resolveStatsSeason(currentSeason);
 
+  const isCupSeason = CUP_CATEGORIES.includes(currentSeason.category ?? '');
+
   const [
     recentMatches,
     upcomingMatches,
     knockoutMatches,
+    cupMatches,
     kickoffMatch,
     standings,
     topScorers,
@@ -987,6 +1021,9 @@ export async function getHomePageData(): Promise<HomePageData> {
     getRecentCompletedMatches(),
     getUpcomingMatchesList(),
     getKnockoutMatchesList(currentSeason.season_id),
+    isCupSeason
+      ? getCupMatchesList(currentSeason.season_id)
+      : Promise.resolve([] as HomeMatch[]),
     statsSeason.is_fallback
       ? getSeasonKickoffMatch(currentSeason.season_id)
       : Promise.resolve(null),
@@ -1009,8 +1046,10 @@ export async function getHomePageData(): Promise<HomePageData> {
       start_date: currentSeason.start_date
         ? currentSeason.start_date.toISOString()
         : null,
+      category: currentSeason.category ?? null,
     },
     statsSeason,
+    cupMatches,
     kickoffMatch,
     recentMatches,
     upcomingMatches,
