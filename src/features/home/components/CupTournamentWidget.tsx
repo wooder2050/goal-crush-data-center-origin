@@ -16,18 +16,26 @@ interface CupTournamentWidgetProps {
 }
 
 const STAGE_LABELS: Record<string, string> = {
+  group_stage: '조별리그',
   round_1: '1라운드',
-  round_of_6: '6강',
+  round_of_16: '16강',
   quarter_final: '8강',
+  round_of_6: '6강',
   semi_final: '4강',
+  last_place_match: '꼴찌 결정전',
+  relegation: '방출전',
   final: '결승',
 };
 
 const STAGE_ORDER = [
+  'group_stage',
   'round_1',
+  'round_of_16',
   'quarter_final',
   'round_of_6',
   'semi_final',
+  'last_place_match',
+  'relegation',
   'final',
 ];
 

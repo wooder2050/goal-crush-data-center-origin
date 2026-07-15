@@ -77,12 +77,13 @@ export default function HomePageDashboard({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
         {/* Left Column - Standings + Player Stats */}
         <div className="lg:col-span-7 space-y-4">
-          {pageData.knockoutMatches.length > 0 && (
-            <KnockoutBracketWidget
-              seasonId={pageData.currentSeason.season_id}
-              knockoutMatches={pageData.knockoutMatches}
-            />
-          )}
+          {pageData.knockoutMatches.length > 0 &&
+            !(pageData.cupMatches?.length > 0) && (
+              <KnockoutBracketWidget
+                seasonId={pageData.currentSeason.season_id}
+                knockoutMatches={pageData.knockoutMatches}
+              />
+            )}
           {/* 컵 대회는 승점 순위표 대신 라운드별 토너먼트 현황 */}
           {pageData.cupMatches?.length > 0 ? (
             <CupTournamentWidget
