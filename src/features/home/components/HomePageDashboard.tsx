@@ -6,6 +6,7 @@ import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { fetchHomePageData } from '../api-prisma';
 import type { HomePageData } from '../types';
 import CareerStatsWidget from './CareerStatsWidget';
+import CupTournamentWidget from './CupTournamentWidget';
 import KnockoutBracketWidget from './KnockoutBracketWidget';
 import MatchesWidget from './MatchesWidget';
 import NewProfilesNotice from './NewProfilesNotice';
@@ -82,12 +83,21 @@ export default function HomePageDashboard({
               knockoutMatches={pageData.knockoutMatches}
             />
           )}
-          <StandingsWidget
-            standings={pageData.standings}
-            seasonName={statsSeason.season_name}
-            seasonId={statsSeason.season_id}
-            isFallback={statsSeason.is_fallback}
-          />
+          {/* 컵 대회는 승점 순위표 대신 라운드별 토너먼트 현황 */}
+          {pageData.cupMatches?.length > 0 ? (
+            <CupTournamentWidget
+              seasonId={pageData.currentSeason.season_id}
+              seasonName={pageData.currentSeason.season_name}
+              matches={pageData.cupMatches}
+            />
+          ) : (
+            <StandingsWidget
+              standings={pageData.standings}
+              seasonName={statsSeason.season_name}
+              seasonId={statsSeason.season_id}
+              isFallback={statsSeason.is_fallback}
+            />
+          )}
           <PlayerStatsWidget
             seasonId={statsSeason.season_id}
             topScorers={pageData.topScorers}
