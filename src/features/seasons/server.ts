@@ -17,8 +17,35 @@ export type InitialSeasonsPageData = {
   seasonsPage: SeasonsPageResponse;
 };
 
+export type SeasonSummaryMatch = {
+  match_id: number;
+  match_date: string;
+  home_team_name: string | null;
+  away_team_name: string | null;
+  home_score: number | null;
+  away_score: number | null;
+  penalty_home_score: number | null;
+  penalty_away_score: number | null;
+};
+
+export type SeasonSummaryStanding = {
+  position: number;
+  team_name: string | null;
+  points: number | null;
+  wins: number | null;
+  losses: number | null;
+};
+
+export type SeasonSsrSummary = {
+  total_matches: number;
+  completed_matches: number;
+  recent_results: SeasonSummaryMatch[];
+  top_standings: SeasonSummaryStanding[];
+};
+
 export type InitialSeasonDetailData = {
   season: Season;
+  summary: SeasonSsrSummary;
 };
 
 // ── /seasons list ──────────────────────────────────────
@@ -201,7 +228,69 @@ export async function getInitialSeasonDetailData(
 
   if (!season) return null;
 
+  const completedWhere = {
+    season_id: seasonId,
+    home_score: { not: null },
+    away_score: { not: null },
+  } as const;
+
+  const [totalMatches, completedMatches, recentMatches, topStandings] =
+    await Promise.all([
+      prisma.match.count({ where: { season_id: seasonId } }),
+      prisma.match.count({ where: completedWhere }),
+      prisma.match.findMany({
+        where: completedWhere,
+        orderBy: { match_date: 'desc' },
+        take: 5,
+        select: {
+          match_id: true,
+          match_date: true,
+          home_score: true,
+          away_score: true,
+          penalty_home_score: true,
+          penalty_away_score: true,
+          home_team: { select: { team_name: true } },
+          away_team: { select: { team_name: true } },
+        },
+      }),
+      prisma.standing.findMany({
+        where: { season_id: seasonId },
+        orderBy: { position: 'asc' },
+        take: 5,
+        select: {
+          position: true,
+          points: true,
+          wins: true,
+          losses: true,
+          team: { select: { team_name: true } },
+        },
+      }),
+    ]);
+
+  const summary: SeasonSsrSummary = {
+    total_matches: totalMatches,
+    completed_matches: completedMatches,
+    recent_results: recentMatches.map((m) => ({
+      match_id: m.match_id,
+      match_date: m.match_date.toISOString(),
+      home_team_name: m.home_team?.team_name ?? null,
+      away_team_name: m.away_team?.team_name ?? null,
+      home_score: m.home_score,
+      away_score: m.away_score,
+      penalty_home_score: m.penalty_home_score,
+      penalty_away_score: m.penalty_away_score,
+    })),
+    top_standings: topStandings.map((s) => ({
+      position: s.position,
+      team_name: s.team?.team_name ?? null,
+      points: s.points,
+      wins: s.wins,
+      losses: s.losses,
+    })),
+  };
+
   return {
+    summary,
     season: {
       season_id: season.season_id,
       season_name: season.season_name,
