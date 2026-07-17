@@ -17,8 +17,35 @@ export type InitialSeasonsPageData = {
   seasonsPage: SeasonsPageResponse;
 };
 
+export type SeasonSummaryMatch = {
+  match_id: number;
+  match_date: string;
+  home_team_name: string | null;
+  away_team_name: string | null;
+  home_score: number | null;
+  away_score: number | null;
+  penalty_home_score: number | null;
+  penalty_away_score: number | null;
+};
+
+export type SeasonSummaryStanding = {
+  position: number;
+  team_name: string | null;
+  points: number | null;
+  wins: number | null;
+  losses: number | null;
+};
+
+export type SeasonSsrSummary = {
+  total_matches: number;
+  completed_matches: number;
+  recent_results: SeasonSummaryMatch[];
+  top_standings: SeasonSummaryStanding[];
+};
+
 export type InitialSeasonDetailData = {
   season: Season;
+  summary: SeasonSsrSummary;
 };
 
 // ── /seasons list ──────────────────────────────────────
@@ -197,11 +224,106 @@ export async function getInitialSeasonDetailData(
 ): Promise<InitialSeasonDetailData | null> {
   const season = await prisma.season.findUnique({
     where: { season_id: seasonId },
+    include: { _count: { select: { matches: true } } },
   });
 
   if (!season) return null;
 
+  const totalMatches = season._count.matches;
+
+  const completedWhere = {
+    season_id: seasonId,
+    status: 'completed',
+    home_score: { not: null },
+    away_score: { not: null },
+  } as const;
+
+  const [completedMatches, recentMatches, topStandings] = await Promise.all([
+    prisma.match.count({ where: completedWhere }),
+    prisma.match.findMany({
+      where: completedWhere,
+      orderBy: { match_date: 'desc' },
+      take: 5,
+      select: {
+        match_id: true,
+        match_date: true,
+        home_score: true,
+        away_score: true,
+        penalty_home_score: true,
+        penalty_away_score: true,
+        home_team_id: true,
+        away_team_id: true,
+        home_team: { select: { team_name: true } },
+        away_team: { select: { team_name: true } },
+      },
+    }),
+    prisma.standing.findMany({
+      where: { season_id: seasonId },
+      orderBy: { position: 'asc' },
+      take: 5,
+      select: {
+        position: true,
+        points: true,
+        wins: true,
+        losses: true,
+        team_id: true,
+        team: { select: { team_name: true } },
+      },
+    }),
+  ]);
+
+  // 시즌 당시 팀명으로 치환 (api/matches/season/[season_id]와 동일한 규칙)
+  const teamIds = Array.from(
+    new Set(
+      [
+        ...recentMatches.flatMap((m) => [m.home_team_id, m.away_team_id]),
+        ...topStandings.map((s) => s.team_id),
+      ].filter((id): id is number => id !== null)
+    )
+  );
+
+  const teamSeasonNames =
+    teamIds.length > 0
+      ? await prisma.teamSeasonName.findMany({
+          where: { team_id: { in: teamIds }, season_id: seasonId },
+          select: { team_id: true, team_name: true },
+        })
+      : [];
+
+  const teamNameMap = new Map(
+    teamSeasonNames.map((t) => [t.team_id, t.team_name])
+  );
+
+  const resolveTeamName = (
+    teamId: number | null,
+    fallback: string | null | undefined
+  ): string | null =>
+    (teamId !== null ? teamNameMap.get(teamId) : undefined) ?? fallback ?? null;
+
+  const summary: SeasonSsrSummary = {
+    total_matches: totalMatches,
+    completed_matches: completedMatches,
+    recent_results: recentMatches.map((m) => ({
+      match_id: m.match_id,
+      match_date: m.match_date.toISOString(),
+      home_team_name: resolveTeamName(m.home_team_id, m.home_team?.team_name),
+      away_team_name: resolveTeamName(m.away_team_id, m.away_team?.team_name),
+      home_score: m.home_score,
+      away_score: m.away_score,
+      penalty_home_score: m.penalty_home_score,
+      penalty_away_score: m.penalty_away_score,
+    })),
+    top_standings: topStandings.map((s) => ({
+      position: s.position,
+      team_name: resolveTeamName(s.team_id, s.team?.team_name),
+      points: s.points,
+      wins: s.wins,
+      losses: s.losses,
+    })),
+  };
+
   return {
+    summary,
     season: {
       season_id: season.season_id,
       season_name: season.season_name,

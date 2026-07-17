@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { type ReactNode, Suspense } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Section } from '@/components/ui';
@@ -37,34 +37,53 @@ const categoryToComponent = {
 interface SeasonDetailContentProps {
   seasonId: string;
   initialData: InitialSeasonDetailData;
+  ssrSummary?: ReactNode;
 }
 
 export default function SeasonDetailContent({
   initialData,
+  ssrSummary,
 }: SeasonDetailContentProps) {
   return (
-    <Suspense fallback={<SeasonDetailBody initialData={initialData} />}>
-      <SeasonDetailBodyWithTab initialData={initialData} />
+    <Suspense
+      fallback={
+        <SeasonDetailBody initialData={initialData} ssrSummary={ssrSummary} />
+      }
+    >
+      <SeasonDetailBodyWithTab
+        initialData={initialData}
+        ssrSummary={ssrSummary}
+      />
     </Suspense>
   );
 }
 
 function SeasonDetailBodyWithTab({
   initialData,
+  ssrSummary,
 }: {
   initialData: InitialSeasonDetailData;
+  ssrSummary?: ReactNode;
 }) {
   const searchParams = useSearchParams();
   const tab = searchParams?.get('tab') ?? undefined;
-  return <SeasonDetailBody initialData={initialData} initialTab={tab} />;
+  return (
+    <SeasonDetailBody
+      initialData={initialData}
+      initialTab={tab}
+      ssrSummary={ssrSummary}
+    />
+  );
 }
 
 function SeasonDetailBody({
   initialData,
   initialTab,
+  ssrSummary,
 }: {
   initialData: InitialSeasonDetailData;
   initialTab?: string;
+  ssrSummary?: ReactNode;
 }) {
   const season = initialData.season;
 
@@ -81,6 +100,7 @@ function SeasonDetailBody({
         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
         시즌 목록
       </Link>
+      {ssrSummary}
       <div className="space-y-6">
         <GoalWrapper fallback={<UpcomingMatchesSkeleton items={1} />}>
           <UpcomingMatches seasonId={season.season_id} limit={10} />
