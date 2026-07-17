@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
     // 모든 선수 경기 통계 가져오기
     const playerMatchStats = await prisma.playerMatchStats.findMany({
       where: {
+        // 출전 기준: minutes_played > 0 (벤치 제외) — player_season_stats와 동일 규칙
+        minutes_played: { gt: 0 },
         ...(filterSeasonId && { match: { season_id: filterSeasonId } }),
       },
       include: {
