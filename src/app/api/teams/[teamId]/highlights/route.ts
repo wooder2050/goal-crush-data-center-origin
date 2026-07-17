@@ -17,24 +17,32 @@ export async function GET(
     }
 
     // Player appearances and goals for this team (aggregate all seasons)
-    const pmsGrouped = await prisma.playerMatchStats.groupBy({
-      by: ['player_id'],
-      where: { team_id: teamId },
-      _count: { match_id: true },
-      _sum: { goals: true },
-    });
+    // 출전 수는 minutes_played > 0(벤치 제외)만 카운트, 골은 모든 행에서 합산
+    const [appsGrouped, goalsGrouped] = await Promise.all([
+      prisma.playerMatchStats.groupBy({
+        by: ['player_id'],
+        where: { team_id: teamId, minutes_played: { gt: 0 } },
+        _count: { match_id: true },
+      }),
+      prisma.playerMatchStats.groupBy({
+        by: ['player_id'],
+        where: { team_id: teamId },
+        _sum: { goals: true },
+      }),
+    ]);
 
     // Build maps and find tops
     let topApps: { player_id: number; appearances: number } | null = null;
     let topGoals: { player_id: number; goals: number } | null = null;
 
-    for (let i = 0; i < pmsGrouped.length; i++) {
-      const g = pmsGrouped[i];
+    for (const g of appsGrouped) {
       const appearances = g._count?.match_id ?? 0;
-      const goals = g._sum?.goals ?? 0;
       if (!topApps || appearances > topApps.appearances) {
         topApps = { player_id: g.player_id as number, appearances };
       }
+    }
+    for (const g of goalsGrouped) {
+      const goals = g._sum?.goals ?? 0;
       if (!topGoals || goals > topGoals.goals) {
         topGoals = { player_id: g.player_id as number, goals };
       }
