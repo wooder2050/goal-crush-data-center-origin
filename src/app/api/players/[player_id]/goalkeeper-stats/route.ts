@@ -84,6 +84,11 @@ export async function GET(
       isGoalkeeperAppearance(stat.position, stat.goals_conceded)
     );
 
+    // 실제 출전(minutes_played > 0, 벤치 제외) 기록 — 출전 수·최근 경기 표시에 사용
+    const goalkeeperAppearances = goalkeeperMatches.filter(
+      (stat) => (stat.minutes_played ?? 0) > 0
+    );
+
     // 시즌별 팀 이름 조회
     const seasonIds = Array.from(
       new Set(
@@ -259,7 +264,7 @@ export async function GET(
     };
 
     // 최근 경기들 (최대 10경기)
-    const recentMatches = goalkeeperMatches.slice(0, 10).map((stat) => {
+    const recentMatches = goalkeeperAppearances.slice(0, 10).map((stat) => {
       const isHome = stat.team?.team_id === stat.match?.home_team_id;
       const opponent = isHome ? stat.match?.away_team : stat.match?.home_team;
       const seasonId = stat.match?.season_id;
@@ -287,12 +292,12 @@ export async function GET(
 
     return NextResponse.json({
       player_id: playerId,
-      is_goalkeeper: goalkeeperMatches.length > 0,
+      is_goalkeeper: goalkeeperAppearances.length > 0,
       career_totals: careerTotals,
       career_averages: careerAverages,
       season_stats: seasonStats,
       recent_matches: recentMatches,
-      total_goalkeeper_appearances: goalkeeperMatches.length,
+      total_goalkeeper_appearances: goalkeeperAppearances.length,
     });
   } catch (error) {
     console.error('Error fetching goalkeeper stats:', error);
