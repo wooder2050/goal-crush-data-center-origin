@@ -33,8 +33,6 @@ export async function GET(
     const playerMatchStats = await prisma.playerMatchStats.findMany({
       where: {
         player_id: playerId,
-        // 출전 기준: minutes_played > 0 (벤치 제외) — player_season_stats와 동일 규칙
-        minutes_played: { gt: 0 },
         ...(filterSeasonId && { match: { season_id: filterSeasonId } }),
       },
       include: {
@@ -156,13 +154,21 @@ export async function GET(
       }
 
       const seasonStats = seasonStatsMap.get(seasonId);
-      seasonStats.matches_played += 1;
+      // 출전 경기·클린시트는 minutes_played > 0(벤치 제외)만 카운트 — player_season_stats와 동일 규칙.
+      // 실점은 모든 행에서 누적한다.
+      const isAppearance = (stat.minutes_played ?? 0) > 0;
+      if (isAppearance) {
+        seasonStats.matches_played += 1;
+      }
       seasonStats.goals_conceded += stat.goals_conceded || 0;
 
       // 클린시트 (무실점) 계산
-      if ((stat.goals_conceded || 0) === 0) {
+      if (isAppearance && (stat.goals_conceded || 0) === 0) {
         seasonStats.clean_sheets += 1;
       }
+
+      // 벤치(미출전) 행은 경기 상세 목록에 포함하지 않는다
+      if (!isAppearance) return;
 
       // 경기 상세 정보 추가
       const isHome = stat.team?.team_id === stat.match?.home_team_id;

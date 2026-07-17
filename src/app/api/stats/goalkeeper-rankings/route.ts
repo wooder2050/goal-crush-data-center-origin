@@ -68,8 +68,6 @@ export async function GET(request: NextRequest) {
     // 골키퍼 출전 기록 가져오기 (시즌 필터 적용)
     const playerMatchStats = await prisma.playerMatchStats.findMany({
       where: {
-        // 출전 기준: minutes_played > 0 (벤치 제외) — player_season_stats와 동일 규칙
-        minutes_played: { gt: 0 },
         ...(filterSeasonId && { match: { season_id: filterSeasonId } }),
       },
       include: {
@@ -240,11 +238,21 @@ export async function GET(request: NextRequest) {
       }
 
       const playerStats = playerStatsMap.get(key);
-      playerStats.matches_played += 1;
+      // 출전 경기·클린시트는 minutes_played > 0(벤치 제외)만 카운트 — player_season_stats와 동일 규칙.
+      // 실점은 모든 행에서 누적한다.
+      const isAppearance = (stat.minutes_played ?? 0) > 0;
+      if (isAppearance) {
+        playerStats.matches_played += 1;
+      }
       playerStats.goals_conceded += stat.goals_conceded || 0;
 
       // 클린시트 판단: GK 포지션이고 해당 경기에서 팀 전체 실점이 0인 경우
-      if (stat.position === 'GK' && stat.match_id && stat.team_id) {
+      if (
+        isAppearance &&
+        stat.position === 'GK' &&
+        stat.match_id &&
+        stat.team_id
+      ) {
         const matchTeamKey = `${stat.match_id}-${stat.team_id}`;
         const teamGoalsConceded = matchTeamGoalsMap.get(matchTeamKey) || 0;
 

@@ -18,8 +18,6 @@ export async function GET(request: NextRequest) {
     // 모든 선수 경기 통계 가져오기
     const playerMatchStats = await prisma.playerMatchStats.findMany({
       where: {
-        // 출전 기준: minutes_played > 0 (벤치 제외) — player_season_stats와 동일 규칙
-        minutes_played: { gt: 0 },
         ...(filterSeasonId && { match: { season_id: filterSeasonId } }),
       },
       include: {
@@ -151,7 +149,11 @@ export async function GET(request: NextRequest) {
       }
 
       const playerStats = playerStatsMap.get(key);
-      playerStats.matches_played += 1;
+      // 출전 경기 수는 minutes_played > 0(벤치 제외)만 카운트 — player_season_stats와 동일 규칙.
+      // 골·도움은 모든 행에서 누적해 시즌 집계 재생성 로직과 일치시킨다.
+      if ((stat.minutes_played ?? 0) > 0) {
+        playerStats.matches_played += 1;
+      }
       playerStats.goals += stat.goals || 0;
       playerStats.assists += stat.assists || 0;
       playerStats.attack_points = playerStats.goals + playerStats.assists;
