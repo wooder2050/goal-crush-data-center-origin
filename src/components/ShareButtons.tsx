@@ -3,40 +3,56 @@
 import { Link2, Share2, Twitter } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { trackShare } from '@/lib/analytics';
+
 interface ShareButtonsProps {
   url?: string;
   title: string;
   description?: string;
+  /** GA share 이벤트의 content_type (예: 'match') */
+  contentType?: string;
+  /** GA share 이벤트의 item_id (예: match_id) */
+  itemId?: string;
 }
 
-export function ShareButtons({ url, title, description }: ShareButtonsProps) {
+export function ShareButtons({
+  url,
+  title,
+  description,
+  contentType = 'page',
+  itemId,
+}: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
 
   const shareUrl =
     url || (typeof window !== 'undefined' ? window.location.href : '');
 
   const handleCopyLink = useCallback(async () => {
+    let succeeded = true;
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
       const textarea = document.createElement('textarea');
       textarea.value = shareUrl;
       document.body.appendChild(textarea);
       textarea.select();
-      document.execCommand('copy');
+      succeeded = document.execCommand('copy');
       document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
-  }, [shareUrl]);
+    if (!succeeded) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    trackShare({ method: 'copy_link', contentType, itemId });
+  }, [shareUrl, contentType, itemId]);
 
   const handleTwitterShare = useCallback(() => {
     const text = `${title}${description ? `\n${description}` : ''}`;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
-    window.open(twitterUrl, '_blank', 'width=550,height=420');
-  }, [title, description, shareUrl]);
+    const popup = window.open(twitterUrl, '_blank', 'width=550,height=420');
+    if (popup) {
+      trackShare({ method: 'twitter', contentType, itemId });
+    }
+  }, [title, description, shareUrl, contentType, itemId]);
 
   const handleNativeShare = useCallback(async () => {
     if (navigator.share) {
@@ -46,6 +62,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
           text: description || title,
           url: shareUrl,
         });
+        trackShare({ method: 'native', contentType, itemId });
       } catch {
         // 사용자가 공유 취소한 경우 무시
       }
@@ -53,7 +70,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
       // Web Share API 미지원 시 링크 복사 폴백
       await handleCopyLink();
     }
-  }, [title, description, shareUrl, handleCopyLink]);
+  }, [title, description, shareUrl, handleCopyLink, contentType, itemId]);
 
   return (
     <div className="flex items-center gap-2">
