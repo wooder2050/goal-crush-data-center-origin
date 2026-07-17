@@ -28,28 +28,30 @@ export function ShareButtons({
     url || (typeof window !== 'undefined' ? window.location.href : '');
 
   const handleCopyLink = useCallback(async () => {
+    let succeeded = true;
     try {
       await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
       const textarea = document.createElement('textarea');
       textarea.value = shareUrl;
       document.body.appendChild(textarea);
       textarea.select();
-      document.execCommand('copy');
+      succeeded = document.execCommand('copy');
       document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
+    if (!succeeded) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
     trackShare({ method: 'copy_link', contentType, itemId });
   }, [shareUrl, contentType, itemId]);
 
   const handleTwitterShare = useCallback(() => {
     const text = `${title}${description ? `\n${description}` : ''}`;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
-    window.open(twitterUrl, '_blank', 'width=550,height=420');
-    trackShare({ method: 'twitter', contentType, itemId });
+    const popup = window.open(twitterUrl, '_blank', 'width=550,height=420');
+    if (popup) {
+      trackShare({ method: 'twitter', contentType, itemId });
+    }
   }, [title, description, shareUrl, contentType, itemId]);
 
   const handleNativeShare = useCallback(async () => {
