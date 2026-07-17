@@ -6,6 +6,9 @@ import { getInitialSeasonDetailData } from '@/features/seasons/server';
 import { prisma } from '@/lib/prisma';
 
 import SeasonDetailContent from './SeasonDetailContent';
+import SeasonSsrSummaryBlock from './SeasonSsrSummary';
+
+export const revalidate = 600;
 
 function parseSeasonId(raw: string): number | null {
   if (!/^\d+$/.test(raw)) return null;
@@ -102,7 +105,16 @@ export default async function Page({ params }: Props) {
         }
         url={`https://www.gtndatacenter.com/seasons/${seasonId}`}
       />
-      <SeasonDetailContent seasonId={seasonId} initialData={initialData} />
+      <SeasonDetailContent
+        seasonId={seasonId}
+        initialData={initialData}
+        ssrSummary={
+          <SeasonSsrSummaryBlock
+            season={season}
+            summary={initialData.summary}
+          />
+        }
+      />
     </>
   );
 }
