@@ -3,15 +3,25 @@ import Link from 'next/link';
 import type { SeasonSsrSummary } from '@/features/seasons/server';
 import type { Season } from '@/lib/types';
 
+const matchDateFormat = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Asia/Seoul',
+  month: 'numeric',
+  day: 'numeric',
+});
+
 function formatMatchDate(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  return matchDateFormat.format(new Date(iso));
 }
 
-function seasonStatusLabel(summary: SeasonSsrSummary): string {
-  if (summary.completed_matches === 0) return '개막 예정';
-  if (summary.completed_matches < summary.total_matches) return '진행 중';
-  return '종료';
+function seasonStatusLabel(season: Season, summary: SeasonSsrSummary): string {
+  const now = Date.now();
+  if (season.start_date && new Date(season.start_date).getTime() > now) {
+    return '개막 예정';
+  }
+  if (season.end_date && new Date(season.end_date).getTime() < now) {
+    return '종료';
+  }
+  return summary.completed_matches === 0 ? '개막 예정' : '진행 중';
 }
 
 /**
@@ -26,7 +36,7 @@ export default function SeasonSsrSummaryBlock({
   season: Season;
   summary: SeasonSsrSummary;
 }) {
-  const status = seasonStatusLabel(summary);
+  const status = seasonStatusLabel(season, summary);
   const hasResults = summary.recent_results.length > 0;
   const hasStandings = summary.top_standings.length > 0;
 
@@ -49,10 +59,7 @@ export default function SeasonSsrSummaryBlock({
         <ul className="mt-2 space-y-0.5">
           {summary.recent_results.map((m) => (
             <li key={m.match_id}>
-              <Link
-                href={`/matches/${m.match_id}`}
-                className="hover:underline"
-              >
+              <Link href={`/matches/${m.match_id}`} className="hover:underline">
                 {formatMatchDate(m.match_date)} {m.home_team_name}{' '}
                 {m.home_score}:{m.away_score} {m.away_team_name}
                 {m.penalty_home_score !== null &&
