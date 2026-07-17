@@ -50,6 +50,8 @@ export default function MatchDetailPageContent({
                   ? `경기 결과 ${match.home_score}:${match.away_score}`
                   : undefined
               }
+              contentType="match"
+              itemId={matchId}
             />
           </div>
           {!Number.isFinite(id) ? (
