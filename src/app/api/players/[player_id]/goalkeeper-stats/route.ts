@@ -84,6 +84,11 @@ export async function GET(
       isGoalkeeperAppearance(stat.position, stat.goals_conceded)
     );
 
+    // 실제 출전(minutes_played > 0, 벤치 제외) 기록 — 출전 수·최근 경기 표시에 사용
+    const goalkeeperAppearances = goalkeeperMatches.filter(
+      (stat) => (stat.minutes_played ?? 0) > 0
+    );
+
     // 시즌별 팀 이름 조회
     const seasonIds = Array.from(
       new Set(
@@ -154,13 +159,21 @@ export async function GET(
       }
 
       const seasonStats = seasonStatsMap.get(seasonId);
-      seasonStats.matches_played += 1;
+      // 출전 경기·클린시트는 minutes_played > 0(벤치 제외)만 카운트 — player_season_stats와 동일 규칙.
+      // 실점은 모든 행에서 누적한다.
+      const isAppearance = (stat.minutes_played ?? 0) > 0;
+      if (isAppearance) {
+        seasonStats.matches_played += 1;
+      }
       seasonStats.goals_conceded += stat.goals_conceded || 0;
 
       // 클린시트 (무실점) 계산
-      if ((stat.goals_conceded || 0) === 0) {
+      if (isAppearance && (stat.goals_conceded || 0) === 0) {
         seasonStats.clean_sheets += 1;
       }
+
+      // 벤치(미출전) 행은 경기 상세 목록에 포함하지 않는다
+      if (!isAppearance) return;
 
       // 경기 상세 정보 추가
       const isHome = stat.team?.team_id === stat.match?.home_team_id;
@@ -251,7 +264,7 @@ export async function GET(
     };
 
     // 최근 경기들 (최대 10경기)
-    const recentMatches = goalkeeperMatches.slice(0, 10).map((stat) => {
+    const recentMatches = goalkeeperAppearances.slice(0, 10).map((stat) => {
       const isHome = stat.team?.team_id === stat.match?.home_team_id;
       const opponent = isHome ? stat.match?.away_team : stat.match?.home_team;
       const seasonId = stat.match?.season_id;
@@ -279,12 +292,12 @@ export async function GET(
 
     return NextResponse.json({
       player_id: playerId,
-      is_goalkeeper: goalkeeperMatches.length > 0,
+      is_goalkeeper: goalkeeperAppearances.length > 0,
       career_totals: careerTotals,
       career_averages: careerAverages,
       season_stats: seasonStats,
       recent_matches: recentMatches,
-      total_goalkeeper_appearances: goalkeeperMatches.length,
+      total_goalkeeper_appearances: goalkeeperAppearances.length,
     });
   } catch (error) {
     console.error('Error fetching goalkeeper stats:', error);

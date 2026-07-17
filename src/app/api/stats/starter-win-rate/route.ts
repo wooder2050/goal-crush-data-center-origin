@@ -20,8 +20,10 @@ export async function GET(request: NextRequest) {
     const filterSeasonId = seasonIdParam ? Number(seasonIdParam) : undefined;
 
     // 모든 player_match_stats 가져오기
+    // 출전 기준: minutes_played > 0 (벤치 제외) — 벤치 행이 선발로 오분류되는 것 방지
     const playerMatchStats = await prisma.playerMatchStats.findMany({
       where: {
+        minutes_played: { gt: 0 },
         ...(filterSeasonId && { match: { season_id: filterSeasonId } }),
       },
       select: {
