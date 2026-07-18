@@ -100,33 +100,42 @@ async function getScoringRankings(
   return response.json();
 }
 
+const VALID_SORTS = new Set([
+  'attack_points',
+  'goals',
+  'assists',
+  'matches_played',
+  'attack_points_per_match',
+  'goals_per_match',
+  'assists_per_match',
+]);
+const VALID_MIN_MATCHES = new Set([1, 3, 5, 10]);
+const MAX_INT4 = 2147483647;
+
+function parseSeasonParam(raw: string | null): number | undefined {
+  if (!raw) return undefined;
+  const id = Number(raw);
+  if (!Number.isInteger(id) || id <= 0 || id > MAX_INT4) return undefined;
+  return id;
+}
+
 function ScoringRankingsPageContentInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [seasonId, setSeasonId] = useState<number | undefined>();
+  // URL 쿼리에서 검증 후 동기 초기화 — 공유 링크 진입 시 기본값 요청 없이 바로 복원
+  const [seasonId, setSeasonId] = useState<number | undefined>(() =>
+    parseSeasonParam(searchParams.get('season'))
+  );
   const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState('attack_points');
-  const [minMatches, setMinMatches] = useState(3);
-  const initializedRef = useRef(false);
-  const isUserAction = useRef(false);
-
-  // URL 쿼리에서 필터 복원 (공유 링크 진입 지원)
-  useEffect(() => {
-    if (initializedRef.current) return;
-    const season = searchParams.get('season');
+  const [sortBy, setSortBy] = useState(() => {
     const sort = searchParams.get('sort');
-    const min = searchParams.get('min');
-    if (season) {
-      const id = parseInt(season, 10);
-      if (!isNaN(id)) setSeasonId(id);
-    }
-    if (sort) setSortBy(sort);
-    if (min) {
-      const m = parseInt(min, 10);
-      if (!isNaN(m)) setMinMatches(m);
-    }
-    initializedRef.current = true;
-  }, [searchParams]);
+    return sort && VALID_SORTS.has(sort) ? sort : 'attack_points';
+  });
+  const [minMatches, setMinMatches] = useState(() => {
+    const m = Number(searchParams.get('min'));
+    return VALID_MIN_MATCHES.has(m) ? m : 3;
+  });
+  const isUserAction = useRef(false);
 
   // 사용자 조작 시 URL 동기화
   useEffect(() => {
