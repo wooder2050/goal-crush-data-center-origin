@@ -1,5 +1,6 @@
 import type { MatchTeamSeasonNameResult } from '@/app/api/types';
 import { prisma } from '@/lib/prisma';
+import { withRetry } from '@/lib/retry';
 import type { MatchWithTeams } from '@/lib/types';
 
 // ── Types ──────────────────────────────────────────────
@@ -75,24 +76,27 @@ export async function getMatchesArchiveData(): Promise<MatchesArchiveData> {
     season: { select: { season_id: true, season_name: true } },
   } as const;
 
-  const [seasons, recentRaw, upcomingRaw] = await Promise.all([
-    prisma.season.findMany({
-      select: { season_id: true, season_name: true },
-      orderBy: { season_id: 'desc' },
-    }),
-    prisma.match.findMany({
-      where: { status: 'completed' },
-      orderBy: { match_date: 'desc' },
-      take: 10,
-      include: matchInclude,
-    }),
-    prisma.match.findMany({
-      where: { match_date: { gt: new Date() }, is_date_confirmed: true },
-      orderBy: { match_date: 'asc' },
-      take: 10,
-      include: matchInclude,
-    }),
-  ]);
+  // 빌드 프리렌더 시 DB 연결 경합으로 간헐 실패하는 문제 방어 (재시도)
+  const [seasons, recentRaw, upcomingRaw] = await withRetry(() =>
+    Promise.all([
+      prisma.season.findMany({
+        select: { season_id: true, season_name: true },
+        orderBy: { season_id: 'desc' },
+      }),
+      prisma.match.findMany({
+        where: { status: 'completed' },
+        orderBy: { match_date: 'desc' },
+        take: 10,
+        include: matchInclude,
+      }),
+      prisma.match.findMany({
+        where: { match_date: { gt: new Date() }, is_date_confirmed: true },
+        orderBy: { match_date: 'asc' },
+        take: 10,
+        include: matchInclude,
+      }),
+    ])
+  );
 
   const allMatches = [...recentRaw, ...upcomingRaw];
   const pairs = allMatches.flatMap((m) => {
