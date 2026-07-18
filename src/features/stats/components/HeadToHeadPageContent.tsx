@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
+import { ShareButtons } from '@/components/ShareButtons';
 import {
   Select,
   SelectContent,
@@ -451,9 +452,19 @@ function HeadToHeadPageContentInner({
               {/* === 역대 전적 요약 === */}
               <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
                 <div className="px-5 py-4">
-                  <p className="mb-4 text-center text-[12px] font-medium text-gray-400">
-                    역대 전적
-                  </p>
+                  <div className="mb-4 flex items-center justify-between">
+                    <span className="w-8" aria-hidden="true" />
+                    <p className="text-center text-[12px] font-medium text-gray-400">
+                      역대 전적
+                    </p>
+                    <ShareButtons
+                      title={`${data.team1_name} vs ${data.team2_name} 역대 전적 | 골때녀 데이터센터`}
+                      description={`${data.team1_name} ${data.team1_wins}승 · ${data.team2_name} ${data.team2_wins}승 (총 ${data.total_matches}경기)`}
+                      contentType="head_to_head"
+                      itemId={`${team1Id}-${team2Id}`}
+                      compact
+                    />
+                  </div>
 
                   {/* 팀 로고 + 승수 */}
                   <div className="mb-4 flex items-center">
