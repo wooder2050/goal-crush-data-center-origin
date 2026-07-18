@@ -58,6 +58,7 @@ export default function HomePageDashboard({
       <FreshnessStrip
         recentMatches={pageData.recentMatches}
         upcomingMatches={pageData.upcomingMatches}
+        matchdayCandidates={pageData.cupMatches ?? []}
       />
 
       {/* 매치데이 모드 (경기일 18시 ~ 다음날 12시만 노출) */}

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { trackSelectContent } from '@/lib/analytics';
 
-import { findMatchdayMatch, isMatchCompleted } from '../matchday';
+import { findMatchdayMatch, isMatchCompleted, isSameKstDay } from '../matchday';
 import type { HomeMatch } from '../types';
 
 interface MatchdayModeCardProps {
@@ -22,8 +22,11 @@ interface MatchdayModeCardProps {
 export default function MatchdayModeCard({ matches }: MatchdayModeCardProps) {
   const [now, setNow] = useState<Date | null>(null);
 
+  // 18시/12시 경계를 넘겨도 열려 있는 페이지가 갱신되도록 1분마다 재판정
   useEffect(() => {
     setNow(new Date());
+    const timer = setInterval(() => setNow(new Date()), 60 * 1000);
+    return () => clearInterval(timer);
   }, []);
 
   if (!now) return null;
@@ -116,7 +119,9 @@ export default function MatchdayModeCard({ matches }: MatchdayModeCardProps) {
             ))}
           </div>
           <p className="mt-3 text-xs text-gray-400">
-            경기 기록과 요약은 내일 오전에 공개됩니다
+            {isSameKstDay(match.match_date, now)
+              ? '경기 기록과 요약은 내일 오전에 공개됩니다'
+              : '경기 기록과 요약은 오전 중 공개됩니다'}
           </p>
         </>
       )}

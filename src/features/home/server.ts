@@ -272,8 +272,14 @@ async function getSeasonKickoffMatch(
 }
 
 async function getUpcomingMatchesList(limit: number = 5): Promise<HomeMatch[]> {
+  // 킥오프 이후~기록 입력 전 경기도 매치데이 카드에 필요하므로 24시간 전까지 포함
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const matches = await prisma.match.findMany({
-    where: { match_date: { gt: new Date() }, is_date_confirmed: true },
+    where: {
+      match_date: { gt: cutoff },
+      is_date_confirmed: true,
+      status: { not: 'completed' },
+    },
     orderBy: { match_date: 'asc' },
     take: limit,
     include: {

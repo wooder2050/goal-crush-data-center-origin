@@ -6,6 +6,7 @@ import {
   findMatchdayMatch,
   formatKstMonthDay,
   isMatchCompleted,
+  isSameKstDay,
   kstDayDiff,
 } from '../matchday';
 import type { HomeMatch } from '../types';
@@ -13,6 +14,8 @@ import type { HomeMatch } from '../types';
 interface FreshnessStripProps {
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
+  /** 매치데이 판정용 추가 후보 (컵 시즌 경기 등) */
+  matchdayCandidates?: HomeMatch[];
 }
 
 /**
@@ -23,17 +26,21 @@ interface FreshnessStripProps {
 export default function FreshnessStrip({
   recentMatches,
   upcomingMatches,
+  matchdayCandidates = [],
 }: FreshnessStripProps) {
   const [now, setNow] = useState<Date | null>(null);
 
+  // 18시/12시 경계를 넘겨도 열려 있는 페이지가 갱신되도록 1분마다 재판정
   useEffect(() => {
     setNow(new Date());
+    const timer = setInterval(() => setNow(new Date()), 60 * 1000);
+    return () => clearInterval(timer);
   }, []);
 
   if (!now) return null;
 
   const matchdayMatch = findMatchdayMatch(
-    [...upcomingMatches, ...recentMatches],
+    [...upcomingMatches, ...recentMatches, ...matchdayCandidates],
     now
   );
 
@@ -47,7 +54,11 @@ export default function FreshnessStrip({
           </span>
         ) : (
           <>
-            <span className="font-medium text-amber-600">오늘 밤 방송</span>
+            <span className="font-medium text-amber-600">
+              {isSameKstDay(matchdayMatch.match_date, now)
+                ? '오늘 밤 방송'
+                : '어제 경기 기록 반영 예정'}
+            </span>
             {' · '}
             <a href="#matchday" className="underline hover:text-gray-900">
               매치데이 보기

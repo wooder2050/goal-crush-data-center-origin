@@ -43,8 +43,13 @@ export function findMatchdayMatch(
   matches: HomeMatch[],
   now: Date
 ): HomeMatch | null {
+  // 팀 미정(대진 미확정) 경기는 카드를 렌더링할 수 없으므로 제외
   const inWindow = matches.filter(
-    (m) => m.is_date_confirmed !== false && isInMatchdayWindow(m, now)
+    (m) =>
+      m.is_date_confirmed !== false &&
+      m.home_team !== null &&
+      m.away_team !== null &&
+      isInMatchdayWindow(m, now)
   );
   if (inWindow.length === 0) return null;
 
@@ -68,6 +73,11 @@ export function kstDayDiff(targetIso: string, now: Date): number {
   if (Number.isNaN(target.getTime())) return NaN;
   const DAY_MS = 24 * HOUR_MS;
   return Math.round((kstMidnightMs(target) - kstMidnightMs(now)) / DAY_MS);
+}
+
+/** KST 기준 같은 날짜인지 (매치데이 윈도우의 경기 당일/다음날 문구 분기용) */
+export function isSameKstDay(targetIso: string, now: Date): boolean {
+  return kstDayDiff(targetIso, now) === 0;
 }
 
 /** KST 기준 M/D 표기 */
