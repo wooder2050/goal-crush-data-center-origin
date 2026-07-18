@@ -347,20 +347,28 @@ export async function getInitialSeasonDetailData(
       finalMatch.home_score !== null &&
       finalMatch.away_score !== null
     ) {
-      const homeWon =
-        finalMatch.home_score !== finalMatch.away_score
-          ? finalMatch.home_score > finalMatch.away_score
-          : (finalMatch.penalty_home_score ?? 0) >
-            (finalMatch.penalty_away_score ?? 0);
-      championTeamName = homeWon
-        ? resolveTeamName(
-            finalMatch.home_team_id,
-            finalMatch.home_team?.team_name
-          )
-        : resolveTeamName(
-            finalMatch.away_team_id,
-            finalMatch.away_team?.team_name
-          );
+      // 승자가 명확할 때만 판정 — 동점인데 승부차기 기록이 없으면 미확정으로 두고 폴백에 맡긴다
+      let homeWon: boolean | null = null;
+      if (finalMatch.home_score !== finalMatch.away_score) {
+        homeWon = finalMatch.home_score > finalMatch.away_score;
+      } else if (
+        finalMatch.penalty_home_score !== null &&
+        finalMatch.penalty_away_score !== null &&
+        finalMatch.penalty_home_score !== finalMatch.penalty_away_score
+      ) {
+        homeWon = finalMatch.penalty_home_score > finalMatch.penalty_away_score;
+      }
+      if (homeWon !== null) {
+        championTeamName = homeWon
+          ? resolveTeamName(
+              finalMatch.home_team_id,
+              finalMatch.home_team?.team_name
+            )
+          : resolveTeamName(
+              finalMatch.away_team_id,
+              finalMatch.away_team?.team_name
+            );
+      }
     }
 
     // 폴백: 스테이지 데이터가 없는 과거 컵 시즌(예: 2025 GIFA컵)은

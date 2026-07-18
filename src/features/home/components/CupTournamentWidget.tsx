@@ -6,9 +6,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { STAGE_LABELS } from '@/lib/tournament';
 
 import type { HomeMatch } from '../types';
-import { STAGE_LABELS } from '@/lib/tournament';
 
 interface CupTournamentWidgetProps {
   seasonId: number;
