@@ -3,11 +3,13 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Section } from '@/components/ui';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { trackSelectContent } from '@/lib/analytics';
+import { formatKstMonthDay, kstDayDiff } from '@/lib/kst';
 import { isLightColor, shortenSeasonName } from '@/lib/utils';
 
 import { fetchCoachFull } from '../api-prisma';
@@ -462,6 +464,12 @@ function CoachDetailPageInner({ coachId }: CoachDetailPageProps) {
               />
             )}
 
+            {/* Next match */}
+            <CoachNextMatchCard
+              nextMatch={full?.next_match}
+              currentTeamId={currentTeamVerified?.team_id}
+            />
+
             {/* Match history */}
             <CoachMatchHistory matches={coach.match_coaches} />
 
@@ -551,6 +559,67 @@ function CoachDetailPageInner({ coachId }: CoachDetailPageProps) {
         </div>
       </div>
     </Section>
+  );
+}
+
+/** 감독의 현재 팀 기준 다음 미완료 경기 카드 — 경기 프리뷰·감독 맞대결 딥링크 제공 */
+function CoachNextMatchCard({
+  nextMatch,
+  currentTeamId,
+}: {
+  nextMatch: import('@/lib/types/database').CoachNextMatch | null | undefined;
+  currentTeamId: number | null | undefined;
+}) {
+  // D-day는 시간 의존이라 마운트 후에만 계산 (하이드레이션 불일치 방지)
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+
+  if (!now || !nextMatch || currentTeamId == null) return null;
+
+  const isHome = nextMatch.home_team_id === currentTeamId;
+  const ownTeam = isHome ? nextMatch.home_team : nextMatch.away_team;
+  const opponent = isHome ? nextMatch.away_team : nextMatch.home_team;
+  if (!ownTeam || !opponent) return null;
+
+  const dday = kstDayDiff(nextMatch.match_date, now);
+  if (dday < 0) return null;
+
+  const track = (destination: string) =>
+    trackSelectContent({ module: 'coach_next_match', destination });
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-[#F0F0F0] bg-white">
+      <div className="flex items-center justify-between px-6 py-4">
+        <p className="text-[18px] font-medium text-gray-900">다음 경기</p>
+        <span className="text-sm font-semibold text-amber-600">
+          {dday === 0 ? 'D-day' : `D-${dday}`}
+        </span>
+      </div>
+      <div className="px-6 pb-5">
+        <p className="text-sm text-gray-700">
+          {formatKstMonthDay(nextMatch.match_date)} · {ownTeam.team_name}{' '}
+          <span className="text-gray-400">vs</span> {opponent.team_name}
+        </p>
+        <div className="mt-3 flex gap-2">
+          <Link
+            href={`/matches/${nextMatch.match_id}#summary`}
+            onClick={() => track('match_preview')}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            경기 프리뷰
+          </Link>
+          <Link
+            href={`/matches/${nextMatch.match_id}#stats`}
+            onClick={() => track('coach_h2h')}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            감독 맞대결 전적
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
 

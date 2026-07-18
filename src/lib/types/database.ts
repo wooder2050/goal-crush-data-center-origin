@@ -755,10 +755,20 @@ export interface CoachOverview {
   trophies: CoachTrophies;
 }
 
+export interface CoachNextMatch {
+  match_id: number;
+  match_date: string;
+  home_team_id: number | null;
+  away_team_id: number | null;
+  home_team: { team_id: number; team_name: string; logo: string | null } | null;
+  away_team: { team_id: number; team_name: string; logo: string | null } | null;
+}
+
 export interface CoachFull {
   coach: CoachDetail;
   overview: CoachOverview;
   current_team_verified: TeamCurrentHeadCoach | null;
+  next_match?: CoachNextMatch | null;
 }
 
 export interface MatchCoaches {

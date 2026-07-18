@@ -92,6 +92,35 @@ export async function GET(
         where: { coach_id: coachIdNum },
       });
 
+    // 현재 팀의 다음 미완료 경기 (감독 배정(match_coaches) 전에도 노출하기 위해 팀 기준 조회)
+    const next_match = current_team_verified
+      ? await prisma.match.findFirst({
+          where: {
+            OR: [
+              { home_team_id: current_team_verified.team_id },
+              { away_team_id: current_team_verified.team_id },
+            ],
+            home_score: null,
+            away_score: null,
+            is_date_confirmed: true,
+            match_date: { gte: new Date(Date.now() - 6 * 60 * 60 * 1000) },
+          },
+          orderBy: { match_date: 'asc' },
+          select: {
+            match_id: true,
+            match_date: true,
+            home_team_id: true,
+            away_team_id: true,
+            home_team: {
+              select: { team_id: true, team_name: true, logo: true },
+            },
+            away_team: {
+              select: { team_id: true, team_name: true, logo: true },
+            },
+          },
+        })
+      : null;
+
     // 이미 응답 구조로 정제된 season_stats 사용
     const responseStats = season_stats;
 
@@ -107,6 +136,7 @@ export async function GET(
         trophies,
       },
       current_team_verified,
+      next_match,
     });
   } catch (error) {
     console.error('Failed to fetch full coach data', error);
