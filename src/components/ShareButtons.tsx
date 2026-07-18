@@ -80,14 +80,14 @@ export function ShareButtons({
       <div className="flex items-center gap-1">
         <button
           onClick={handleNativeShare}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600"
+          className="flex h-11 w-11 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600"
           aria-label="공유하기"
         >
           <Share2 className="h-4 w-4" />
         </button>
         <button
           onClick={handleCopyLink}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600"
+          className="flex h-11 w-11 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600"
           aria-label={copied ? '복사됨' : '링크 복사'}
         >
           <Link2 className={`h-4 w-4 ${copied ? 'text-emerald-500' : ''}`} />
