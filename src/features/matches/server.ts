@@ -1,5 +1,6 @@
 import type { MatchTeamSeasonNameResult } from '@/app/api/types';
 import { prisma } from '@/lib/prisma';
+import { withRetry } from '@/lib/retry';
 import type { MatchWithTeams } from '@/lib/types';
 
 // ── Types ──────────────────────────────────────────────
@@ -69,6 +70,12 @@ interface SerializedArchiveMatch {
 }
 
 export async function getMatchesArchiveData(): Promise<MatchesArchiveData> {
+  // 빌드 프리렌더 시 DB 연결 경합으로 간헐 실패하는 문제 방어
+  // (후속 teamSeasonName 조회까지 포함해 함수 전체를 재시도)
+  return withRetry(() => getMatchesArchiveDataInner());
+}
+
+async function getMatchesArchiveDataInner(): Promise<MatchesArchiveData> {
   const matchInclude = {
     home_team: { select: { team_id: true, team_name: true, logo: true } },
     away_team: { select: { team_id: true, team_name: true, logo: true } },
