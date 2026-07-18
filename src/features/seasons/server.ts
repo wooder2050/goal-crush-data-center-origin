@@ -346,17 +346,24 @@ export async function getInitialSeasonDetailData(
   // G리그: 1위 우승
   const RELEGATION_FROM_SEASON_ID = 7;
   const totalTeams = topStandings.length;
+  // 우선순위: 1위(우승·승격) > 최하위(강등·방출) > 중간 슬롯(승강 PO).
+  // 강등·방출·승강 PO는 정상 규모(4팀 이상) 리그에서만 표기해 규칙 충돌을 방지
   const standingMarker = (position: number): string | null => {
     if (!seasonEnded) return null;
+    const normalSize = totalTeams >= 4;
     if (season.category === 'SUPER_LEAGUE') {
-      if (position === totalTeams) return '챌린지 강등';
       if (position === 1) return '우승';
-      if (position === 5) return '승강 플레이오프';
+      if (normalSize && position === totalTeams) return '챌린지 강등';
+      if (normalSize && position === 5) return '승강 플레이오프';
     } else if (season.category === 'CHALLENGE_LEAGUE') {
-      if (position === totalTeams && seasonId >= RELEGATION_FROM_SEASON_ID)
-        return '방출';
       if (position === 1) return '슈퍼 승격';
-      if (position === 2) return '승강 플레이오프';
+      if (
+        normalSize &&
+        position === totalTeams &&
+        seasonId >= RELEGATION_FROM_SEASON_ID
+      )
+        return '방출';
+      if (normalSize && position === 2) return '승강 플레이오프';
     } else if (season.category === 'G_LEAGUE') {
       if (position === 1) return '우승';
     }
