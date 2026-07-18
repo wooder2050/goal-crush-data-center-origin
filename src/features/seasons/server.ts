@@ -1,5 +1,6 @@
 import type { SeasonWithStats } from '@/features/seasons/api-prisma';
 import { prisma } from '@/lib/prisma';
+import { stageLabel } from '@/lib/tournament';
 import type { Season } from '@/lib/types';
 import { inferLeague } from '@/lib/utils';
 
@@ -26,6 +27,8 @@ export type SeasonSummaryMatch = {
   away_score: number | null;
   penalty_home_score: number | null;
   penalty_away_score: number | null;
+  /** 컵(토너먼트) 시즌에서만 채워지는 라운드 라벨 (예: 8강) */
+  stage_label: string | null;
 };
 
 export type SeasonSummaryStanding = {
@@ -34,6 +37,16 @@ export type SeasonSummaryStanding = {
   points: number | null;
   wins: number | null;
   losses: number | null;
+  /** 종료된 리그 시즌의 순위 의미 (우승·승격·승강 플레이오프·강등·방출) */
+  marker: string | null;
+};
+
+/** 컵(토너먼트) 시즌 전용 요약 */
+export type SeasonCupSummary = {
+  /** 결승 완료 시 우승팀명 */
+  champion_team_name: string | null;
+  /** 진행 중일 때 현재(다음 예정 또는 최근 완료) 라운드 라벨 */
+  current_stage_label: string | null;
 };
 
 export type SeasonSsrSummary = {
@@ -41,6 +54,8 @@ export type SeasonSsrSummary = {
   completed_matches: number;
   recent_results: SeasonSummaryMatch[];
   top_standings: SeasonSummaryStanding[];
+  /** 컵 시즌이 아니면 null */
+  cup: SeasonCupSummary | null;
 };
 
 export type InitialSeasonDetailData = {
@@ -231,6 +246,11 @@ export async function getInitialSeasonDetailData(
 
   const totalMatches = season._count.matches;
 
+  // 컵(토너먼트) 시즌은 리그식 순위·승점 표기가 부적절하므로 순위 요약 제외
+  const isCupSeason = ['GIFA_CUP', 'SBS_CUP', 'CHAMPION_MATCH'].includes(
+    season.category ?? ''
+  );
+
   const completedWhere = {
     season_id: seasonId,
     status: 'completed',
@@ -238,39 +258,56 @@ export async function getInitialSeasonDetailData(
     away_score: { not: null },
   } as const;
 
-  const [completedMatches, recentMatches, topStandings] = await Promise.all([
-    prisma.match.count({ where: completedWhere }),
-    prisma.match.findMany({
-      where: completedWhere,
-      orderBy: { match_date: 'desc' },
-      take: 5,
-      select: {
-        match_id: true,
-        match_date: true,
-        home_score: true,
-        away_score: true,
-        penalty_home_score: true,
-        penalty_away_score: true,
-        home_team_id: true,
-        away_team_id: true,
-        home_team: { select: { team_name: true } },
-        away_team: { select: { team_name: true } },
-      },
-    }),
-    prisma.standing.findMany({
-      where: { season_id: seasonId },
-      orderBy: { position: 'asc' },
-      take: 5,
-      select: {
-        position: true,
-        points: true,
-        wins: true,
-        losses: true,
-        team_id: true,
-        team: { select: { team_name: true } },
-      },
-    }),
-  ]);
+  const [completedMatches, recentMatches, topStandings, nextScheduled] =
+    await Promise.all([
+      prisma.match.count({ where: completedWhere }),
+      prisma.match.findMany({
+        where: completedWhere,
+        orderBy: { match_date: 'desc' },
+        take: 5,
+        select: {
+          match_id: true,
+          match_date: true,
+          home_score: true,
+          away_score: true,
+          penalty_home_score: true,
+          penalty_away_score: true,
+          tournament_stage: true,
+          home_team_id: true,
+          away_team_id: true,
+          home_team: { select: { team_name: true } },
+          away_team: { select: { team_name: true } },
+        },
+      }),
+      // 강등·방출(최하위) 표기를 위해 전체 순위 조회 (팀 수 최대 8)
+      isCupSeason
+        ? Promise.resolve([])
+        : prisma.standing.findMany({
+            where: { season_id: seasonId },
+            orderBy: { position: 'asc' },
+            select: {
+              position: true,
+              points: true,
+              wins: true,
+              losses: true,
+              team_id: true,
+              team: { select: { team_name: true } },
+            },
+          }),
+      // 컵: 현재(다음 예정) 라운드 판단용
+      isCupSeason
+        ? prisma.match.findFirst({
+            where: {
+              season_id: seasonId,
+              status: 'scheduled',
+              home_score: null,
+              away_score: null,
+            },
+            orderBy: { match_date: 'asc' },
+            select: { tournament_stage: true },
+          })
+        : Promise.resolve(null),
+    ]);
 
   // 시즌 당시 팀명으로 치환 (api/matches/season/[season_id]와 동일한 규칙)
   const teamIds = Array.from(
@@ -300,6 +337,102 @@ export async function getInitialSeasonDetailData(
   ): string | null =>
     (teamId !== null ? teamNameMap.get(teamId) : undefined) ?? fallback ?? null;
 
+  const seasonEnded =
+    season.end_date !== null && season.end_date.getTime() < Date.now();
+
+  // 종료된 리그 시즌의 순위 의미 표기
+  // 슈퍼: 1위 우승, 5위 승강 플레이오프, 최하위 챌린지 강등
+  // 챌린지: 1위 슈퍼 승격, 2위 승강 플레이오프, 최하위 방출(시즌 3 챌린지=season_id 7부터)
+  // G리그: 1위 우승
+  const RELEGATION_FROM_SEASON_ID = 7;
+  const totalTeams = topStandings.length;
+  // 우선순위: 1위(우승·승격) > 최하위(강등·방출) > 중간 슬롯(승강 PO).
+  // 강등·방출·승강 PO는 정상 규모(4팀 이상) 리그에서만 표기해 규칙 충돌을 방지
+  const standingMarker = (position: number): string | null => {
+    if (!seasonEnded) return null;
+    const normalSize = totalTeams >= 4;
+    if (season.category === 'SUPER_LEAGUE') {
+      if (position === 1) return '우승';
+      if (normalSize && position === totalTeams) return '챌린지 강등';
+      if (normalSize && position === 5) return '승강 플레이오프';
+    } else if (season.category === 'CHALLENGE_LEAGUE') {
+      if (position === 1) return '슈퍼 승격';
+      if (
+        normalSize &&
+        position === totalTeams &&
+        seasonId >= RELEGATION_FROM_SEASON_ID
+      )
+        return '방출';
+      if (normalSize && position === 2) return '승강 플레이오프';
+    } else if (season.category === 'G_LEAGUE') {
+      if (position === 1) return '우승';
+    }
+    return null;
+  };
+
+  // 컵 시즌: 우승팀(결승 완료 시) 또는 현재 라운드
+  let cup: SeasonCupSummary | null = null;
+  if (isCupSeason) {
+    const finalMatch = recentMatches.find(
+      (m) => m.tournament_stage === 'final'
+    );
+    let championTeamName: string | null = null;
+    if (
+      finalMatch &&
+      finalMatch.home_score !== null &&
+      finalMatch.away_score !== null
+    ) {
+      // 승자가 명확할 때만 판정 — 동점인데 승부차기 기록이 없으면 미확정으로 두고 폴백에 맡긴다
+      let homeWon: boolean | null = null;
+      if (finalMatch.home_score !== finalMatch.away_score) {
+        homeWon = finalMatch.home_score > finalMatch.away_score;
+      } else if (
+        finalMatch.penalty_home_score !== null &&
+        finalMatch.penalty_away_score !== null &&
+        finalMatch.penalty_home_score !== finalMatch.penalty_away_score
+      ) {
+        homeWon = finalMatch.penalty_home_score > finalMatch.penalty_away_score;
+      }
+      if (homeWon !== null) {
+        championTeamName = homeWon
+          ? resolveTeamName(
+              finalMatch.home_team_id,
+              finalMatch.home_team?.team_name
+            )
+          : resolveTeamName(
+              finalMatch.away_team_id,
+              finalMatch.away_team?.team_name
+            );
+      }
+    }
+
+    // 폴백: 스테이지 데이터가 없는 과거 컵 시즌(예: 2025 GIFA컵)은
+    // 종료된 경우에 한해 순위표 1위를 우승팀으로 사용 (시즌 목록과 동일 규칙)
+    if (!championTeamName && seasonEnded) {
+      const winner = await prisma.standing.findFirst({
+        where: { season_id: seasonId, position: 1 },
+        select: { team_id: true, team: { select: { team_name: true } } },
+      });
+      if (winner?.team_id != null) {
+        // 순위표 팀은 teamNameMap 수집 범위 밖일 수 있어 시즌 당시 팀명을 직접 조회
+        const seasonName = await prisma.teamSeasonName.findFirst({
+          where: { team_id: winner.team_id, season_id: seasonId },
+          select: { team_name: true },
+        });
+        championTeamName =
+          seasonName?.team_name ?? winner.team?.team_name ?? null;
+      }
+    }
+
+    cup = {
+      champion_team_name: championTeamName,
+      current_stage_label: championTeamName
+        ? null
+        : (stageLabel(nextScheduled?.tournament_stage) ??
+          stageLabel(recentMatches[0]?.tournament_stage)),
+    };
+  }
+
   const summary: SeasonSsrSummary = {
     total_matches: totalMatches,
     completed_matches: completedMatches,
@@ -312,6 +445,7 @@ export async function getInitialSeasonDetailData(
       away_score: m.away_score,
       penalty_home_score: m.penalty_home_score,
       penalty_away_score: m.penalty_away_score,
+      stage_label: isCupSeason ? stageLabel(m.tournament_stage) : null,
     })),
     top_standings: topStandings.map((s) => ({
       position: s.position,
@@ -319,7 +453,9 @@ export async function getInitialSeasonDetailData(
       points: s.points,
       wins: s.wins,
       losses: s.losses,
+      marker: standingMarker(s.position),
     })),
+    cup,
   };
 
   return {
