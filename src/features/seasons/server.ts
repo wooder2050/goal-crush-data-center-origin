@@ -37,6 +37,8 @@ export type SeasonSummaryStanding = {
   points: number | null;
   wins: number | null;
   losses: number | null;
+  /** 종료된 리그 시즌의 순위 의미 (우승·승격·승강 플레이오프·강등·방출) */
+  marker: string | null;
 };
 
 /** 컵(토너먼트) 시즌 전용 요약 */
@@ -277,12 +279,12 @@ export async function getInitialSeasonDetailData(
           away_team: { select: { team_name: true } },
         },
       }),
+      // 강등·방출(최하위) 표기를 위해 전체 순위 조회 (팀 수 최대 8)
       isCupSeason
         ? Promise.resolve([])
         : prisma.standing.findMany({
             where: { season_id: seasonId },
             orderBy: { position: 'asc' },
-            take: 5,
             select: {
               position: true,
               points: true,
@@ -335,6 +337,32 @@ export async function getInitialSeasonDetailData(
   ): string | null =>
     (teamId !== null ? teamNameMap.get(teamId) : undefined) ?? fallback ?? null;
 
+  const seasonEnded =
+    season.end_date !== null && season.end_date.getTime() < Date.now();
+
+  // 종료된 리그 시즌의 순위 의미 표기
+  // 슈퍼: 1위 우승, 5위 승강 플레이오프, 최하위 챌린지 강등
+  // 챌린지: 1위 슈퍼 승격, 2위 승강 플레이오프, 최하위 방출(시즌 3 챌린지=season_id 7부터)
+  // G리그: 1위 우승
+  const RELEGATION_FROM_SEASON_ID = 7;
+  const totalTeams = topStandings.length;
+  const standingMarker = (position: number): string | null => {
+    if (!seasonEnded) return null;
+    if (season.category === 'SUPER_LEAGUE') {
+      if (position === totalTeams) return '챌린지 강등';
+      if (position === 1) return '우승';
+      if (position === 5) return '승강 플레이오프';
+    } else if (season.category === 'CHALLENGE_LEAGUE') {
+      if (position === totalTeams && seasonId >= RELEGATION_FROM_SEASON_ID)
+        return '방출';
+      if (position === 1) return '슈퍼 승격';
+      if (position === 2) return '승강 플레이오프';
+    } else if (season.category === 'G_LEAGUE') {
+      if (position === 1) return '우승';
+    }
+    return null;
+  };
+
   // 컵 시즌: 우승팀(결승 완료 시) 또는 현재 라운드
   let cup: SeasonCupSummary | null = null;
   if (isCupSeason) {
@@ -373,8 +401,6 @@ export async function getInitialSeasonDetailData(
 
     // 폴백: 스테이지 데이터가 없는 과거 컵 시즌(예: 2025 GIFA컵)은
     // 종료된 경우에 한해 순위표 1위를 우승팀으로 사용 (시즌 목록과 동일 규칙)
-    const seasonEnded =
-      season.end_date !== null && season.end_date.getTime() < Date.now();
     if (!championTeamName && seasonEnded) {
       const winner = await prisma.standing.findFirst({
         where: { season_id: seasonId, position: 1 },
@@ -420,6 +446,7 @@ export async function getInitialSeasonDetailData(
       points: s.points,
       wins: s.wins,
       losses: s.losses,
+      marker: standingMarker(s.position),
     })),
     cup,
   };

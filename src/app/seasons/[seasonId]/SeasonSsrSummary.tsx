@@ -91,7 +91,7 @@ export default function SeasonSsrSummaryBlock({
           {summary.top_standings
             .map(
               (s) =>
-                `${s.position}위 ${s.team_name}(승점 ${s.points ?? 0}, ${s.wins ?? 0}승 ${s.losses ?? 0}패)`
+                `${s.position}위 ${s.team_name}(${s.marker ? `${s.marker}, ` : ''}승점 ${s.points ?? 0}, ${s.wins ?? 0}승 ${s.losses ?? 0}패)`
             )
             .join(' · ')}
         </p>
