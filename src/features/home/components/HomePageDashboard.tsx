@@ -46,11 +46,7 @@ export default function HomePageDashboard({
       null)
     : null;
 
-  const matchdayCandidates = [
-    ...pageData.upcomingMatches,
-    ...pageData.recentMatches,
-    ...(pageData.cupMatches ?? []),
-  ];
+  const matchdayCandidates = pageData.todayMatches ?? [];
 
   return (
     <Section padding="sm" className="min-h-screen bg-gray-50 py-6">
@@ -58,7 +54,7 @@ export default function HomePageDashboard({
       <FreshnessStrip
         recentMatches={pageData.recentMatches}
         upcomingMatches={pageData.upcomingMatches}
-        matchdayCandidates={pageData.cupMatches ?? []}
+        matchdayCandidates={matchdayCandidates}
       />
 
       {/* 매치데이 모드 (경기일 18시 ~ 다음날 12시만 노출) */}
