@@ -3,7 +3,8 @@
 import { Trophy } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   Button,
@@ -22,7 +23,57 @@ import {
 import InfiniteSeasonSelect from '@/features/stats/components/InfiniteSeasonSelect';
 import type { ScoringRankingsResponse } from '@/features/stats/types';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { trackSelectContent } from '@/lib/analytics';
 import { apiUrl } from '@/lib/api-url';
+
+// ========== 프리셋 ==========
+
+interface SimpleSeason {
+  season_id: number;
+  season_name: string;
+  year: number;
+}
+
+async function getSimpleSeasons(): Promise<SimpleSeason[]> {
+  const response = await fetch(apiUrl('/api/seasons/simple'));
+  if (!response.ok) throw new Error('Failed to fetch seasons');
+  const result = await response.json();
+  return result.data || [];
+}
+getSimpleSeasons.queryKey = 'simpleSeasons';
+
+type PresetKey = 'season_goals' | 'ap_per_match' | 'alltime_ap';
+
+const PRESETS: Array<{
+  key: PresetKey;
+  label: string;
+  sortBy: string;
+  minMatches: number;
+  /** true면 최신 시즌으로 필터, false면 통산 */
+  useLatestSeason: boolean;
+}> = [
+  {
+    key: 'season_goals',
+    label: '이번 시즌 득점',
+    sortBy: 'goals',
+    minMatches: 1,
+    useLatestSeason: true,
+  },
+  {
+    key: 'ap_per_match',
+    label: '경기당 공격P',
+    sortBy: 'attack_points_per_match',
+    minMatches: 10,
+    useLatestSeason: false,
+  },
+  {
+    key: 'alltime_ap',
+    label: '역대 공격포인트',
+    sortBy: 'attack_points',
+    minMatches: 10,
+    useLatestSeason: false,
+  },
+];
 
 async function getScoringRankings(
   seasonId?: number,
@@ -50,10 +101,51 @@ async function getScoringRankings(
 }
 
 function ScoringRankingsPageContentInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [seasonId, setSeasonId] = useState<number | undefined>();
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState('attack_points');
   const [minMatches, setMinMatches] = useState(3);
+  const initializedRef = useRef(false);
+  const isUserAction = useRef(false);
+
+  // URL 쿼리에서 필터 복원 (공유 링크 진입 지원)
+  useEffect(() => {
+    if (initializedRef.current) return;
+    const season = searchParams.get('season');
+    const sort = searchParams.get('sort');
+    const min = searchParams.get('min');
+    if (season) {
+      const id = parseInt(season, 10);
+      if (!isNaN(id)) setSeasonId(id);
+    }
+    if (sort) setSortBy(sort);
+    if (min) {
+      const m = parseInt(min, 10);
+      if (!isNaN(m)) setMinMatches(m);
+    }
+    initializedRef.current = true;
+  }, [searchParams]);
+
+  // 사용자 조작 시 URL 동기화
+  useEffect(() => {
+    if (!isUserAction.current) return;
+    isUserAction.current = false;
+    const params = new URLSearchParams();
+    if (seasonId) params.set('season', seasonId.toString());
+    if (sortBy !== 'attack_points') params.set('sort', sortBy);
+    if (minMatches !== 3) params.set('min', minMatches.toString());
+    const qs = params.toString();
+    router.replace(qs ? `/stats/scoring?${qs}` : '/stats/scoring', {
+      scroll: false,
+    });
+  }, [seasonId, sortBy, minMatches, router]);
+
+  const { data: seasons } = useGoalQuery(getSimpleSeasons, [], {
+    staleTime: 10 * 60 * 1000,
+  });
+  const latestSeasonId = seasons?.[0]?.season_id;
 
   const { data, isLoading, error, refetch } = useGoalQuery(
     getScoringRankings,
@@ -68,19 +160,46 @@ function ScoringRankingsPageContentInner() {
   };
 
   const handleSeasonChange = (newSeasonId: number | undefined) => {
+    isUserAction.current = true;
     setSeasonId(newSeasonId);
     setPage(1);
   };
 
   const handleSortChange = (newSortBy: string) => {
+    isUserAction.current = true;
     setSortBy(newSortBy);
     setPage(1);
   };
 
   const handleMinMatchesChange = (newMinMatches: string) => {
+    isUserAction.current = true;
     setMinMatches(parseInt(newMinMatches));
     setPage(1);
   };
+
+  const activePreset = PRESETS.find(
+    (p) =>
+      p.sortBy === sortBy &&
+      p.minMatches === minMatches &&
+      (p.useLatestSeason
+        ? seasonId !== undefined && seasonId === latestSeasonId
+        : seasonId === undefined)
+  )?.key;
+
+  const applyPreset = useCallback(
+    (preset: (typeof PRESETS)[number]) => {
+      isUserAction.current = true;
+      setSeasonId(preset.useLatestSeason ? latestSeasonId : undefined);
+      setSortBy(preset.sortBy);
+      setMinMatches(preset.minMatches);
+      setPage(1);
+      trackSelectContent({
+        module: 'stats_preset',
+        destination: preset.key,
+      });
+    },
+    [latestSeasonId]
+  );
 
   if (error) {
     return (
@@ -106,6 +225,24 @@ function ScoringRankingsPageContentInner() {
           <p className="text-base sm:text-lg text-gray-600">
             골, 도움, 공격포인트 순위
           </p>
+        </div>
+
+        {/* 프리셋 */}
+        <div className="mb-4 flex flex-wrap justify-center gap-2">
+          {PRESETS.map((preset) => (
+            <button
+              key={preset.key}
+              onClick={() => applyPreset(preset)}
+              disabled={preset.useLatestSeason && latestSeasonId === undefined}
+              className={`rounded-full border px-4 py-1.5 text-sm transition-colors disabled:opacity-50 ${
+                activePreset === preset.key
+                  ? 'border-gray-900 bg-gray-900 text-white'
+                  : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
         </div>
 
         {/* 필터 */}
@@ -538,5 +675,10 @@ function ScoringRankingsPageContentInner() {
 }
 
 export default function ScoringRankingsPageContent() {
-  return <ScoringRankingsPageContentInner />;
+  // useSearchParams는 Suspense 경계 안에서만 사용 가능
+  return (
+    <Suspense fallback={null}>
+      <ScoringRankingsPageContentInner />
+    </Suspense>
+  );
 }
