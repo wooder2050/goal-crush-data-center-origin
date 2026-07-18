@@ -1,5 +1,6 @@
 import type { SeasonWithStats } from '@/features/seasons/api-prisma';
 import { prisma } from '@/lib/prisma';
+import { stageLabel } from '@/lib/tournament';
 import type { Season } from '@/lib/types';
 import { inferLeague } from '@/lib/utils';
 
@@ -26,6 +27,8 @@ export type SeasonSummaryMatch = {
   away_score: number | null;
   penalty_home_score: number | null;
   penalty_away_score: number | null;
+  /** 컵(토너먼트) 시즌에서만 채워지는 라운드 라벨 (예: 8강) */
+  stage_label: string | null;
 };
 
 export type SeasonSummaryStanding = {
@@ -36,11 +39,21 @@ export type SeasonSummaryStanding = {
   losses: number | null;
 };
 
+/** 컵(토너먼트) 시즌 전용 요약 */
+export type SeasonCupSummary = {
+  /** 결승 완료 시 우승팀명 */
+  champion_team_name: string | null;
+  /** 진행 중일 때 현재(다음 예정 또는 최근 완료) 라운드 라벨 */
+  current_stage_label: string | null;
+};
+
 export type SeasonSsrSummary = {
   total_matches: number;
   completed_matches: number;
   recent_results: SeasonSummaryMatch[];
   top_standings: SeasonSummaryStanding[];
+  /** 컵 시즌이 아니면 null */
+  cup: SeasonCupSummary | null;
 };
 
 export type InitialSeasonDetailData = {
@@ -243,41 +256,56 @@ export async function getInitialSeasonDetailData(
     away_score: { not: null },
   } as const;
 
-  const [completedMatches, recentMatches, topStandings] = await Promise.all([
-    prisma.match.count({ where: completedWhere }),
-    prisma.match.findMany({
-      where: completedWhere,
-      orderBy: { match_date: 'desc' },
-      take: 5,
-      select: {
-        match_id: true,
-        match_date: true,
-        home_score: true,
-        away_score: true,
-        penalty_home_score: true,
-        penalty_away_score: true,
-        home_team_id: true,
-        away_team_id: true,
-        home_team: { select: { team_name: true } },
-        away_team: { select: { team_name: true } },
-      },
-    }),
-    isCupSeason
-      ? Promise.resolve([])
-      : prisma.standing.findMany({
-          where: { season_id: seasonId },
-          orderBy: { position: 'asc' },
-          take: 5,
-          select: {
-            position: true,
-            points: true,
-            wins: true,
-            losses: true,
-            team_id: true,
-            team: { select: { team_name: true } },
-          },
-        }),
-  ]);
+  const [completedMatches, recentMatches, topStandings, nextScheduled] =
+    await Promise.all([
+      prisma.match.count({ where: completedWhere }),
+      prisma.match.findMany({
+        where: completedWhere,
+        orderBy: { match_date: 'desc' },
+        take: 5,
+        select: {
+          match_id: true,
+          match_date: true,
+          home_score: true,
+          away_score: true,
+          penalty_home_score: true,
+          penalty_away_score: true,
+          tournament_stage: true,
+          home_team_id: true,
+          away_team_id: true,
+          home_team: { select: { team_name: true } },
+          away_team: { select: { team_name: true } },
+        },
+      }),
+      isCupSeason
+        ? Promise.resolve([])
+        : prisma.standing.findMany({
+            where: { season_id: seasonId },
+            orderBy: { position: 'asc' },
+            take: 5,
+            select: {
+              position: true,
+              points: true,
+              wins: true,
+              losses: true,
+              team_id: true,
+              team: { select: { team_name: true } },
+            },
+          }),
+      // 컵: 현재(다음 예정) 라운드 판단용
+      isCupSeason
+        ? prisma.match.findFirst({
+            where: {
+              season_id: seasonId,
+              status: 'scheduled',
+              home_score: null,
+              away_score: null,
+            },
+            orderBy: { match_date: 'asc' },
+            select: { tournament_stage: true },
+          })
+        : Promise.resolve(null),
+    ]);
 
   // 시즌 당시 팀명으로 치환 (api/matches/season/[season_id]와 동일한 규칙)
   const teamIds = Array.from(
@@ -307,6 +335,63 @@ export async function getInitialSeasonDetailData(
   ): string | null =>
     (teamId !== null ? teamNameMap.get(teamId) : undefined) ?? fallback ?? null;
 
+  // 컵 시즌: 우승팀(결승 완료 시) 또는 현재 라운드
+  let cup: SeasonCupSummary | null = null;
+  if (isCupSeason) {
+    const finalMatch = recentMatches.find(
+      (m) => m.tournament_stage === 'final'
+    );
+    let championTeamName: string | null = null;
+    if (
+      finalMatch &&
+      finalMatch.home_score !== null &&
+      finalMatch.away_score !== null
+    ) {
+      const homeWon =
+        finalMatch.home_score !== finalMatch.away_score
+          ? finalMatch.home_score > finalMatch.away_score
+          : (finalMatch.penalty_home_score ?? 0) >
+            (finalMatch.penalty_away_score ?? 0);
+      championTeamName = homeWon
+        ? resolveTeamName(
+            finalMatch.home_team_id,
+            finalMatch.home_team?.team_name
+          )
+        : resolveTeamName(
+            finalMatch.away_team_id,
+            finalMatch.away_team?.team_name
+          );
+    }
+
+    // 폴백: 스테이지 데이터가 없는 과거 컵 시즌(예: 2025 GIFA컵)은
+    // 종료된 경우에 한해 순위표 1위를 우승팀으로 사용 (시즌 목록과 동일 규칙)
+    const seasonEnded =
+      season.end_date !== null && season.end_date.getTime() < Date.now();
+    if (!championTeamName && seasonEnded) {
+      const winner = await prisma.standing.findFirst({
+        where: { season_id: seasonId, position: 1 },
+        select: { team_id: true, team: { select: { team_name: true } } },
+      });
+      if (winner?.team_id != null) {
+        // 순위표 팀은 teamNameMap 수집 범위 밖일 수 있어 시즌 당시 팀명을 직접 조회
+        const seasonName = await prisma.teamSeasonName.findFirst({
+          where: { team_id: winner.team_id, season_id: seasonId },
+          select: { team_name: true },
+        });
+        championTeamName =
+          seasonName?.team_name ?? winner.team?.team_name ?? null;
+      }
+    }
+
+    cup = {
+      champion_team_name: championTeamName,
+      current_stage_label: championTeamName
+        ? null
+        : (stageLabel(nextScheduled?.tournament_stage) ??
+          stageLabel(recentMatches[0]?.tournament_stage)),
+    };
+  }
+
   const summary: SeasonSsrSummary = {
     total_matches: totalMatches,
     completed_matches: completedMatches,
@@ -319,6 +404,7 @@ export async function getInitialSeasonDetailData(
       away_score: m.away_score,
       penalty_home_score: m.penalty_home_score,
       penalty_away_score: m.penalty_away_score,
+      stage_label: isCupSeason ? stageLabel(m.tournament_stage) : null,
     })),
     top_standings: topStandings.map((s) => ({
       position: s.position,
@@ -327,6 +413,7 @@ export async function getInitialSeasonDetailData(
       wins: s.wins,
       losses: s.losses,
     })),
+    cup,
   };
 
   return {
