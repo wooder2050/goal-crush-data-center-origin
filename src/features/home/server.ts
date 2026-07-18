@@ -1,6 +1,5 @@
 import type { TeamSeasonNameResult } from '@/app/api/types';
 import { prisma } from '@/lib/prisma';
-import { withRetry } from '@/lib/retry';
 
 import type {
   CareerStatRow,
@@ -987,11 +986,6 @@ async function getSeasonSummaryStats(
 // ── Aggregator ────────────────────────────────────────
 
 export async function getHomePageData(): Promise<HomePageData> {
-  // 빌드 프리렌더 시 DB 연결 경합으로 간헐 실패하는 문제 방어 (재시도)
-  return withRetry(() => getHomePageDataInner());
-}
-
-async function getHomePageDataInner(): Promise<HomePageData> {
   const currentSeason = await getLatestSeason();
 
   if (!currentSeason) {

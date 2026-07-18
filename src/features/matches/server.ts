@@ -70,33 +70,36 @@ interface SerializedArchiveMatch {
 }
 
 export async function getMatchesArchiveData(): Promise<MatchesArchiveData> {
+  // 빌드 프리렌더 시 DB 연결 경합으로 간헐 실패하는 문제 방어
+  // (후속 teamSeasonName 조회까지 포함해 함수 전체를 재시도)
+  return withRetry(() => getMatchesArchiveDataInner());
+}
+
+async function getMatchesArchiveDataInner(): Promise<MatchesArchiveData> {
   const matchInclude = {
     home_team: { select: { team_id: true, team_name: true, logo: true } },
     away_team: { select: { team_id: true, team_name: true, logo: true } },
     season: { select: { season_id: true, season_name: true } },
   } as const;
 
-  // 빌드 프리렌더 시 DB 연결 경합으로 간헐 실패하는 문제 방어 (재시도)
-  const [seasons, recentRaw, upcomingRaw] = await withRetry(() =>
-    Promise.all([
-      prisma.season.findMany({
-        select: { season_id: true, season_name: true },
-        orderBy: { season_id: 'desc' },
-      }),
-      prisma.match.findMany({
-        where: { status: 'completed' },
-        orderBy: { match_date: 'desc' },
-        take: 10,
-        include: matchInclude,
-      }),
-      prisma.match.findMany({
-        where: { match_date: { gt: new Date() }, is_date_confirmed: true },
-        orderBy: { match_date: 'asc' },
-        take: 10,
-        include: matchInclude,
-      }),
-    ])
-  );
+  const [seasons, recentRaw, upcomingRaw] = await Promise.all([
+    prisma.season.findMany({
+      select: { season_id: true, season_name: true },
+      orderBy: { season_id: 'desc' },
+    }),
+    prisma.match.findMany({
+      where: { status: 'completed' },
+      orderBy: { match_date: 'desc' },
+      take: 10,
+      include: matchInclude,
+    }),
+    prisma.match.findMany({
+      where: { match_date: { gt: new Date() }, is_date_confirmed: true },
+      orderBy: { match_date: 'asc' },
+      take: 10,
+      include: matchInclude,
+    }),
+  ]);
 
   const allMatches = [...recentRaw, ...upcomingRaw];
   const pairs = allMatches.flatMap((m) => {
