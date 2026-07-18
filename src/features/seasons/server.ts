@@ -231,6 +231,11 @@ export async function getInitialSeasonDetailData(
 
   const totalMatches = season._count.matches;
 
+  // 컵(토너먼트) 시즌은 리그식 순위·승점 표기가 부적절하므로 순위 요약 제외
+  const isCupSeason = ['GIFA_CUP', 'SBS_CUP', 'CHAMPION_MATCH'].includes(
+    season.category ?? ''
+  );
+
   const completedWhere = {
     season_id: seasonId,
     status: 'completed',
@@ -257,19 +262,21 @@ export async function getInitialSeasonDetailData(
         away_team: { select: { team_name: true } },
       },
     }),
-    prisma.standing.findMany({
-      where: { season_id: seasonId },
-      orderBy: { position: 'asc' },
-      take: 5,
-      select: {
-        position: true,
-        points: true,
-        wins: true,
-        losses: true,
-        team_id: true,
-        team: { select: { team_name: true } },
-      },
-    }),
+    isCupSeason
+      ? Promise.resolve([])
+      : prisma.standing.findMany({
+          where: { season_id: seasonId },
+          orderBy: { position: 'asc' },
+          take: 5,
+          select: {
+            position: true,
+            points: true,
+            wins: true,
+            losses: true,
+            team_id: true,
+            team: { select: { team_name: true } },
+          },
+        }),
   ]);
 
   // 시즌 당시 팀명으로 치환 (api/matches/season/[season_id]와 동일한 규칙)
