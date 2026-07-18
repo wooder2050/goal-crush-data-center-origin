@@ -125,6 +125,8 @@ export interface HomePageData {
   kickoffMatch: HomeMatch | null;
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
+  /** 매치데이 카드 전용: 윈도우에 걸릴 수 있는 최근 36h~향후 24h 경기 (완료 포함) */
+  todayMatches: HomeMatch[];
   knockoutMatches: HomeMatch[];
   standings: StandingsGroup[];
   topScorers: PlayerStatRow[];
