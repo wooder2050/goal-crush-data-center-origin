@@ -13,6 +13,8 @@ interface ShareButtonsProps {
   contentType?: string;
   /** GA share 이벤트의 item_id (예: match_id) */
   itemId?: string;
+  /** 카드 헤더용 축소 모드: 네이티브 공유·링크 복사 아이콘 버튼만 표시 */
+  compact?: boolean;
 }
 
 export function ShareButtons({
@@ -21,6 +23,7 @@ export function ShareButtons({
   description,
   contentType = 'page',
   itemId,
+  compact = false,
 }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
 
@@ -71,6 +74,27 @@ export function ShareButtons({
       await handleCopyLink();
     }
   }, [title, description, shareUrl, handleCopyLink, contentType, itemId]);
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-1">
+        <button
+          onClick={handleNativeShare}
+          className="flex h-11 w-11 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600"
+          aria-label="공유하기"
+        >
+          <Share2 className="h-4 w-4" />
+        </button>
+        <button
+          onClick={handleCopyLink}
+          className="flex h-11 w-11 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600"
+          aria-label={copied ? '복사됨' : '링크 복사'}
+        >
+          <Link2 className={`h-4 w-4 ${copied ? 'text-emerald-500' : ''}`} />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2">

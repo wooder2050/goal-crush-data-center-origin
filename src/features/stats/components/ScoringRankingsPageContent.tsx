@@ -3,7 +3,8 @@
 import { Trophy } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   Button,
@@ -22,7 +23,57 @@ import {
 import InfiniteSeasonSelect from '@/features/stats/components/InfiniteSeasonSelect';
 import type { ScoringRankingsResponse } from '@/features/stats/types';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { trackSelectContent } from '@/lib/analytics';
 import { apiUrl } from '@/lib/api-url';
+
+// ========== 프리셋 ==========
+
+interface SimpleSeason {
+  season_id: number;
+  season_name: string;
+  year: number;
+}
+
+async function getSimpleSeasons(): Promise<SimpleSeason[]> {
+  const response = await fetch(apiUrl('/api/seasons/simple'));
+  if (!response.ok) throw new Error('Failed to fetch seasons');
+  const result = await response.json();
+  return result.data || [];
+}
+getSimpleSeasons.queryKey = 'simpleSeasons';
+
+type PresetKey = 'season_goals' | 'ap_per_match' | 'alltime_ap';
+
+const PRESETS: Array<{
+  key: PresetKey;
+  label: string;
+  sortBy: string;
+  minMatches: number;
+  /** true면 최신 시즌으로 필터, false면 통산 */
+  useLatestSeason: boolean;
+}> = [
+  {
+    key: 'season_goals',
+    label: '이번 시즌 득점',
+    sortBy: 'goals',
+    minMatches: 1,
+    useLatestSeason: true,
+  },
+  {
+    key: 'ap_per_match',
+    label: '경기당 공격P',
+    sortBy: 'attack_points_per_match',
+    minMatches: 10,
+    useLatestSeason: false,
+  },
+  {
+    key: 'alltime_ap',
+    label: '역대 공격포인트',
+    sortBy: 'attack_points',
+    minMatches: 10,
+    useLatestSeason: false,
+  },
+];
 
 async function getScoringRankings(
   seasonId?: number,
@@ -49,11 +100,61 @@ async function getScoringRankings(
   return response.json();
 }
 
+const VALID_SORTS = new Set([
+  'attack_points',
+  'goals',
+  'assists',
+  'matches_played',
+  'attack_points_per_match',
+  'goals_per_match',
+  'assists_per_match',
+]);
+const VALID_MIN_MATCHES = new Set([1, 3, 5, 10]);
+const MAX_INT4 = 2147483647;
+
+function parseSeasonParam(raw: string | null): number | undefined {
+  if (!raw) return undefined;
+  const id = Number(raw);
+  if (!Number.isInteger(id) || id <= 0 || id > MAX_INT4) return undefined;
+  return id;
+}
+
 function ScoringRankingsPageContentInner() {
-  const [seasonId, setSeasonId] = useState<number | undefined>();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // URL 쿼리에서 검증 후 동기 초기화 — 공유 링크 진입 시 기본값 요청 없이 바로 복원
+  const [seasonId, setSeasonId] = useState<number | undefined>(() =>
+    parseSeasonParam(searchParams.get('season'))
+  );
   const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState('attack_points');
-  const [minMatches, setMinMatches] = useState(3);
+  const [sortBy, setSortBy] = useState(() => {
+    const sort = searchParams.get('sort');
+    return sort && VALID_SORTS.has(sort) ? sort : 'attack_points';
+  });
+  const [minMatches, setMinMatches] = useState(() => {
+    const m = Number(searchParams.get('min'));
+    return VALID_MIN_MATCHES.has(m) ? m : 3;
+  });
+  const isUserAction = useRef(false);
+
+  // 사용자 조작 시 URL 동기화
+  useEffect(() => {
+    if (!isUserAction.current) return;
+    isUserAction.current = false;
+    const params = new URLSearchParams();
+    if (seasonId) params.set('season', seasonId.toString());
+    if (sortBy !== 'attack_points') params.set('sort', sortBy);
+    if (minMatches !== 3) params.set('min', minMatches.toString());
+    const qs = params.toString();
+    router.replace(qs ? `/stats/scoring?${qs}` : '/stats/scoring', {
+      scroll: false,
+    });
+  }, [seasonId, sortBy, minMatches, router]);
+
+  const { data: seasons } = useGoalQuery(getSimpleSeasons, [], {
+    staleTime: 10 * 60 * 1000,
+  });
+  const latestSeasonId = seasons?.[0]?.season_id;
 
   const { data, isLoading, error, refetch } = useGoalQuery(
     getScoringRankings,
@@ -68,19 +169,46 @@ function ScoringRankingsPageContentInner() {
   };
 
   const handleSeasonChange = (newSeasonId: number | undefined) => {
+    isUserAction.current = true;
     setSeasonId(newSeasonId);
     setPage(1);
   };
 
   const handleSortChange = (newSortBy: string) => {
+    isUserAction.current = true;
     setSortBy(newSortBy);
     setPage(1);
   };
 
   const handleMinMatchesChange = (newMinMatches: string) => {
+    isUserAction.current = true;
     setMinMatches(parseInt(newMinMatches));
     setPage(1);
   };
+
+  const activePreset = PRESETS.find(
+    (p) =>
+      p.sortBy === sortBy &&
+      p.minMatches === minMatches &&
+      (p.useLatestSeason
+        ? seasonId !== undefined && seasonId === latestSeasonId
+        : seasonId === undefined)
+  )?.key;
+
+  const applyPreset = useCallback(
+    (preset: (typeof PRESETS)[number]) => {
+      isUserAction.current = true;
+      setSeasonId(preset.useLatestSeason ? latestSeasonId : undefined);
+      setSortBy(preset.sortBy);
+      setMinMatches(preset.minMatches);
+      setPage(1);
+      trackSelectContent({
+        module: 'stats_preset',
+        destination: preset.key,
+      });
+    },
+    [latestSeasonId]
+  );
 
   if (error) {
     return (
@@ -106,6 +234,24 @@ function ScoringRankingsPageContentInner() {
           <p className="text-base sm:text-lg text-gray-600">
             골, 도움, 공격포인트 순위
           </p>
+        </div>
+
+        {/* 프리셋 */}
+        <div className="mb-4 flex flex-wrap justify-center gap-2">
+          {PRESETS.map((preset) => (
+            <button
+              key={preset.key}
+              onClick={() => applyPreset(preset)}
+              disabled={preset.useLatestSeason && latestSeasonId === undefined}
+              className={`rounded-full border px-4 py-1.5 text-sm transition-colors disabled:opacity-50 ${
+                activePreset === preset.key
+                  ? 'border-gray-900 bg-gray-900 text-white'
+                  : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
         </div>
 
         {/* 필터 */}
@@ -538,5 +684,10 @@ function ScoringRankingsPageContentInner() {
 }
 
 export default function ScoringRankingsPageContent() {
-  return <ScoringRankingsPageContentInner />;
+  // useSearchParams는 Suspense 경계 안에서만 사용 가능
+  return (
+    <Suspense fallback={null}>
+      <ScoringRankingsPageContentInner />
+    </Suspense>
+  );
 }

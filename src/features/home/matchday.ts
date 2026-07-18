@@ -1,21 +1,10 @@
+import { formatKstMonthDay, kstDayDiff, kstMidnightMs } from '@/lib/kst';
+
 import type { HomeMatch } from './types';
 
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 
-/** UTC 시각을 KST 벽시계 기준으로 다루기 위해 +9h 이동한 Date (getUTC*로 읽는다) */
-function shiftToKst(date: Date): Date {
-  return new Date(date.getTime() + KST_OFFSET_MS);
-}
-
-/** KST 기준 해당 날짜의 자정(UTC ms) */
-function kstMidnightMs(date: Date): number {
-  const kst = shiftToKst(date);
-  return (
-    Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate()) -
-    KST_OFFSET_MS
-  );
-}
+export { formatKstMonthDay, kstDayDiff };
 
 export function isMatchCompleted(match: HomeMatch): boolean {
   return match.home_score !== null && match.away_score !== null;
@@ -67,24 +56,7 @@ export function findMatchdayMatch(
   )[0];
 }
 
-/** KST 날짜 기준 D-day (오늘이면 0, 내일이면 1). 과거면 음수 */
-export function kstDayDiff(targetIso: string, now: Date): number {
-  const target = new Date(targetIso);
-  if (Number.isNaN(target.getTime())) return NaN;
-  const DAY_MS = 24 * HOUR_MS;
-  return Math.round((kstMidnightMs(target) - kstMidnightMs(now)) / DAY_MS);
-}
-
 /** KST 기준 같은 날짜인지 (매치데이 윈도우의 경기 당일/다음날 문구 분기용) */
 export function isSameKstDay(targetIso: string, now: Date): boolean {
   return kstDayDiff(targetIso, now) === 0;
-}
-
-/** KST 기준 M/D 표기 */
-export function formatKstMonthDay(iso: string): string {
-  return new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Asia/Seoul',
-    month: 'numeric',
-    day: 'numeric',
-  }).format(new Date(iso));
 }
