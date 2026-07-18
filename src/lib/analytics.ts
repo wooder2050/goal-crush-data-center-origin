@@ -19,3 +19,22 @@ export function trackShare(params: {
     ...(params.itemId ? { item_id: params.itemId } : {}),
   });
 }
+
+/**
+ * GA4 표준 select_content 이벤트 — 홈 모듈(매치데이 카드 등) 클릭 계측.
+ */
+export function trackSelectContent(params: {
+  module: string;
+  destination: string;
+  matchState?: string;
+}): void {
+  if (typeof window === 'undefined') return;
+  const gtag = (window as { gtag?: GtagFn }).gtag;
+  if (!gtag) return;
+
+  gtag('event', 'select_content', {
+    content_type: params.module,
+    item_id: params.destination,
+    ...(params.matchState ? { match_state: params.matchState } : {}),
+  });
+}

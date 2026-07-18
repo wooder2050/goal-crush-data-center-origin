@@ -287,6 +287,31 @@ async function getUpcomingMatchesList(limit: number = 5): Promise<HomeMatch[]> {
   return matches.map((m) => serializeMatch(m, teamNameMap));
 }
 
+// 매치데이 카드 전용: 윈도우(경기일 18시~다음날 12시)에 걸릴 수 있는 최근·임박 경기.
+// 킥오프 후~기록 입력 전 경기도 포함해야 하므로 화면용 upcoming과 분리한다.
+async function getMatchdayWindowMatches(): Promise<HomeMatch[]> {
+  const HOUR_MS = 60 * 60 * 1000;
+  const now = Date.now();
+  const matches = await prisma.match.findMany({
+    where: {
+      match_date: {
+        gte: new Date(now - 36 * HOUR_MS),
+        lte: new Date(now + 24 * HOUR_MS),
+      },
+      is_date_confirmed: true,
+    },
+    orderBy: { match_date: 'asc' },
+    include: {
+      home_team: { select: { team_id: true, team_name: true, logo: true } },
+      away_team: { select: { team_id: true, team_name: true, logo: true } },
+      season: { select: { season_id: true, season_name: true } },
+    },
+  });
+
+  const teamNameMap = await buildTeamNameMap(matches);
+  return matches.map((m) => serializeMatch(m, teamNameMap));
+}
+
 async function getStandings(seasonId: number): Promise<StandingsGroup[]> {
   const teamSeasonNames = await (
     prisma as unknown as ExtendedPrismaClient
@@ -976,6 +1001,7 @@ export async function getHomePageData(): Promise<HomePageData> {
       kickoffMatch: null,
       recentMatches: [],
       upcomingMatches: [],
+      todayMatches: [],
       knockoutMatches: [],
       standings: [],
       topScorers: [],
@@ -1006,6 +1032,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   const [
     recentMatches,
     upcomingMatches,
+    todayMatches,
     knockoutMatches,
     cupMatches,
     kickoffMatch,
@@ -1020,6 +1047,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   ] = await Promise.all([
     getRecentCompletedMatches(),
     getUpcomingMatchesList(),
+    getMatchdayWindowMatches(),
     getKnockoutMatchesList(currentSeason.season_id),
     isCupSeason
       ? getCupMatchesList(currentSeason.season_id)
@@ -1053,6 +1081,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     kickoffMatch,
     recentMatches,
     upcomingMatches,
+    todayMatches,
     knockoutMatches,
     standings,
     topScorers,

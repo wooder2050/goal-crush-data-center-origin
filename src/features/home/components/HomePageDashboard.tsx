@@ -7,7 +7,9 @@ import { fetchHomePageData } from '../api-prisma';
 import type { HomePageData } from '../types';
 import CareerStatsWidget from './CareerStatsWidget';
 import CupTournamentWidget from './CupTournamentWidget';
+import FreshnessStrip from './FreshnessStrip';
 import KnockoutBracketWidget from './KnockoutBracketWidget';
+import MatchdayModeCard from './MatchdayModeCard';
 import MatchesWidget from './MatchesWidget';
 import NewProfilesNotice from './NewProfilesNotice';
 import PlayerCompareBanner from './PlayerCompareBanner';
@@ -44,8 +46,20 @@ export default function HomePageDashboard({
       null)
     : null;
 
+  const matchdayCandidates = pageData.todayMatches ?? [];
+
   return (
     <Section padding="sm" className="min-h-screen bg-gray-50 py-6">
+      {/* 신선도 스트립 (검색 첫 방문자용 갱신 신호) */}
+      <FreshnessStrip
+        recentMatches={pageData.recentMatches}
+        upcomingMatches={pageData.upcomingMatches}
+        matchdayCandidates={matchdayCandidates}
+      />
+
+      {/* 매치데이 모드 (경기일 18시 ~ 다음날 12시만 노출) */}
+      <MatchdayModeCard matches={matchdayCandidates} />
+
       {/* Season Header */}
       <h2 className="text-lg font-bold text-gray-900 mb-4">
         {pageData.currentSeason.season_name}
