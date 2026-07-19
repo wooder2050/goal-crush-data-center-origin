@@ -14,7 +14,14 @@ async function getGoalkeeperStats(playerId: number) {
     apiUrl(`/api/players/${playerId}/goalkeeper-stats`)
   );
   if (!response.ok) {
-    throw new Error('Failed to fetch goalkeeper stats');
+    throw new Error(`Failed to fetch goalkeeper stats: ${response.status}`);
+  }
+  // 에러·리다이렉트 페이지(HTML)가 200으로 오는 경우 JSON.parse 크래시 방지
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    throw new Error(
+      `Unexpected goalkeeper stats response type: ${contentType}`
+    );
   }
   return response.json();
 }
