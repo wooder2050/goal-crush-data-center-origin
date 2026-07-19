@@ -158,6 +158,8 @@ export default async function Image({
             }}
           >
             {hasScore ? (
+              /* 주의: 스코어는 반드시 String()으로 — satori가 숫자 자식을
+                 텍스트로 변환하지 못해 실경기 OG가 전부 500이던 원인 */
               <>
                 <div
                   style={{
@@ -166,7 +168,7 @@ export default async function Image({
                     fontWeight: 'bold',
                   }}
                 >
-                  {match.home_score}
+                  {String(match.home_score)}
                 </div>
                 <div
                   style={{
@@ -184,7 +186,7 @@ export default async function Image({
                     fontWeight: 'bold',
                   }}
                 >
-                  {match.away_score}
+                  {String(match.away_score)}
                 </div>
               </>
             ) : (

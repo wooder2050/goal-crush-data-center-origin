@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
+import { GoalWrapper } from '@/common/GoalWrapper';
 import type {
   getPlayerByIdPrisma,
   getPlayerSummaryPrisma,
@@ -61,6 +62,19 @@ function getMatchOutcome(gm: {
     if (pkDiff < 0) return 'PK_LOSS';
   }
   return 'DRAW';
+}
+
+function GoalkeeperSectionSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-[#F0F0F0] bg-white p-6">
+      <div className="h-5 w-32 animate-pulse rounded bg-gray-200" />
+      <div className="mt-4 space-y-2">
+        <div className="h-4 w-full animate-pulse rounded bg-gray-100" />
+        <div className="h-4 w-2/3 animate-pulse rounded bg-gray-100" />
+        <div className="h-4 w-1/2 animate-pulse rounded bg-gray-100" />
+      </div>
+    </div>
+  );
 }
 
 export default function PlayerDetailContent({
@@ -565,7 +579,13 @@ function PlayerDetailContentInner({
           )}
 
           {/* 공격포인트/골키퍼 통계 — 겸용 선수는 둘 다 표시 */}
-          {hasGKExperience && <GoalkeeperStatsSection playerId={playerId} />}
+          {/* suspense 쿼리 사용 섹션은 GoalWrapper 필수 — 없으면 SSR 중 서버가
+              자기 API를 HTTP 호출하다 HTML 응답에 JSON 파싱 크래시 (선수 상세 500 원인) */}
+          {hasGKExperience && (
+            <GoalWrapper fallback={<GoalkeeperSectionSkeleton />}>
+              <GoalkeeperStatsSection playerId={playerId} />
+            </GoalWrapper>
+          )}
           {hasFieldExperience && (
             <AttackPointsCard
               playerId={playerId}
@@ -577,7 +597,9 @@ function PlayerDetailContentInner({
             !hasFieldExperience &&
             positions.length > 0 &&
             (isPrimaryGK ? (
-              <GoalkeeperStatsSection playerId={playerId} />
+              <GoalWrapper fallback={<GoalkeeperSectionSkeleton />}>
+                <GoalkeeperStatsSection playerId={playerId} />
+              </GoalWrapper>
             ) : (
               <AttackPointsCard
                 playerId={playerId}
