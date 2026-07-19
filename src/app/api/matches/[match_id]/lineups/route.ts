@@ -31,12 +31,18 @@ export async function GET(
         match_id: true,
         home_team_id: true,
         away_team_id: true,
+        home_score: true,
+        away_score: true,
       },
     });
 
     if (!match) {
       return NextResponse.json({ error: 'Match not found' }, { status: 404 });
     }
+
+    // 미완료 경기(선공개 라인업 선등록): 통계 왜곡 방지를 위해 minutes_played=0으로
+    // 등록하므로, 교체 기록이 없는 선수는 분 수와 무관하게 선발로 분류한다
+    const isCompleted = match.home_score !== null && match.away_score !== null;
 
     // Get player match stats for this match (실제 출전한 선수들)
     const playerStats = (await prisma.playerMatchStats.findMany({
@@ -166,6 +172,9 @@ export async function GET(
           participationStatus = 'starting';
         }
       } else if (stat.minutes_played && stat.minutes_played > 0) {
+        participationStatus = 'starting';
+      } else if (!isCompleted) {
+        // 미완료 경기의 선등록 라인업(0분)은 선발로 분류
         participationStatus = 'starting';
       } else {
         // 출전하지 않은 선수는 벤치로 분류
