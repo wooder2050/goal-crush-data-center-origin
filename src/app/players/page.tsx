@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { PlayersPage } from '@/features/players';
 import { getInitialPlayersData } from '@/features/players/server';
+import { withRetry } from '@/lib/retry';
 
 export const revalidate = 3600;
 
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const initialData = await getInitialPlayersData();
+  // 빌드 프리렌더 시 DB 순단 방어 — 페이지 레벨만 재시도 (API 라우트는 영향 없음)
+  const initialData = await withRetry(() => getInitialPlayersData());
   return <PlayersPage initialData={initialData} />;
 }

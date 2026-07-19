@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { FAQPageJsonLd } from '@/components/JsonLd';
 import { HomePageDashboard } from '@/features/home';
 import { getHomePageData } from '@/features/home/server';
+import { withRetry } from '@/lib/retry';
 
 export const revalidate = 600;
 
@@ -52,7 +53,8 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const initialData = await getHomePageData();
+  // 빌드 프리렌더 시 DB 순단 방어 — 페이지 레벨만 재시도 (API 라우트는 영향 없음)
+  const initialData = await withRetry(() => getHomePageData());
   return (
     <>
       <FAQPageJsonLd
