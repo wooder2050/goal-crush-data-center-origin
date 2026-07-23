@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { trackSelectContent } from '@/lib/analytics';
+
 import {
   findMatchdayMatch,
   formatKstMonthDay,
@@ -60,7 +62,17 @@ export default function FreshnessStrip({
                 : '어제 경기 기록 반영 예정'}
             </span>
             {' · '}
-            <a href="#matchday" className="underline hover:text-gray-900">
+            <a
+              href="#matchday"
+              onClick={() =>
+                trackSelectContent({
+                  module: 'freshness_strip',
+                  destination: 'matchday_card',
+                  matchState: 'pre_or_live',
+                })
+              }
+              className="underline hover:text-gray-900"
+            >
               매치데이 보기
             </a>
           </>
