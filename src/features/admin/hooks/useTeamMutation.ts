@@ -83,6 +83,10 @@ export const useCreateTeamMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ['teamsAll'],
       });
+      // 선수 페이지 팀 드롭다운 캐시도 무효화 (별도 키 — PlayersContent 참조)
+      queryClient.invalidateQueries({
+        queryKey: ['teamsForPlayersFilter'],
+      });
     },
   });
 };
@@ -97,6 +101,10 @@ export const useUpdateTeamMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ['teamsAll'],
       });
+      // 선수 페이지 팀 드롭다운 캐시도 무효화 (별도 키 — PlayersContent 참조)
+      queryClient.invalidateQueries({
+        queryKey: ['teamsForPlayersFilter'],
+      });
     },
   });
 };
@@ -110,6 +118,10 @@ export const useDeleteTeamMutation = () => {
       // 팀 목록 쿼리 무효화
       queryClient.invalidateQueries({
         queryKey: ['teamsAll'],
+      });
+      // 선수 페이지 팀 드롭다운 캐시도 무효화 (별도 키 — PlayersContent 참조)
+      queryClient.invalidateQueries({
+        queryKey: ['teamsForPlayersFilter'],
       });
     },
   });
