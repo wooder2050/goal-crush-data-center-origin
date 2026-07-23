@@ -21,6 +21,24 @@ export function trackShare(params: {
 }
 
 /**
+ * 커스텀 view_content 이벤트 — 홈 모듈(매치데이 카드 등) 노출 계측.
+ * select_content(클릭)와 짝을 이뤄 노출 대비 클릭률을 계산한다.
+ */
+export function trackViewContent(params: {
+  module: string;
+  matchState?: string;
+}): void {
+  if (typeof window === 'undefined') return;
+  const gtag = (window as { gtag?: GtagFn }).gtag;
+  if (!gtag) return;
+
+  gtag('event', 'view_content', {
+    content_type: params.module,
+    ...(params.matchState ? { match_state: params.matchState } : {}),
+  });
+}
+
+/**
  * GA4 표준 select_content 이벤트 — 홈 모듈(매치데이 카드 등) 클릭 계측.
  */
 export function trackSelectContent(params: {

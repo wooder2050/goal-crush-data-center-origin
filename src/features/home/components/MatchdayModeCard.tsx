@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import { trackSelectContent } from '@/lib/analytics';
+import { trackSelectContent, trackViewContent } from '@/lib/analytics';
 
 import { findMatchdayMatch, isMatchCompleted, isSameKstDay } from '../matchday';
 import type { HomeMatch } from '../types';
@@ -29,13 +29,23 @@ export default function MatchdayModeCard({ matches }: MatchdayModeCardProps) {
     return () => clearInterval(timer);
   }, []);
 
-  if (!now) return null;
-
-  const match = findMatchdayMatch(matches, now);
-  if (!match || !match.home_team || !match.away_team) return null;
-
-  const completed = isMatchCompleted(match);
+  const match = now ? findMatchdayMatch(matches, now) : null;
+  const completed = match ? isMatchCompleted(match) : false;
   const matchState = completed ? 'completed' : 'pre_or_live';
+  const impressionKey =
+    match && match.home_team && match.away_team
+      ? `${match.match_id}:${matchState}`
+      : null;
+
+  // 카드가 실제로 노출될 때 1회 기록 — select_content와 짝지어 CTR 계산용.
+  // 경기 상태가 바뀌면(기록 반영) 다른 카드가 보이는 것이므로 다시 기록한다.
+  useEffect(() => {
+    if (!impressionKey) return;
+    trackViewContent({ module: 'matchday', matchState });
+  }, [impressionKey, matchState]);
+
+  if (!now || !match || !match.home_team || !match.away_team) return null;
+
   const home = match.home_team;
   const away = match.away_team;
 
