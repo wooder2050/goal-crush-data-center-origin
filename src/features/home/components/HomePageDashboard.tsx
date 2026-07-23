@@ -47,6 +47,14 @@ export default function HomePageDashboard({
     : null;
 
   const matchdayCandidates = pageData.todayMatches ?? [];
+  // 스트립과 카드가 서로 다른 후보를 보면 '매치데이 보기' 링크만 뜨고
+  // 카드는 없는 불일치가 생길 수 있어, 둘 다 같은 풀로 판정한다.
+  // (FreshnessStrip 내부 병합 순서와 동일해야 같은 경기를 고른다)
+  const matchdayPool = [
+    ...pageData.upcomingMatches,
+    ...pageData.recentMatches,
+    ...matchdayCandidates,
+  ];
 
   return (
     <Section padding="sm" className="min-h-screen bg-gray-50 py-6">
@@ -58,7 +66,7 @@ export default function HomePageDashboard({
       />
 
       {/* 매치데이 모드 (경기일 18시 ~ 다음날 12시만 노출) */}
-      <MatchdayModeCard matches={matchdayCandidates} />
+      <MatchdayModeCard matches={matchdayPool} />
 
       {/* Season Header */}
       <h2 className="text-lg font-bold text-gray-900 mb-4">
