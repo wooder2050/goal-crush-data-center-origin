@@ -18,6 +18,18 @@ import { getTeamsPrisma } from '@/features/teams/api-prisma';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 import type { Team } from '@/lib/types';
 
+// 드롭다운 전용 fetcher — getTeamsPrisma/getAllSeasonsPrisma와 캐시 키를 분리한다.
+// 같은 키('teamsAll' 등)를 쓰면 이 페이지의 축소형 initialData(이름·로고만)가
+// 캐시를 오염시켜, 10분 내 /teams 이동 시 팀 목록이 껍데기로 렌더되는 버그 발생
+const getTeamsForPlayersFilter = async () => getTeamsPrisma();
+Object.defineProperty(getTeamsForPlayersFilter, 'queryKey', {
+  value: 'teamsForPlayersFilter',
+});
+const getSeasonsForPlayersFilter = async () => getAllSeasonsPrisma();
+Object.defineProperty(getSeasonsForPlayersFilter, 'queryKey', {
+  value: 'seasonsForPlayersFilter',
+});
+
 // Category (position) options
 const POSITION_OPTIONS = [
   { value: 'ALL', label: '전체' },
@@ -62,7 +74,7 @@ export default function PlayersContent({
   hideInternalSearch?: boolean;
   stickyHeaderSlot?: React.ReactNode;
 }) {
-  const { data: teamsData } = useGoalQuery(getTeamsPrisma, [], {
+  const { data: teamsData } = useGoalQuery(getTeamsForPlayersFilter, [], {
     initialData: initialTeams as
       | Awaited<ReturnType<typeof getTeamsPrisma>>
       | undefined,
@@ -70,7 +82,7 @@ export default function PlayersContent({
     retry: 1,
   });
   const teams = teamsData ?? initialTeams ?? [];
-  const { data: seasonsData } = useGoalQuery(getAllSeasonsPrisma, [], {
+  const { data: seasonsData } = useGoalQuery(getSeasonsForPlayersFilter, [], {
     initialData: initialSeasons as
       | Awaited<ReturnType<typeof getAllSeasonsPrisma>>
       | undefined,
