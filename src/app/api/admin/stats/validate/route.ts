@@ -68,8 +68,25 @@ export async function GET(request: NextRequest) {
         } else if (teamScore < opponentScore) {
           actualStats.losses++;
         } else {
-          actualStats.draws++;
-          actualStats.points += 1;
+          // 정규시간 동점 - 승부차기로 승패 결정
+          const teamPenalty = isHome
+            ? match.penalty_home_score
+            : match.penalty_away_score;
+          const opponentPenalty = isHome
+            ? match.penalty_away_score
+            : match.penalty_home_score;
+
+          if (teamPenalty !== null && opponentPenalty !== null) {
+            if (teamPenalty > opponentPenalty) {
+              actualStats.wins++;
+              actualStats.points += 3;
+            } else {
+              actualStats.losses++;
+            }
+          } else {
+            actualStats.draws++;
+            actualStats.points += 1;
+          }
         }
       });
 
@@ -205,13 +222,17 @@ export async function GET(request: NextRequest) {
 
         actualH2H.matches_played++;
 
-        let smallScore, largeScore;
+        let smallScore, largeScore, smallPenalty, largePenalty;
         if (match.home_team_id === h2h.team_small_id) {
           smallScore = match.home_score;
           largeScore = match.away_score;
+          smallPenalty = match.penalty_home_score;
+          largePenalty = match.penalty_away_score;
         } else {
           smallScore = match.away_score;
           largeScore = match.home_score;
+          smallPenalty = match.penalty_away_score;
+          largePenalty = match.penalty_home_score;
         }
 
         if (smallScore > largeScore) {
@@ -219,7 +240,16 @@ export async function GET(request: NextRequest) {
         } else if (smallScore < largeScore) {
           actualH2H.large_wins++;
         } else {
-          actualH2H.draws++;
+          // 정규시간 동점 - 승부차기로 승패 결정
+          if (smallPenalty !== null && largePenalty !== null) {
+            if (smallPenalty > largePenalty) {
+              actualH2H.small_wins++;
+            } else {
+              actualH2H.large_wins++;
+            }
+          } else {
+            actualH2H.draws++;
+          }
         }
 
         actualH2H.small_goals += smallScore;

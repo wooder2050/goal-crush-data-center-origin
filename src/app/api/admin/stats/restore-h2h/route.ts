@@ -32,6 +32,8 @@ export async function POST() {
         away_team_id: true,
         home_score: true,
         away_score: true,
+        penalty_home_score: true,
+        penalty_away_score: true,
       },
     });
 
@@ -100,7 +102,28 @@ export async function POST() {
       } else if (team1Score < team2Score) {
         stats.team2_wins++;
       } else {
-        stats.draws++;
+        // 정규시간 동점 - 승부차기로 승패 결정
+        if (
+          match.penalty_home_score !== null &&
+          match.penalty_away_score !== null
+        ) {
+          let team1PenaltyScore, team2PenaltyScore;
+          if (match.home_team_id === team1) {
+            team1PenaltyScore = match.penalty_home_score || 0;
+            team2PenaltyScore = match.penalty_away_score || 0;
+          } else {
+            team1PenaltyScore = match.penalty_away_score || 0;
+            team2PenaltyScore = match.penalty_home_score || 0;
+          }
+
+          if (team1PenaltyScore > team2PenaltyScore) {
+            stats.team1_wins++;
+          } else {
+            stats.team2_wins++;
+          }
+        } else {
+          stats.draws++;
+        }
       }
 
       processedMatches++;
