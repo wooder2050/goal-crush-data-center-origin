@@ -2,9 +2,9 @@
 
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { trackSelectContent } from '@/lib/analytics';
+import { trackSelectContent, trackViewContent } from '@/lib/analytics';
 
 import { findMatchdayMatch, isMatchCompleted, isSameKstDay } from '../matchday';
 import type { HomeMatch } from '../types';
@@ -29,13 +29,46 @@ export default function MatchdayModeCard({ matches }: MatchdayModeCardProps) {
     return () => clearInterval(timer);
   }, []);
 
-  if (!now) return null;
-
-  const match = findMatchdayMatch(matches, now);
-  if (!match || !match.home_team || !match.away_team) return null;
-
-  const completed = isMatchCompleted(match);
+  const match = now ? findMatchdayMatch(matches, now) : null;
+  const completed = match ? isMatchCompleted(match) : false;
   const matchState = completed ? 'completed' : 'pre_or_live';
+  const matchId = match ? match.match_id : null;
+  const impressionKey =
+    match && match.home_team && match.away_team
+      ? `${match.match_id}:${matchState}`
+      : null;
+
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const sentImpressions = useRef<Set<string>>(new Set());
+
+  // 카드가 화면에 절반 이상 실제로 보였을 때 key당 1회 기록 —
+  // select_content(클릭)와 짝지어 CTR 계산용. 경기 상태가 바뀌면(기록 반영)
+  // 다른 카드가 보이는 것이므로 새 key로 다시 기록한다.
+  useEffect(() => {
+    if (!impressionKey || sentImpressions.current.has(impressionKey)) return;
+    const el = cardRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        if (sentImpressions.current.has(impressionKey)) return;
+        sentImpressions.current.add(impressionKey);
+        trackViewContent({
+          module: 'matchday',
+          itemId: matchId !== null ? String(matchId) : undefined,
+          matchState,
+        });
+        observer.disconnect();
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [impressionKey, matchId, matchState]);
+
+  if (!now || !match || !match.home_team || !match.away_team) return null;
+
   const home = match.home_team;
   const away = match.away_team;
 
@@ -63,6 +96,7 @@ export default function MatchdayModeCard({ matches }: MatchdayModeCardProps) {
   return (
     <div
       id="matchday"
+      ref={cardRef}
       className="mb-4 rounded-xl border border-gray-900 bg-gray-900 px-4 py-4 text-white"
     >
       <div className="flex items-center justify-between">
