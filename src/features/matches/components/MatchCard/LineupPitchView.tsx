@@ -57,6 +57,24 @@ const POSITION_X_AWAY: Record<string, number> = {
   FW: 62,
 };
 
+// 등번호 텍스트가 원 안에 들어가도록 폰트 크기를 계산한다.
+// 원 지름(imageSize) 대비 자리수만큼 폭이 늘어나므로, 기본 크기를 쓰되
+// 넘칠 때만 자리수에 비례해 축소한다. 3자리까지는 기존 크기를 유지.
+const JERSEY_BASE_FONT_SIZE = { small: 2.5, large: 4 } as const;
+// Bold 숫자 1글자의 대략적인 폭 비율(font-size 대비). 시스템 폰트 실측 기준.
+const DIGIT_WIDTH_RATIO = 0.62;
+// 원 안쪽 여백을 감안한 사용 가능 폭 비율
+const CIRCLE_FILL_RATIO = 0.82;
+
+const getJerseyFontSize = (jerseyNumber: number, imageSize: number): string => {
+  const digits = String(jerseyNumber).length;
+  const base =
+    imageSize < 7 ? JERSEY_BASE_FONT_SIZE.small : JERSEY_BASE_FONT_SIZE.large;
+  const maxWidth = imageSize * CIRCLE_FILL_RATIO;
+  const fitted = maxWidth / (digits * DIGIT_WIDTH_RATIO);
+  return String(Math.round(Math.min(base, fitted) * 100) / 100);
+};
+
 // 포메이션 계산 함수 (GK 제외한 필드 플레이어 기준)
 const calculateFormation = (players: PlayerPosition[]): string => {
   const positionCounts = {
@@ -263,7 +281,7 @@ function LineupPitchView({
                 x={x}
                 y={y + 1.2}
                 fill={secondaryColor}
-                fontSize={imageSize < 7 ? '2.5' : '4'}
+                fontSize={getJerseyFontSize(player.jersey_number, imageSize)}
                 textAnchor="middle"
                 fontWeight="bold"
                 className="cursor-pointer"
