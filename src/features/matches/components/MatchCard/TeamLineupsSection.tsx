@@ -58,6 +58,16 @@ interface TeamLineupsSectionProps {
   className?: string;
 }
 
+// 등번호 배지 공통 클래스. 4자리 이상(예: 1000)이면 폰트·패딩을 줄여
+// 배지가 이름 영역을 밀어내지 않도록 한다. tabular-nums로 폭 안정화.
+function jerseyBadgeClass(jersey: number): string {
+  const wide = String(jersey).length >= 4;
+  return [
+    'inline-flex items-center justify-center min-w-[1.25rem] h-5 rounded mr-1 flex-shrink-0 font-bold tabular-nums',
+    wide ? 'text-[10px] px-0.5' : 'text-xs px-1',
+  ].join(' ');
+}
+
 function TeamLineupsSectionInner({
   match,
   className = '',
@@ -622,7 +632,7 @@ function TeamLineupsSectionInner({
                         <div className="flex min-w-0 flex-1">
                           {typeof player.jersey_number === 'number' && (
                             <span
-                              className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold rounded mr-1 flex-shrink-0 border"
+                              className={`${jerseyBadgeClass(player.jersey_number)} border`}
                               style={{
                                 backgroundColor: homeTeamPrimaryColor,
                                 color: homeTeamSecondaryColor,
@@ -724,7 +734,7 @@ function TeamLineupsSectionInner({
                           <div className="flex min-w-0 flex-1">
                             {typeof player.jersey_number === 'number' && (
                               <span
-                                className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold rounded mr-1 flex-shrink-0 border"
+                                className={`${jerseyBadgeClass(player.jersey_number)} border`}
                                 style={{
                                   backgroundColor: homeTeamPrimaryColor,
                                   color: homeTeamSecondaryColor,
@@ -826,7 +836,9 @@ function TeamLineupsSectionInner({
                           </Badge>
                           <span className="text-gray-600 text-xs break-words">
                             {typeof player.jersey_number === 'number' && (
-                              <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold text-gray-600 bg-gray-300 rounded mr-1 flex-shrink-0">
+                              <span
+                                className={`${jerseyBadgeClass(player.jersey_number)} text-gray-600 bg-gray-300`}
+                              >
                                 {player.jersey_number}
                               </span>
                             )}
@@ -899,7 +911,7 @@ function TeamLineupsSectionInner({
                         <div className="flex min-w-0 flex-1">
                           {typeof player.jersey_number === 'number' && (
                             <span
-                              className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold rounded mr-1 flex-shrink-0 border"
+                              className={`${jerseyBadgeClass(player.jersey_number)} border`}
                               style={{
                                 backgroundColor: awayTeamPrimaryColor,
                                 color: awayTeamSecondaryColor,
@@ -1001,7 +1013,7 @@ function TeamLineupsSectionInner({
                           <div className="flex min-w-0 flex-1">
                             {typeof player.jersey_number === 'number' && (
                               <span
-                                className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold rounded mr-1 flex-shrink-0 border"
+                                className={`${jerseyBadgeClass(player.jersey_number)} border`}
                                 style={{
                                   backgroundColor: awayTeamPrimaryColor,
                                   color: awayTeamSecondaryColor,
@@ -1103,7 +1115,9 @@ function TeamLineupsSectionInner({
                           </Badge>
                           <span className="text-gray-600 text-xs break-words">
                             {typeof player.jersey_number === 'number' && (
-                              <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold text-gray-600 bg-gray-300 rounded mr-1 flex-shrink-0">
+                              <span
+                                className={`${jerseyBadgeClass(player.jersey_number)} text-gray-600 bg-gray-300`}
+                              >
                                 {player.jersey_number}
                               </span>
                             )}
