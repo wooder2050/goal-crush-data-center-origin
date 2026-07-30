@@ -118,11 +118,19 @@ export async function POST() {
 
           if (team1PenaltyScore > team2PenaltyScore) {
             stats.team1_wins++;
-          } else {
+          } else if (team1PenaltyScore < team2PenaltyScore) {
             stats.team2_wins++;
+          } else {
+            // 승부차기까지 동점 - 데이터 이상 (승부가 나야 정상)
+            console.warn(
+              `Match ${match.match_id}: 승부차기까지 동점(${team1PenaltyScore}:${team2PenaltyScore}). 승부 미결정.`
+            );
           }
         } else {
-          stats.draws++;
+          // 승부차기 데이터 미입력 - 승패 미결정 (골때녀에는 무승부 없음)
+          console.warn(
+            `Match ${match.match_id}: 정규시간 동점이나 승부차기 데이터 없음. 승부 미결정.`
+          );
         }
       }
 

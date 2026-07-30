@@ -80,13 +80,12 @@ export async function GET(request: NextRequest) {
             if (teamPenalty > opponentPenalty) {
               actualStats.wins++;
               actualStats.points += 3;
-            } else {
+            } else if (teamPenalty < opponentPenalty) {
               actualStats.losses++;
             }
-          } else {
-            actualStats.draws++;
-            actualStats.points += 1;
+            // 승부차기까지 동점이면 승부 미결정 (아래 이슈로 보고)
           }
+          // 승부차기 데이터 미입력도 승부 미결정 (골때녀에는 무승부 없음)
         }
       });
 
@@ -244,12 +243,12 @@ export async function GET(request: NextRequest) {
           if (smallPenalty !== null && largePenalty !== null) {
             if (smallPenalty > largePenalty) {
               actualH2H.small_wins++;
-            } else {
+            } else if (smallPenalty < largePenalty) {
               actualH2H.large_wins++;
             }
-          } else {
-            actualH2H.draws++;
+            // 승부차기까지 동점이면 승부 미결정
           }
+          // 승부차기 데이터 미입력도 승부 미결정 (골때녀에는 무승부 없음)
         }
 
         actualH2H.small_goals += smallScore;
@@ -259,6 +258,31 @@ export async function GET(request: NextRequest) {
       if (h2h.total_matches !== actualH2H.matches_played) {
         issues.push(
           `H2H (${h2h.team_small_id} vs ${h2h.team_large_id}): 경기 수 불일치 (DB: ${h2h.total_matches}, 실제: ${actualH2H.matches_played})`
+        );
+      }
+      if (h2h.small_wins !== actualH2H.small_wins) {
+        issues.push(
+          `H2H (${h2h.team_small_id} vs ${h2h.team_large_id}): small 승수 불일치 (DB: ${h2h.small_wins}, 실제: ${actualH2H.small_wins})`
+        );
+      }
+      if (h2h.large_wins !== actualH2H.large_wins) {
+        issues.push(
+          `H2H (${h2h.team_small_id} vs ${h2h.team_large_id}): large 승수 불일치 (DB: ${h2h.large_wins}, 실제: ${actualH2H.large_wins})`
+        );
+      }
+      if (h2h.draws !== actualH2H.draws) {
+        issues.push(
+          `H2H (${h2h.team_small_id} vs ${h2h.team_large_id}): 무승부 불일치 (DB: ${h2h.draws}, 실제: ${actualH2H.draws})`
+        );
+      }
+      if (h2h.small_goals !== actualH2H.small_goals) {
+        issues.push(
+          `H2H (${h2h.team_small_id} vs ${h2h.team_large_id}): small 득점 불일치 (DB: ${h2h.small_goals}, 실제: ${actualH2H.small_goals})`
+        );
+      }
+      if (h2h.large_goals !== actualH2H.large_goals) {
+        issues.push(
+          `H2H (${h2h.team_small_id} vs ${h2h.team_large_id}): large 득점 불일치 (DB: ${h2h.large_goals}, 실제: ${actualH2H.large_goals})`
         );
       }
     }
@@ -379,12 +403,18 @@ export async function GET(request: NextRequest) {
             `${label}: 스코어 불일치 (matches: ${m.home_score}:${m.away_score}, goals 집계: ${homeGoals}:${awayGoals})`
           );
         }
-        // 골때녀는 무승부 없음 — 동점이면 승부차기 스코어 필수
-        if (
-          m.home_score === m.away_score &&
-          (m.penalty_home_score === null || m.penalty_away_score === null)
-        ) {
-          issues.push(`${label}: 동점 경기인데 승부차기 스코어 미입력`);
+        // 골때녀는 무승부 없음 — 동점이면 승부차기로 승부가 갈려야 함
+        if (m.home_score === m.away_score) {
+          if (
+            m.penalty_home_score === null ||
+            m.penalty_away_score === null
+          ) {
+            issues.push(`${label}: 동점 경기인데 승부차기 스코어 미입력`);
+          } else if (m.penalty_home_score === m.penalty_away_score) {
+            issues.push(
+              `${label}: 승부차기까지 동점 (${m.penalty_home_score}:${m.penalty_away_score}) — 승부가 결정되지 않음`
+            );
+          }
         }
       }
 
