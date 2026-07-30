@@ -405,10 +405,7 @@ export async function GET(request: NextRequest) {
         }
         // 골때녀는 무승부 없음 — 동점이면 승부차기로 승부가 갈려야 함
         if (m.home_score === m.away_score) {
-          if (
-            m.penalty_home_score === null ||
-            m.penalty_away_score === null
-          ) {
+          if (m.penalty_home_score === null || m.penalty_away_score === null) {
             issues.push(`${label}: 동점 경기인데 승부차기 스코어 미입력`);
           } else if (m.penalty_home_score === m.penalty_away_score) {
             issues.push(
