@@ -130,22 +130,29 @@ export default function RootLayout({
           <OrganizationJsonLd />
         </head>
         <body className="font-sans antialiased">
-          {/* Google Analytics (gtag.js) */}
+          {/* GA 스텁은 파싱 시점에 실행되어야 함 — afterInteractive면 하이드레이션 직후
+              발화하는 이벤트(매치데이 카드 view_content 등)가 config보다 먼저 dataLayer에
+              쌓이고, gtag.js 재생 시 config 이전 이벤트는 유실된다. App Router가 head JSX의
+              인라인 스크립트를 head에 유지하지 않으므로 body 최상단에 배치 */}
           {process.env.NEXT_PUBLIC_GA_ID && (
-            <>
-              <Script
-                src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-                strategy="afterInteractive"
-              />
-              <Script id="ga" strategy="afterInteractive">
-                {`
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
+                window.gtag = gtag;
                 gtag('js', new Date());
                 gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', { anonymize_ip: true });
-              `}
-              </Script>
-            </>
+              `,
+              }}
+            />
+          )}
+          {/* Google Analytics (gtag.js) — 스텁·config는 head 인라인 스크립트에서 선실행 */}
+          {process.env.NEXT_PUBLIC_GA_ID && (
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+              strategy="afterInteractive"
+            />
           )}
 
           {/* Google AdSense */}
