@@ -32,6 +32,8 @@ export async function POST() {
         away_team_id: true,
         home_score: true,
         away_score: true,
+        penalty_home_score: true,
+        penalty_away_score: true,
       },
     });
 
@@ -100,7 +102,36 @@ export async function POST() {
       } else if (team1Score < team2Score) {
         stats.team2_wins++;
       } else {
-        stats.draws++;
+        // 정규시간 동점 - 승부차기로 승패 결정
+        if (
+          match.penalty_home_score !== null &&
+          match.penalty_away_score !== null
+        ) {
+          let team1PenaltyScore, team2PenaltyScore;
+          if (match.home_team_id === team1) {
+            team1PenaltyScore = match.penalty_home_score || 0;
+            team2PenaltyScore = match.penalty_away_score || 0;
+          } else {
+            team1PenaltyScore = match.penalty_away_score || 0;
+            team2PenaltyScore = match.penalty_home_score || 0;
+          }
+
+          if (team1PenaltyScore > team2PenaltyScore) {
+            stats.team1_wins++;
+          } else if (team1PenaltyScore < team2PenaltyScore) {
+            stats.team2_wins++;
+          } else {
+            // 승부차기까지 동점 - 데이터 이상 (승부가 나야 정상)
+            console.warn(
+              `Match ${match.match_id}: 승부차기까지 동점(${team1PenaltyScore}:${team2PenaltyScore}). 승부 미결정.`
+            );
+          }
+        } else {
+          // 승부차기 데이터 미입력 - 승패 미결정 (골때녀에는 무승부 없음)
+          console.warn(
+            `Match ${match.match_id}: 정규시간 동점이나 승부차기 데이터 없음. 승부 미결정.`
+          );
+        }
       }
 
       processedMatches++;
