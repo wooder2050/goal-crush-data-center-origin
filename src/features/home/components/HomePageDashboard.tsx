@@ -11,7 +11,6 @@ import FreshnessStrip from './FreshnessStrip';
 import KnockoutBracketWidget from './KnockoutBracketWidget';
 import MatchdayModeCard from './MatchdayModeCard';
 import MatchesWidget from './MatchesWidget';
-import NewProfilesNotice from './NewProfilesNotice';
 import PlayerCompareBanner from './PlayerCompareBanner';
 import PlayerStatsWidget from './PlayerStatsWidget';
 import PowerRankingWidget from './PowerRankingWidget';
@@ -72,17 +71,6 @@ export default function HomePageDashboard({
       <h2 className="text-lg font-bold text-gray-900 mb-4">
         {pageData.currentSeason.season_name}
       </h2>
-
-      {/* 새 시즌 선수 프로필 안내 (시즌 데이터가 쌓인 뒤 노출) */}
-      {!statsSeason.is_fallback && (
-        <div className="mb-4">
-          <NewProfilesNotice
-            seasonId={pageData.currentSeason.season_id}
-            seasonName={pageData.currentSeason.season_name}
-            standings={pageData.standings}
-          />
-        </div>
-      )}
 
       {/* Kickoff Banner (개막 전에만 노출) */}
       {statsSeason.is_fallback && (
