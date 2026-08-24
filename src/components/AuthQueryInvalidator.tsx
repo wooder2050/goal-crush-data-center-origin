@@ -42,10 +42,17 @@ export function AuthQueryInvalidator() {
     // 무관하게, 세션 플래그 존재 + 로그인 상태로 판정)
     if (currentUserId) {
       try {
-        const source = sessionStorage.getItem(LOGIN_SOURCE_STORAGE_KEY);
-        if (source) {
+        const raw = sessionStorage.getItem(LOGIN_SOURCE_STORAGE_KEY);
+        if (raw) {
           sessionStorage.removeItem(LOGIN_SOURCE_STORAGE_KEY);
-          trackLoginSuccess({ source });
+          // 값 형식: '<source>:<기록 시각 ms>' — 모달을 닫고 한참 뒤 다른
+          // 경로로 로그인한 경우의 오집계를 막기 위해 10분 TTL만 인정
+          const sep = raw.lastIndexOf(':');
+          const source = sep > 0 ? raw.slice(0, sep) : raw;
+          const at = sep > 0 ? Number(raw.slice(sep + 1)) : NaN;
+          if (Number.isFinite(at) && Date.now() - at < 10 * 60 * 1000) {
+            trackLoginSuccess({ source });
+          }
         }
       } catch {
         // sessionStorage 접근 불가 환경 무시

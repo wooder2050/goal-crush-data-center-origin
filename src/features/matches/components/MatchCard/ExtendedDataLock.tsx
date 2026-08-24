@@ -15,14 +15,17 @@ import {
 /** AuthQueryInvalidator가 로그인 성공 시 login_success 이벤트 source로 사용 */
 export const LOGIN_SOURCE_STORAGE_KEY = 'gc_login_source';
 
-// 탭 전환으로 컴포넌트가 재마운트돼도 노출 이벤트는 (경기, 위치)당 1회만 전송
-const viewedKeys = new Set<string>();
-
 interface ExtendedDataLockProps {
   matchId: number;
   placement: 'ratings_tab' | 'stats_banner';
   /** 로그인 후 복귀할 해시 (예: '#ratings') */
   returnHash?: string;
+  /**
+   * 노출 이벤트 dedupe 저장소 — 부모(MatchDetailTabs)가 useRef로 소유해
+   * 탭 전환 재마운트에는 1회 유지, 페이지 재방문에는 다시 발화되게 한다.
+   * (모듈 전역 Set은 SPA 페이지 이동 후 재방문 노출까지 지워버림)
+   */
+  viewedKeys: Set<string>;
 }
 
 /**
@@ -34,6 +37,7 @@ export default function ExtendedDataLock({
   matchId,
   placement,
   returnHash,
+  viewedKeys,
 }: ExtendedDataLockProps) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const pathname = usePathname();
@@ -43,12 +47,17 @@ export default function ExtendedDataLock({
     if (viewedKeys.has(key)) return;
     viewedKeys.add(key);
     trackExtendedGateView({ itemId: String(matchId), placement });
-  }, [matchId, placement]);
+  }, [matchId, placement, viewedKeys]);
 
   const handleLoginClick = () => {
     trackExtendedGateLoginClick({ itemId: String(matchId), placement });
     try {
-      sessionStorage.setItem(LOGIN_SOURCE_STORAGE_KEY, 'extended_data');
+      // 값에 기록 시각 포함 — 모달을 닫고 한참 뒤 다른 경로로 로그인한
+      // 경우가 extended_data로 오집계되지 않도록 소비 측에서 TTL 검증
+      sessionStorage.setItem(
+        LOGIN_SOURCE_STORAGE_KEY,
+        `extended_data:${Date.now()}`
+      );
     } catch {
       // sessionStorage 접근 불가 환경 무시
     }
