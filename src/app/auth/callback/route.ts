@@ -37,17 +37,33 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // 착지 페이지 클라이언트에서 GA login/sign_up을 발화하도록 쿼리 부착.
+      // 신규 여부: 가입 시각과 마지막 로그인 시각 차이가 작으면 첫 로그인(신규)
+      const u = data.user;
+      let authParam = 'auth=login-google';
+      if (u?.created_at) {
+        const created = new Date(u.created_at).getTime();
+        const lastSignIn = u.last_sign_in_at
+          ? new Date(u.last_sign_in_at).getTime()
+          : created;
+        if (Math.abs(lastSignIn - created) < 10_000) {
+          authParam = 'auth=signup-google';
+        }
+      }
+      const sep = next.includes('?') ? '&' : '?';
+      const nextWithAuth = `${next}${sep}${authParam}`;
+
       const forwardedHost = request.headers.get('x-forwarded-host'); // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development';
       if (isLocalEnv) {
         // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(`${origin}${nextWithAuth}`);
       } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
+        return NextResponse.redirect(`https://${forwardedHost}${nextWithAuth}`);
       } else {
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(`${origin}${nextWithAuth}`);
       }
     }
   }
