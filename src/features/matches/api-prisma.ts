@@ -740,8 +740,8 @@ export const getMatchPassMapPrisma = async (
 ): Promise<TeamPassNetworkData[]> => {
   const response = await authFetch(`/api/matches/${matchId}/pass-map`);
   if (!response.ok) {
-    // Return empty array if not found or error
-    return [];
+    if (response.status === 404) return [];
+    throw new Error(`Failed to fetch pass map: ${response.status}`);
   }
   return response.json();
 };
@@ -786,7 +786,9 @@ export const getMatchRatingsPrisma = async (
 ): Promise<MatchRatingsResponse> => {
   const response = await authFetch(`/api/matches/${matchId}/ratings`);
   if (!response.ok) {
-    return { match_id: matchId, ratings: [] };
+    // 오류를 빈 데이터로 삼키면 '확장 기록 없음'으로 오판되어 잠금 UI가
+    // 사라진다 — throw해서 React Query 재시도/에러 경계로 처리
+    throw new Error(`Failed to fetch match ratings: ${response.status}`);
   }
   return response.json();
 };
@@ -825,7 +827,7 @@ export const getMatchXtRatingsPrisma = async (
 ): Promise<MatchXtRatingsResponse> => {
   const response = await authFetch(`/api/matches/${matchId}/xt-ratings`);
   if (!response.ok) {
-    return { match_id: matchId, ratings: [] };
+    throw new Error(`Failed to fetch xT ratings: ${response.status}`);
   }
   return response.json();
 };
