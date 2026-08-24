@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { requireAdminAuth } from '@/lib/auth';
+import { adminAuthErrorResponse, requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // 골때리는 그녀들 경기 시간 (전반 13분 + 후반 13분 = 26분)
@@ -12,6 +12,8 @@ export async function GET(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -48,6 +50,9 @@ export async function GET(
 
     return NextResponse.json(substitutions);
   } catch (error) {
+    const authError = adminAuthErrorResponse(error);
+    if (authError) return authError;
+
     console.error('Failed to fetch substitutions:', error);
     return NextResponse.json(
       { error: 'Failed to fetch substitutions' },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { requireAdminAuth } from '@/lib/auth';
+import { adminAuthErrorResponse, requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches/[match_id]/goals - 특정 경기의 골 목록 조회
@@ -9,6 +9,8 @@ export async function GET(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -57,6 +59,9 @@ export async function GET(
 
     return NextResponse.json(goalsWithTeam);
   } catch (error) {
+    const authError = adminAuthErrorResponse(error);
+    if (authError) return authError;
+
     console.error('Failed to fetch goals:', error);
     return NextResponse.json(
       { error: 'Failed to fetch goals' },

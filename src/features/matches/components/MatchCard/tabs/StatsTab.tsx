@@ -49,10 +49,7 @@ export default function StatsTab({ match }: { match: MatchWithTeams }) {
       {hasScore && hasTeams && (
         <PassMapSection
           matchId={match.match_id}
-          homeTeamName={match.home_team?.team_name || '홈팀'}
           homeTeamId={match.home_team_id!}
-          awayTeamName={match.away_team?.team_name || '원정팀'}
-          awayTeamId={match.away_team_id!}
         />
       )}
     </div>

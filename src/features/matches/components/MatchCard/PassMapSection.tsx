@@ -1,41 +1,25 @@
 'use client';
 
-import { useState } from 'react';
-
 import { GoalWrapper } from '@/common/GoalWrapper';
 import { Card, CardContent } from '@/components/ui/card';
 import { PassMap } from '@/features/event-actions/components/PassMap';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
 
 import {
-  getMatchActionsPrisma,
   getMatchPassMapPrisma,
   type TeamPassNetworkData,
 } from '../../api-prisma';
-import RawDataPitch from './RawDataPitch';
 
 function PassMapSectionInner({
   matchId,
-  homeTeamName,
   homeTeamId,
-  awayTeamName,
-  awayTeamId,
 }: {
   matchId: number;
-  homeTeamName: string;
   homeTeamId: number;
-  awayTeamName: string;
-  awayTeamId: number;
 }) {
-  const [showDebug, setShowDebug] = useState(false);
-
   const { data: passMapData } = useGoalSuspenseQuery(getMatchPassMapPrisma, [
     matchId,
   ]) as { data: TeamPassNetworkData[] };
-
-  const { data: rawActions } = useGoalSuspenseQuery(getMatchActionsPrisma, [
-    matchId,
-  ]);
 
   if (
     !passMapData ||
@@ -85,127 +69,20 @@ function PassMapSectionInner({
           );
         })}
       </div>
-
-      <Card>
-        <CardContent className="px-4 py-4">
-          <div className="mb-4 flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-gray-700">
-              원본 데이터 확인 (디버그)
-            </h4>
-            <button
-              onClick={() => setShowDebug(!showDebug)}
-              className="text-xs text-blue-600 hover:underline"
-            >
-              {showDebug ? '숨기기' : '보기'}
-            </button>
-          </div>
-
-          {showDebug && (
-            <div className="space-y-6">
-              <p className="text-xs text-gray-500">
-                아래 피치는 이벤트 기록 입력 화면과 동일한 방향입니다. (가로형,
-                홈팀 왼쪽 / 원정팀 오른쪽)
-              </p>
-
-              <div className="space-y-4">
-                <h5 className="font-semibold text-blue-600">
-                  {homeTeamName} (홈팀)
-                </h5>
-                <div>
-                  <h6 className="mb-2 text-sm text-gray-600">
-                    전반 (Period 1, 3)
-                  </h6>
-                  <RawDataPitch
-                    actions={rawActions.filter(
-                      (a) =>
-                        a.team_id === homeTeamId &&
-                        (a.period_id === 1 || a.period_id === 3)
-                    )}
-                    homeTeamName={homeTeamName}
-                    awayTeamName={awayTeamName}
-                  />
-                </div>
-                <div>
-                  <h6 className="mb-2 text-sm text-gray-600">
-                    후반 (Period 2, 4)
-                  </h6>
-                  <RawDataPitch
-                    actions={rawActions.filter(
-                      (a) =>
-                        a.team_id === homeTeamId &&
-                        (a.period_id === 2 || a.period_id === 4)
-                    )}
-                    homeTeamName={homeTeamName}
-                    awayTeamName={awayTeamName}
-                    isSecondHalf
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h5 className="font-semibold text-red-600">
-                  {awayTeamName} (원정팀)
-                </h5>
-                <div>
-                  <h6 className="mb-2 text-sm text-gray-600">
-                    전반 (Period 1, 3)
-                  </h6>
-                  <RawDataPitch
-                    actions={rawActions.filter(
-                      (a) =>
-                        a.team_id === awayTeamId &&
-                        (a.period_id === 1 || a.period_id === 3)
-                    )}
-                    homeTeamName={homeTeamName}
-                    awayTeamName={awayTeamName}
-                  />
-                </div>
-                <div>
-                  <h6 className="mb-2 text-sm text-gray-600">
-                    후반 (Period 2, 4)
-                  </h6>
-                  <RawDataPitch
-                    actions={rawActions.filter(
-                      (a) =>
-                        a.team_id === awayTeamId &&
-                        (a.period_id === 2 || a.period_id === 4)
-                    )}
-                    homeTeamName={homeTeamName}
-                    awayTeamName={awayTeamName}
-                    isSecondHalf
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
 
 export default function PassMapSection({
   matchId,
-  homeTeamName,
   homeTeamId,
-  awayTeamName,
-  awayTeamId,
 }: {
   matchId: number;
-  homeTeamName: string;
   homeTeamId: number;
-  awayTeamName: string;
-  awayTeamId: number;
 }) {
   return (
     <GoalWrapper fallback={null}>
-      <PassMapSectionInner
-        matchId={matchId}
-        homeTeamName={homeTeamName}
-        homeTeamId={homeTeamId}
-        awayTeamName={awayTeamName}
-        awayTeamId={awayTeamId}
-      />
+      <PassMapSectionInner matchId={matchId} homeTeamId={homeTeamId} />
     </GoalWrapper>
   );
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { invalidateXtGridCache } from '@/features/matches/lib/xT/xtGrid';
-import { requireAdminAuth } from '@/lib/auth';
+import { adminAuthErrorResponse, requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches/[match_id]/actions - 경기 이벤트 액션 조회
@@ -10,6 +10,8 @@ export async function GET(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -43,6 +45,9 @@ export async function GET(
 
     return NextResponse.json(actions);
   } catch (error) {
+    const authError = adminAuthErrorResponse(error);
+    if (authError) return authError;
+
     console.error('Failed to fetch match actions:', error);
     return NextResponse.json(
       { error: 'Failed to fetch match actions' },
