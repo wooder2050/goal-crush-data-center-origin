@@ -749,32 +749,6 @@ export const getMatchPassMapPrisma = async (
   return response.json();
 };
 
-// Raw action data type
-export interface RawMatchAction {
-  action_id: number;
-  team_id: number;
-  period_id: number;
-  action_type: string;
-  start_x: number;
-  start_y: number;
-  player?: {
-    name: string;
-    jersey_number: number | null;
-  };
-}
-
-// Get raw actions for a match
-export const getMatchActionsPrisma = async (
-  matchId: number
-): Promise<RawMatchAction[]> => {
-  const response = await fetch(apiUrl(`/api/admin/matches/${matchId}/actions`));
-  if (!response.ok) {
-    // Return empty array if not found or error
-    return [];
-  }
-  return response.json();
-};
-
 // ============== Match Player Ratings ==============
 
 export interface PlayerMatchRating {

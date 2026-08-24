@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { calculateMatchXtRatings } from '@/features/matches/lib/xT/calculateXtRating';
-import { requireAdminAuth } from '@/lib/auth';
+import { adminAuthErrorResponse, requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 function parseMatchId(raw: string): number | null {
@@ -108,6 +108,8 @@ export async function GET(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    await requireAdminAuth();
+
     const matchId = parseMatchId(params.match_id);
 
     if (matchId === null) {
@@ -134,6 +136,9 @@ export async function GET(
 
     return NextResponse.json({ match_id: matchId, ratings });
   } catch (error) {
+    const authError = adminAuthErrorResponse(error);
+    if (authError) return authError;
+
     console.error('Failed to fetch xT ratings:', error);
     return NextResponse.json(
       { error: 'Failed to fetch xT ratings' },

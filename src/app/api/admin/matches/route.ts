@@ -1,12 +1,14 @@
 import { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { requireAdminAuth } from '@/lib/auth';
+import { adminAuthErrorResponse, requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches - 모든 경기 목록 조회 (관리자용)
 export async function GET(request: NextRequest) {
   try {
+    await requireAdminAuth();
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const seasonId = searchParams.get('season_id');
@@ -51,6 +53,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(matches);
   } catch (error) {
+    const authError = adminAuthErrorResponse(error);
+    if (authError) return authError;
+
     console.error('Failed to fetch matches:', error);
     return NextResponse.json(
       { error: 'Failed to fetch matches' },

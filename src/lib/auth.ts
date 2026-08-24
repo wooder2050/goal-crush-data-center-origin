@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies, headers } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 import { prisma } from './prisma';
 import { Database } from './types/database';
@@ -138,6 +139,24 @@ export async function requireAdminAuth() {
 
   // Supabase User 객체를 반환
   return user;
+}
+
+/**
+ * requireAdminAuth()가 던진 인증/권한 에러를 HTTP 응답으로 변환
+ * 인증 에러가 아니면 null을 반환 (호출부에서 기존 에러 처리 계속)
+ */
+export function adminAuthErrorResponse(error: unknown): NextResponse | null {
+  if (
+    error instanceof Error &&
+    (error.message === '인증이 필요합니다' ||
+      error.message === '관리자 권한이 필요합니다')
+  ) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: error.message === '인증이 필요합니다' ? 401 : 403 }
+    );
+  }
+  return null;
 }
 
 /**
