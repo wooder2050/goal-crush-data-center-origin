@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useCallback, useRef, useState } from 'react';
 
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { authFetch } from '@/lib/auth-fetch';
 import { shortenSeasonName } from '@/lib/utils';
 
 // 모듈 레벨 정규식 (js-hoist-regexp)
@@ -59,7 +60,7 @@ async function fetchMatchLog(
     limit: '10',
   });
   if (cursor) params.set('cursor', cursor);
-  const res = await fetch(`/api/stats/player-match-log?${params}`);
+  const res = await authFetch(`/api/stats/player-match-log?${params}`);
   if (!res.ok) throw new Error('Failed to fetch match log');
   return res.json();
 }

@@ -142,6 +142,51 @@ export async function requireAdminAuth() {
 }
 
 /**
+ * 확장 경기 기록(로그인 게이트) 응답용 캐시 차단 헤더.
+ * 인증 상태에 따라 응답이 달라지므로 어떤 캐시에도 저장되면 안 된다.
+ */
+export const GATED_NO_STORE_HEADERS = {
+  'Cache-Control': 'private, no-store',
+  Vary: 'Cookie, Authorization',
+} as const;
+
+export type MemberAuthStatus = 'member' | 'anonymous' | 'invalid';
+
+/**
+ * 확장 기록 게이트용 회원 인증 판별.
+ * - Bearer 토큰이 있으면 직접 검증: 유효하면 member, 만료·위조면 invalid(401 대상)
+ *   → 모바일 앱이 토큰 갱신 필요성을 감지할 수 있어야 하므로 빈 응답으로 삼키지 않는다
+ * - Bearer가 없으면 쿠키 세션 확인: 유효하면 member, 없거나 만료면 anonymous
+ *   → 브라우저의 오래된 쿠키는 익명으로 강등 (미들웨어가 갱신을 처리)
+ */
+export async function getMemberAuthStatus(): Promise<MemberAuthStatus> {
+  const bearerToken = getBearerToken();
+
+  if (bearerToken) {
+    const supabase = createSupabaseClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(bearerToken);
+    return !error && user ? 'member' : 'invalid';
+  }
+
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    return !error && user ? 'member' : 'anonymous';
+  } catch {
+    return 'anonymous';
+  }
+}
+
+/**
  * requireAdminAuth()가 던진 인증/권한 에러를 HTTP 응답으로 변환
  * 인증 에러가 아니면 null을 반환 (호출부에서 기존 에러 처리 계속)
  */

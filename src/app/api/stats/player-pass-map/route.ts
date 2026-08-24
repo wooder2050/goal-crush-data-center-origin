@@ -1,11 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { GATED_NO_STORE_HEADERS, getMemberAuthStatus } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // 경기 단위 패스 원본은 로그인 회원 전용
+    const auth = await getMemberAuthStatus();
+    if (auth === 'invalid') {
+      return NextResponse.json(
+        { error: '인증이 필요합니다' },
+        { status: 401, headers: GATED_NO_STORE_HEADERS }
+      );
+    }
+    if (auth === 'anonymous') {
+      return NextResponse.json(
+        { matches: [], passes: [] },
+        { headers: GATED_NO_STORE_HEADERS }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const playerIdParam = searchParams.get('player_id');
     const matchIdParam = searchParams.get('match_id');
