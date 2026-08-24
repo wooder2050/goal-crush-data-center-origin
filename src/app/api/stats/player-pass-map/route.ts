@@ -84,7 +84,10 @@ export async function GET(request: NextRequest) {
     `;
 
     if (matchList.length === 0) {
-      return NextResponse.json({ matches: [], passes: [] });
+      return NextResponse.json(
+        { matches: [], passes: [] },
+        { headers: GATED_NO_STORE_HEADERS }
+      );
     }
 
     const targetMatchId = matchIdParam
@@ -131,12 +134,15 @@ export async function GET(request: NextRequest) {
     // 전반에 오른쪽(x >= 20)에서 주로 플레이 → 전반을 뒤집어야 함
     const flipFirstHalf = avgFirstHalfX >= 20;
 
-    return NextResponse.json({
-      matches: matchList,
-      match_id: targetMatchId,
-      flip_first_half: flipFirstHalf,
-      passes,
-    });
+    return NextResponse.json(
+      {
+        matches: matchList,
+        match_id: targetMatchId,
+        flip_first_half: flipFirstHalf,
+        passes,
+      },
+      { headers: GATED_NO_STORE_HEADERS }
+    );
   } catch (error) {
     console.error('Error fetching player pass map:', error);
     return NextResponse.json(
