@@ -142,6 +142,82 @@ export async function requireAdminAuth() {
 }
 
 /**
+ * 확장 경기 기록(로그인 게이트) 응답용 캐시 차단 헤더.
+ * 인증 상태에 따라 응답이 달라지므로 어떤 캐시에도 저장되면 안 된다.
+ */
+export const GATED_NO_STORE_HEADERS = {
+  'Cache-Control': 'private, no-store',
+  Vary: 'Cookie, Authorization',
+} as const;
+
+export type MemberAuthStatus = 'member' | 'anonymous' | 'invalid';
+
+/**
+ * 확장 기록 게이트용 회원 인증 판별.
+ * - Bearer 토큰이 있으면 직접 검증: 유효하면 member, 만료·위조면 invalid(401 대상)
+ *   → 모바일 앱이 토큰 갱신 필요성을 감지할 수 있어야 하므로 빈 응답으로 삼키지 않는다
+ * - Bearer가 없으면 쿠키 세션 확인: 유효하면 member, 없거나 만료면 anonymous
+ *   → 브라우저의 오래된 쿠키는 익명으로 강등 (미들웨어가 갱신을 처리)
+ */
+export async function getMemberAuthStatus(): Promise<MemberAuthStatus> {
+  let authHeader: string | null = null;
+  try {
+    authHeader = headers().get('authorization');
+  } catch {
+    // 정적 빌드 시 headers() 호출 불가 - 무시
+    authHeader = null;
+  }
+
+  if (authHeader && /^bearer(\s|$)/i.test(authHeader.trim())) {
+    // Bearer 스킴이 제시된 경우: 형식이 잘못됐거나(빈 토큰) 검증 실패면 invalid.
+    // "헤더 없음"과 구분해야 빈 Bearer가 익명 200으로 새지 않는다.
+    const token = authHeader.trim().replace(/^bearer\s*/i, '');
+    if (!token) return 'invalid';
+
+    const supabase = createSupabaseClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
+    if (error) {
+      // 인증 서버 장애(네트워크/5xx)는 사용자 인증 실패가 아니다 —
+      // 라우트 catch에서 500으로 전파해 앱의 토큰 갱신/로그아웃 오동작을 막는다
+      if (isAuthInfraError(error)) throw error;
+      return 'invalid';
+    }
+    return user ? 'member' : 'invalid';
+  }
+
+  let supabase: ReturnType<typeof createClient>;
+  try {
+    supabase = createClient();
+  } catch {
+    return 'anonymous';
+  }
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  if (error) {
+    if (isAuthInfraError(error)) throw error;
+    // 세션 없음/만료 등은 익명으로 강등 (미들웨어가 쿠키 갱신을 처리)
+    return 'anonymous';
+  }
+  return user ? 'member' : 'anonymous';
+}
+
+/** Supabase 인증 에러 중 서버 장애(네트워크/5xx) 여부 */
+function isAuthInfraError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const e = error as { name?: string; status?: number };
+  if (e.name === 'AuthRetryableFetchError') return true;
+  return typeof e.status === 'number' && e.status >= 500;
+}
+
+/**
  * requireAdminAuth()가 던진 인증/권한 에러를 HTTP 응답으로 변환
  * 인증 에러가 아니면 null을 반환 (호출부에서 기존 에러 처리 계속)
  */

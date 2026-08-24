@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { GATED_NO_STORE_HEADERS, getMemberAuthStatus } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-// GET /api/matches/[match_id]/detailed-stats - 특정 경기의 상세 통계 조회 (public)
+export const dynamic = 'force-dynamic';
+
+// GET /api/matches/[match_id]/detailed-stats - 특정 경기의 상세 통계 조회
+// 로그인 회원 전용. 비로그인: 200 + [] / 잘못된 Bearer: 401
 export async function GET(
   _request: NextRequest,
   { params }: { params: { match_id: string } }
@@ -12,6 +16,17 @@ export async function GET(
 
     if (isNaN(matchId)) {
       return NextResponse.json({ error: 'Invalid match ID' }, { status: 400 });
+    }
+
+    const auth = await getMemberAuthStatus();
+    if (auth === 'invalid') {
+      return NextResponse.json(
+        { error: '인증이 필요합니다' },
+        { status: 401, headers: GATED_NO_STORE_HEADERS }
+      );
+    }
+    if (auth === 'anonymous') {
+      return NextResponse.json([], { headers: GATED_NO_STORE_HEADERS });
     }
 
     // 상세 통계 목록 조회
@@ -36,7 +51,9 @@ export async function GET(
       orderBy: [{ team_id: 'asc' }, { player_id: 'asc' }],
     });
 
-    return NextResponse.json(detailedStats);
+    return NextResponse.json(detailedStats, {
+      headers: GATED_NO_STORE_HEADERS,
+    });
   } catch (error) {
     console.error('Failed to fetch detailed stats:', error);
     return NextResponse.json(

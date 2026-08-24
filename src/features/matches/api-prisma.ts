@@ -1,4 +1,5 @@
 import { apiUrl } from '@/lib/api-url';
+import { authFetch } from '@/lib/auth-fetch';
 import {
   Assist,
   Goal,
@@ -692,9 +693,7 @@ export interface MatchDetailedStats {
 export const getMatchDetailedStatsPrisma = async (
   matchId: number
 ): Promise<MatchDetailedStats[]> => {
-  const response = await fetch(
-    apiUrl(`/api/matches/${matchId}/detailed-stats`)
-  );
+  const response = await authFetch(`/api/matches/${matchId}/detailed-stats`);
   if (!response.ok) {
     if (response.status === 404) return [];
     throw new Error(
@@ -739,9 +738,7 @@ export interface TeamPassNetworkData {
 export const getMatchPassMapPrisma = async (
   matchId: number
 ): Promise<TeamPassNetworkData[]> => {
-  const response = await fetch(
-    apiUrl(`/api/admin/matches/${matchId}/actions/pass-map`)
-  );
+  const response = await authFetch(`/api/matches/${matchId}/pass-map`);
   if (!response.ok) {
     // Return empty array if not found or error
     return [];
@@ -776,7 +773,7 @@ export interface MatchRatingsResponse {
 export const getMatchRatingsPrisma = async (
   matchId: number
 ): Promise<MatchRatingsResponse> => {
-  const response = await fetch(apiUrl(`/api/matches/${matchId}/ratings`));
+  const response = await authFetch(`/api/matches/${matchId}/ratings`);
   if (!response.ok) {
     return { match_id: matchId, ratings: [] };
   }
@@ -813,7 +810,7 @@ export interface MatchXtRatingsResponse {
 export const getMatchXtRatingsPrisma = async (
   matchId: number
 ): Promise<MatchXtRatingsResponse> => {
-  const response = await fetch(apiUrl(`/api/matches/${matchId}/xt-ratings`));
+  const response = await authFetch(`/api/matches/${matchId}/xt-ratings`);
   if (!response.ok) {
     return { match_id: matchId, ratings: [] };
   }

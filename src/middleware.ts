@@ -24,7 +24,15 @@ function setCorsHeaders(response: NextResponse, origin: string): NextResponse {
     'Content-Type, Authorization'
   );
   response.headers.set('Access-Control-Max-Age', '86400');
-  response.headers.set('Vary', 'Origin');
+  // 기존 Vary(예: 게이트 API의 Cookie, Authorization)를 덮어쓰지 않고 병합
+  const existingVary = response.headers.get('Vary');
+  const varyValues = new Set(
+    (existingVary ? existingVary.split(',') : [])
+      .map((v) => v.trim())
+      .filter(Boolean)
+  );
+  varyValues.add('Origin');
+  response.headers.set('Vary', Array.from(varyValues).join(', '));
   return response;
 }
 

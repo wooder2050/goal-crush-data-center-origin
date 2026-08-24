@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { GATED_NO_STORE_HEADERS, getMemberAuthStatus } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-// GET /api/matches/[match_id]/xt-ratings - 공개 xT 평점 조회
+export const dynamic = 'force-dynamic';
+
+// GET /api/matches/[match_id]/xt-ratings - xT 평점 조회 (로그인 회원 전용)
+// 비로그인: ratings 빈 배열 + has_extended_data / 잘못된 Bearer: 401
 export async function GET(
   _request: NextRequest,
   { params }: { params: { match_id: string } }
@@ -12,6 +16,23 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid match ID' }, { status: 400 });
     }
     const matchId = Number(params.match_id);
+
+    const auth = await getMemberAuthStatus();
+    if (auth === 'invalid') {
+      return NextResponse.json(
+        { error: '인증이 필요합니다' },
+        { status: 401, headers: GATED_NO_STORE_HEADERS }
+      );
+    }
+    if (auth === 'anonymous') {
+      const count = await prisma.playerMatchXtRating.count({
+        where: { match_id: matchId },
+      });
+      return NextResponse.json(
+        { match_id: matchId, ratings: [], has_extended_data: count > 0 },
+        { headers: GATED_NO_STORE_HEADERS }
+      );
+    }
 
     const ratings = await prisma.playerMatchXtRating.findMany({
       where: { match_id: matchId },
@@ -32,7 +53,10 @@ export async function GET(
     });
 
     if (ratings.length === 0) {
-      return NextResponse.json({ match_id: matchId, ratings: [] });
+      return NextResponse.json(
+        { match_id: matchId, ratings: [], has_extended_data: false },
+        { headers: GATED_NO_STORE_HEADERS }
+      );
     }
 
     // 포지션 정보 추가
@@ -62,7 +86,10 @@ export async function GET(
       breakdown: r.breakdown,
     }));
 
-    return NextResponse.json({ match_id: matchId, ratings: enriched });
+    return NextResponse.json(
+      { match_id: matchId, ratings: enriched, has_extended_data: true },
+      { headers: GATED_NO_STORE_HEADERS }
+    );
   } catch (error) {
     console.error('Failed to fetch xT ratings:', error);
     return NextResponse.json(
