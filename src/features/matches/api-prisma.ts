@@ -764,9 +764,20 @@ export interface PlayerMatchRating {
   breakdown: Record<string, number>;
 }
 
+export interface FeaturedPlayerSummary {
+  player_id: number;
+  name: string;
+  team_id: number;
+  profile_image_url: string | null;
+}
+
 export interface MatchRatingsResponse {
   match_id: number;
   ratings: PlayerMatchRating[];
+  /** 확장 기록 존재 여부 (비로그인에게도 공개 — 잠금 UI 판단용) */
+  has_extended_data?: boolean;
+  /** 비로그인 응답에만 포함: 팀별 베스트 선수 (이름만, 평점 비공개) */
+  featured_players?: FeaturedPlayerSummary[];
 }
 
 // Get auto-calculated match player ratings
@@ -804,6 +815,8 @@ export interface PlayerMatchXtRating {
 export interface MatchXtRatingsResponse {
   match_id: number;
   ratings: PlayerMatchXtRating[];
+  /** 확장 기록 존재 여부 (비로그인에게도 공개 — 잠금 UI 판단용) */
+  has_extended_data?: boolean;
 }
 
 // Get xT-based match player ratings

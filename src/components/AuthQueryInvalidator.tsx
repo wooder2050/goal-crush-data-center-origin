@@ -4,6 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 
 import { useAuth } from '@/components/AuthProvider';
+import { LOGIN_SOURCE_STORAGE_KEY } from '@/features/matches/components/MatchCard/ExtendedDataLock';
+import { trackLoginSuccess } from '@/lib/analytics';
 
 /**
  * 로그인/로그아웃 시 React Query 캐시를 무효화한다.
@@ -33,6 +35,21 @@ export function AuthQueryInvalidator() {
     // 첫 확정(페이지 로드 시점)은 스킵, 이후 로그인<->로그아웃 전환 시 무효화
     if (prev !== undefined && prev !== currentUserId) {
       queryClient.resetQueries();
+    }
+
+    // 로그인 완료 감지: 잠금 UI에서 유도된 로그인이면 source를 붙여 계측
+    // (OAuth 리다이렉트로 페이지가 새로 뜨는 경우 prev===undefined라 위 분기와
+    // 무관하게, 세션 플래그 존재 + 로그인 상태로 판정)
+    if (currentUserId) {
+      try {
+        const source = sessionStorage.getItem(LOGIN_SOURCE_STORAGE_KEY);
+        if (source) {
+          sessionStorage.removeItem(LOGIN_SOURCE_STORAGE_KEY);
+          trackLoginSuccess({ source });
+        }
+      } catch {
+        // sessionStorage 접근 불가 환경 무시
+      }
     }
   }, [user?.id, loading, queryClient]);
 

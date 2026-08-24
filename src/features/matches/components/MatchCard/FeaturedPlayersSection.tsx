@@ -171,6 +171,26 @@ export default function FeaturedPlayersSection({ match }: Props) {
         }
       }
 
+      // 비로그인: 평점 원본은 잠겨 있지만 서버가 팀별 베스트 선수 이름을
+      // 공개(featured_players)하므로 그 선수를 그대로 베스트로 표시 (평점 숫자 없음)
+      const featured = ratingsData?.featured_players?.find(
+        (f) => f.team_id === teamId
+      );
+      if (featured) {
+        const row = arr.find((r) => r.player_id === featured.player_id);
+        return {
+          player_id: featured.player_id,
+          name: featured.name,
+          goals: row?.goals ?? 0,
+          assists: row?.assists ?? 0,
+          jersey_number: row?.jersey_number ?? null,
+          profile_image_url:
+            featured.profile_image_url ?? row?.profile_image_url ?? null,
+          position: row?.position ?? null,
+          rating: null,
+        };
+      }
+
       // 평점이 없는 경기: 기존 로직 (골 > 어시스트 > 출전시간 > 무실점 GK)
       // player_match_stats.goals는 이미 자책골 제외 순수 득점
       const getGoals = (x: LineupRow): number => x.goals ?? 0;

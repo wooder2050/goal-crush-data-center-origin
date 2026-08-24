@@ -63,3 +63,41 @@ export function trackSelectContent(params: {
     ...(params.matchState ? { match_state: params.matchState } : {}),
   });
 }
+
+// ── 확장 경기 기록 로그인 게이트 계측 ──────────────────────────────
+
+/** 잠금 UI(잠금 탭·배너)가 비로그인 사용자에게 노출됨 */
+export function trackExtendedGateView(params: {
+  itemId: string;
+  placement: 'ratings_tab' | 'stats_banner';
+}): void {
+  sendGtag('event', 'extended_gate_view', {
+    item_id: params.itemId,
+    content_type: params.placement,
+  });
+}
+
+/** 잠금 UI에서 로그인 버튼 클릭 */
+export function trackExtendedGateLoginClick(params: {
+  itemId: string;
+  placement: 'ratings_tab' | 'stats_banner';
+}): void {
+  sendGtag('event', 'extended_gate_login_click', {
+    item_id: params.itemId,
+    content_type: params.placement,
+  });
+}
+
+/** 로그인 성공 (source: 어떤 진입점에서 유도된 로그인인지) */
+export function trackLoginSuccess(params: { source: string }): void {
+  sendGtag('event', 'login_success', {
+    method: params.source,
+  });
+}
+
+/** 로그인 회원이 확장 기록(평점 탭)을 실제 열람 */
+export function trackExtendedDataView(params: { itemId: string }): void {
+  sendGtag('event', 'extended_data_view', {
+    item_id: params.itemId,
+  });
+}
