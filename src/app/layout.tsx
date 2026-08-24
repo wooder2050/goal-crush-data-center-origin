@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { AdminNavItem } from '@/components/AdminNavItem';
 import { AuthButtons } from '@/components/AuthButtons';
 import { AuthProvider } from '@/components/AuthProvider';
+import { AuthQueryInvalidator } from '@/components/AuthQueryInvalidator';
 import Footer from '@/components/Footer';
 import { OrganizationJsonLd, WebsiteJsonLd } from '@/components/JsonLd';
 import { Navigation } from '@/components/Navigation';
@@ -177,6 +178,7 @@ export default function RootLayout({
             }}
           />
           <Providers>
+            <AuthQueryInvalidator />
             <Header authButtons={<AuthButtons />}>
               <Navigation navItems={NAV_ITEMS} />
               <AdminNavItem />

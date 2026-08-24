@@ -1,7 +1,7 @@
 import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { requireAdminAuth } from '@/lib/auth';
+import { adminAuthErrorResponse, requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // GET /api/admin/matches/[match_id] - 특정 경기 상세 조회 (관리자용)
@@ -10,6 +10,8 @@ export async function GET(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -33,6 +35,9 @@ export async function GET(
 
     return NextResponse.json(match);
   } catch (error) {
+    const authError = adminAuthErrorResponse(error);
+    if (authError) return authError;
+
     console.error('Failed to fetch match:', error);
     return NextResponse.json(
       { error: 'Failed to fetch match' },

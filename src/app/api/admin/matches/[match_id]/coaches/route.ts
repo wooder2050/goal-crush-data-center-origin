@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { requireAdminAuth } from '@/lib/auth';
+import { adminAuthErrorResponse, requireAdminAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // Force dynamic rendering for this route
@@ -12,6 +12,8 @@ export async function GET(
   { params }: { params: { match_id: string } }
 ) {
   try {
+    await requireAdminAuth();
+
     const matchId = parseInt(params.match_id);
 
     if (isNaN(matchId)) {
@@ -55,6 +57,9 @@ export async function GET(
 
     return NextResponse.json(coaches);
   } catch (error) {
+    const authError = adminAuthErrorResponse(error);
+    if (authError) return authError;
+
     console.error('Error fetching match coaches:', error);
     return NextResponse.json(
       {

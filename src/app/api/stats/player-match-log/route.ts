@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { GATED_NO_STORE_HEADERS, getMemberAuthStatus } from '@/lib/auth';
 import { determineMatchResult } from '@/lib/player-stats-utils';
 import { prisma } from '@/lib/prisma';
 
@@ -7,6 +8,16 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // 경기별 평점·xT 원본은 로그인 회원 전용 (경기 기본 기록은 공개 유지)
+    const auth = await getMemberAuthStatus();
+    if (auth === 'invalid') {
+      return NextResponse.json(
+        { error: '인증이 필요합니다' },
+        { status: 401, headers: GATED_NO_STORE_HEADERS }
+      );
+    }
+    const isMember = auth === 'member';
+
     const { searchParams } = new URL(request.url);
     const playerIdParam = searchParams.get('player_id');
     const limitParam = searchParams.get('limit');
@@ -154,11 +165,11 @@ export async function GET(request: NextRequest) {
         yellow_card: ms.card_type === 'yellow' ? 1 : 0,
         red_card: ms.card_type === 'red' ? 1 : 0,
         rating:
-          ms.match_id != null && ratingMap.has(ms.match_id)
+          isMember && ms.match_id != null && ratingMap.has(ms.match_id)
             ? ratingMap.get(ms.match_id)!
             : null,
         xt_rating:
-          ms.match_id != null && xtRatingMap.has(ms.match_id)
+          isMember && ms.match_id != null && xtRatingMap.has(ms.match_id)
             ? xtRatingMap.get(ms.match_id)!
             : null,
       };
@@ -171,13 +182,16 @@ export async function GET(request: NextRequest) {
         ? `${new Date(lastItem.match.match_date).toISOString()}|${lastItem.match_id}`
         : null;
 
-    return NextResponse.json({
-      items,
-      limit,
-      total: totalCount,
-      nextCursor,
-      hasNext,
-    });
+    return NextResponse.json(
+      {
+        items,
+        limit,
+        total: totalCount,
+        nextCursor,
+        hasNext,
+      },
+      { headers: GATED_NO_STORE_HEADERS }
+    );
   } catch (error) {
     console.error('Error fetching player match log:', error);
     return NextResponse.json(

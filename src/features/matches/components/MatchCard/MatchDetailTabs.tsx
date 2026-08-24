@@ -1,14 +1,19 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
+import { useAuth } from '@/components/AuthProvider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { useHashTab } from '@/hooks/useHashTab';
+import { trackExtendedDataView } from '@/lib/analytics';
 import type { MatchWithTeams } from '@/lib/types';
 
 import {
   getMatchRatingsPrisma,
   getMatchXtRatingsPrisma,
 } from '../../api-prisma';
+import ExtendedDataLock from './ExtendedDataLock';
 import LineupsTab from './tabs/LineupsTab';
 import RatingsTab from './tabs/RatingsTab';
 import StatsTab from './tabs/StatsTab';
@@ -34,15 +39,50 @@ export default function MatchDetailTabs({ match }: MatchDetailTabsProps) {
     { enabled: hasScore && hasTeams }
   );
 
+  const { user, loading: authLoading } = useAuth();
+  // 잠금 노출 이벤트 dedupe — 이 컴포넌트(=경기 상세 방문) 수명 단위
+  const gateViewedKeysRef = useRef(new Set<string>());
+  // 회원 열람 이벤트 — 방문당 1회
+  const dataViewFiredRef = useRef(false);
+
   const hasRatings =
     (ratingsData?.ratings && ratingsData.ratings.length > 0) ||
     (xtRatingsData?.ratings && xtRatingsData.ratings.length > 0);
+
+  // 확장 기록이 있는 경기인지 (비로그인 응답에도 포함되는 공개 플래그)
+  const hasExtendedData =
+    Boolean(ratingsData?.has_extended_data) ||
+    Boolean(xtRatingsData?.has_extended_data);
+
+  // 비로그인 + 확장 기록 존재 → 평점 탭을 잠금 상태로 노출
+  const showLockedRatings =
+    !authLoading && !user && !hasRatings && hasExtendedData;
+
+  // 통계 탭 상단 잠금 배너 (팀 상세 통계·패스 네트워크 안내)
+  const showStatsLockBanner = showLockedRatings;
+
+  // 회원이 평점 탭을 실제 열람했을 때 계측 (방문당 1회 —
+  // user 객체는 세션 갱신마다 새 참조라 id 기준으로만 판정)
+  const userId = user?.id;
+  useEffect(() => {
+    if (
+      tab === 'ratings' &&
+      hasRatings &&
+      userId &&
+      !dataViewFiredRef.current
+    ) {
+      dataViewFiredRef.current = true;
+      trackExtendedDataView({ itemId: String(match.match_id) });
+    }
+  }, [tab, hasRatings, userId, match.match_id]);
 
   const completedTabs = [
     { value: 'summary', label: '요약' },
     { value: 'lineups', label: '라인업' },
     { value: 'stats', label: '통계' },
-    ...(hasTeams && hasRatings ? [{ value: 'ratings', label: '평점' }] : []),
+    ...(hasTeams && (hasRatings || showLockedRatings)
+      ? [{ value: 'ratings', label: hasRatings ? '평점' : '평점 🔒' }]
+      : []),
   ];
 
   const previewTabs = [
@@ -76,12 +116,33 @@ export default function MatchDetailTabs({ match }: MatchDetailTabsProps) {
       </TabsContent>
 
       <TabsContent value="stats" className="mt-4">
-        <StatsTab match={match} />
+        <StatsTab
+          match={match}
+          lockBanner={
+            showStatsLockBanner ? (
+              <ExtendedDataLock
+                matchId={match.match_id}
+                placement="stats_banner"
+                returnHash="#stats"
+                viewedKeys={gateViewedKeysRef.current}
+              />
+            ) : null
+          }
+        />
       </TabsContent>
 
       {hasScore && hasTeams && (
         <TabsContent value="ratings" className="mt-4">
-          <RatingsTab match={match} />
+          {showLockedRatings ? (
+            <ExtendedDataLock
+              matchId={match.match_id}
+              placement="ratings_tab"
+              returnHash="#ratings"
+              viewedKeys={gateViewedKeysRef.current}
+            />
+          ) : (
+            <RatingsTab match={match} />
+          )}
         </TabsContent>
       )}
     </Tabs>

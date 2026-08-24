@@ -10,12 +10,19 @@ import HeadToHeadSectionSkeleton from '../HeadToHeadSectionSkeleton';
 import MatchGoalkeeperStatsSectionSkeleton from '../MatchGoalkeeperStatsSectionSkeleton';
 import PassMapSection from '../PassMapSection';
 
-export default function StatsTab({ match }: { match: MatchWithTeams }) {
+export default function StatsTab({
+  match,
+  lockBanner,
+}: {
+  match: MatchWithTeams;
+  lockBanner?: React.ReactNode;
+}) {
   const hasScore = match.home_score != null && match.away_score != null;
   const hasTeams = match.home_team_id != null && match.away_team_id != null;
 
   return (
     <div className="space-y-3 sm:space-y-4">
+      {lockBanner}
       {hasTeams && (
         <GoalWrapper fallback={<HeadToHeadSectionSkeleton />}>
           <HeadToHeadOrTeamStatsSection
@@ -49,10 +56,7 @@ export default function StatsTab({ match }: { match: MatchWithTeams }) {
       {hasScore && hasTeams && (
         <PassMapSection
           matchId={match.match_id}
-          homeTeamName={match.home_team?.team_name || '홈팀'}
           homeTeamId={match.home_team_id!}
-          awayTeamName={match.away_team?.team_name || '원정팀'}
-          awayTeamId={match.away_team_id!}
         />
       )}
     </div>

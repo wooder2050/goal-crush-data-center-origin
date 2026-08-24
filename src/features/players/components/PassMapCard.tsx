@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { authFetch } from '@/lib/auth-fetch';
 import { isLightColor } from '@/lib/utils';
 
 interface PassData {
@@ -45,7 +46,7 @@ async function fetchPassMap(
   matchId?: number
 ): Promise<PassMapResponse> {
   const qs = matchId ? `&match_id=${matchId}` : '';
-  const res = await fetch(
+  const res = await authFetch(
     `/api/stats/player-pass-map?player_id=${playerId}${qs}`
   );
   if (!res.ok) throw new Error('Failed to fetch pass map');
