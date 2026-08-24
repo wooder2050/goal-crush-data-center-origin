@@ -56,27 +56,81 @@ ALTER TABLE public.player_match_xt_ratings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.player_match_stats ENABLE ROW LEVEL SECURITY;
 
 -- ── 3. 테이블 권한 자체도 회수 (RLS + GRANT 이중 차단) ─────────────
+-- PUBLIC 포함: role_table_grants에 안 잡히는 PUBLIC 경유 권한까지 차단
+-- (codex GPT-5.6 리뷰 반영)
 
-REVOKE ALL ON TABLE public.match_actions FROM anon, authenticated;
-REVOKE ALL ON TABLE public.player_match_detailed_stats FROM anon, authenticated;
-REVOKE ALL ON TABLE public.player_match_ratings FROM anon, authenticated;
-REVOKE ALL ON TABLE public.player_match_xt_ratings FROM anon, authenticated;
-REVOKE ALL ON TABLE public.player_match_stats FROM anon, authenticated;
+REVOKE ALL ON TABLE public.match_actions FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.player_match_detailed_stats FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.player_match_ratings FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.player_match_xt_ratings FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.player_match_stats FROM PUBLIC, anon, authenticated;
+
+-- ── 4. 커밋 전 검증: 하나라도 남아 있으면 트랜잭션 전체 실패 ───────
+-- 유효 권한은 has_table_privilege로 검사 (직접 GRANT + 역할 상속 + PUBLIC 합산).
+-- information_schema.role_table_grants는 PUBLIC 경유 권한을 생략하므로 쓰지 않음.
+
+DO $$
+DECLARE
+  v_count int;
+BEGIN
+  -- 4-1. 남은 정책이 없어야 함
+  SELECT count(*) INTO v_count
+  FROM pg_policies
+  WHERE schemaname = 'public'
+    AND tablename IN
+      ('match_actions','player_match_detailed_stats','player_match_ratings',
+       'player_match_xt_ratings','player_match_stats');
+  IF v_count > 0 THEN
+    RAISE EXCEPTION '정책이 % 건 남아 있습니다. 정책명이 실서버와 다른지 확인하세요.', v_count;
+  END IF;
+
+  -- 4-2. RLS가 모두 켜져 있어야 함
+  SELECT count(*) INTO v_count
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public'
+    AND c.relname IN
+      ('match_actions','player_match_detailed_stats','player_match_ratings',
+       'player_match_xt_ratings','player_match_stats')
+    AND NOT c.relrowsecurity;
+  IF v_count > 0 THEN
+    RAISE EXCEPTION 'RLS가 꺼진 테이블이 % 건 있습니다.', v_count;
+  END IF;
+
+  -- 4-3. anon/authenticated의 유효 권한이 전무해야 함
+  SELECT count(*) INTO v_count
+  FROM (VALUES
+    ('match_actions'),
+    ('player_match_detailed_stats'),
+    ('player_match_ratings'),
+    ('player_match_xt_ratings'),
+    ('player_match_stats')
+  ) AS t(table_name)
+  CROSS JOIN (VALUES ('anon'), ('authenticated')) AS r(role_name)
+  WHERE has_table_privilege(
+          r.role_name,
+          format('public.%I', t.table_name),
+          'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'
+        )
+     OR has_any_column_privilege(
+          r.role_name,
+          format('public.%I', t.table_name),
+          'SELECT,INSERT,UPDATE,REFERENCES'
+        );
+  IF v_count > 0 THEN
+    RAISE EXCEPTION 'anon/authenticated에 유효 권한이 % 건 남아 있습니다.', v_count;
+  END IF;
+END $$;
 
 COMMIT;
 
--- ── 검증 쿼리 (실행 후 확인용) ──────────────────────────────────────
--- 1) 남은 정책이 없어야 함:
---    SELECT tablename, policyname FROM pg_policies
---    WHERE schemaname='public' AND tablename IN
---      ('match_actions','player_match_detailed_stats','player_match_ratings',
---       'player_match_xt_ratings','player_match_stats');
--- 2) anon/authenticated 권한이 없어야 함:
---    SELECT table_name, grantee, privilege_type
---    FROM information_schema.role_table_grants
---    WHERE table_schema='public' AND grantee IN ('anon','authenticated')
---      AND table_name IN
---      ('match_actions','player_match_detailed_stats','player_match_ratings',
---       'player_match_xt_ratings','player_match_stats');
--- 3) 사이트 동작 확인: 경기 상세 통계/평점 탭, 선수 상세, 홈 위젯이
---    정상 표시되어야 함 (모두 Prisma 경유라 영향 없음이 정상).
+-- ── 실행 후 확인 ────────────────────────────────────────────────────
+-- 위 DO 블록이 통과해야만 COMMIT되므로 별도 SQL 검증은 불필요.
+-- 사이트 동작 확인: 경기 상세 통계/평점 탭, 선수 상세, 홈 위젯이
+-- 정상 표시되어야 함 (모두 Prisma 경유라 영향 없음이 정상).
+--
+-- 참고 (2026-08-24 실서버 확인): 이 5개 테이블에 의존하는 뷰/구체화 뷰 없음
+-- (pg_depend 조회 0건 — 뷰 경유 RLS 우회 경로 없음).
+--
+-- 주의: 이 테이블을 DROP 후 재생성하는 마이그레이션은 Supabase 기본 권한이
+-- 다시 붙으므로, 재생성 시 이 파일의 RLS+REVOKE를 재적용할 것.
