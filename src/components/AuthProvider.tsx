@@ -5,6 +5,7 @@ import { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
 
+import { trackLogin, trackSignUp } from '@/lib/analytics';
 import { Database } from '@/lib/types/database';
 
 // Supabase 클라이언트 생성 함수
@@ -61,14 +62,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     });
     if (error) throw error;
+    trackLogin('password');
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
     if (error) throw error;
+    trackSignUp('password');
+    // 이메일 확인이 꺼져 세션이 즉시 발급되면 로그인도 함께 집계
+    if (data.session) trackLogin('password');
   };
 
   const signOut = async () => {

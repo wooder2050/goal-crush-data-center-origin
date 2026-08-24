@@ -101,3 +101,15 @@ export function trackExtendedDataView(params: { itemId: string }): void {
     item_id: params.itemId,
   });
 }
+
+// ── 인증 계측 (GA4 표준 login / sign_up) ──────────────────────────
+
+/** 로그인 성공 (method: password | google) */
+export function trackLogin(method: 'password' | 'google'): void {
+  sendGtag('event', 'login', { method });
+}
+
+/** 회원가입 성공 (method: password | google) */
+export function trackSignUp(method: 'password' | 'google'): void {
+  sendGtag('event', 'sign_up', { method });
+}
