@@ -3,12 +3,14 @@ import { prisma } from '@/lib/prisma';
 
 import type {
   CareerStatRow,
+  ChampionRosterPlayer,
   GoalScorerRow,
   HomeMatch,
   HomePageData,
   HomeStanding,
   LatestMatchGoals,
   PlayerStatRow,
+  SeasonFinale,
   SeasonSummaryStats,
   StandingsGroup,
 } from './types';
@@ -144,6 +146,7 @@ async function getLatestSeason(): Promise<{
   season_id: number;
   season_name: string;
   start_date: Date | null;
+  end_date: Date | null;
   category: string | null;
 } | null> {
   const season = await prisma.season.findFirst({
@@ -152,6 +155,7 @@ async function getLatestSeason(): Promise<{
       season_id: true,
       season_name: true,
       start_date: true,
+      end_date: true,
       category: true,
     },
   });
@@ -175,6 +179,252 @@ async function getCupMatchesList(seasonId: number): Promise<HomeMatch[]> {
 
   const teamNameMap = await buildTeamNameMap(matches);
   return matches.map((m) => serializeMatch(m, teamNameMap));
+}
+
+// ── Season finale (시즌 마무리 배너) ──────────────────
+
+const seasonStatRowInclude = {
+  player: {
+    select: {
+      player_id: true,
+      name: true,
+      profile_image_url: true,
+      jersey_number: true,
+    },
+  },
+  team: {
+    select: {
+      team_id: true,
+      team_name: true,
+      logo: true,
+      primary_color: true,
+      secondary_color: true,
+    },
+  },
+} as const;
+
+type SeasonStatWithRelations = {
+  player_id: number | null;
+  team_id: number | null;
+  goals: number | null;
+  assists: number | null;
+  matches_played: number | null;
+  player: {
+    player_id: number;
+    name: string;
+    profile_image_url: string | null;
+    jersey_number: number | null;
+  } | null;
+  team: {
+    team_id: number;
+    team_name: string;
+    logo: string | null;
+    primary_color: string | null;
+    secondary_color: string | null;
+  } | null;
+};
+
+function toPlayerStatRow(
+  s: SeasonStatWithRelations,
+  teamNameMap: Map<number, string>
+): PlayerStatRow {
+  return {
+    player_id: s.player?.player_id ?? null,
+    player_name: s.player?.name ?? null,
+    player_image: s.player?.profile_image_url ?? null,
+    team_name:
+      s.team_id != null
+        ? (teamNameMap.get(s.team_id) ?? s.team?.team_name ?? null)
+        : (s.team?.team_name ?? null),
+    team_logo: s.team?.logo ?? null,
+    team_primary_color: s.team?.primary_color ?? null,
+    team_secondary_color: s.team?.secondary_color ?? null,
+    goals: s.goals,
+    assists: s.assists,
+    matches_played: s.matches_played,
+    avg_rating: null,
+  };
+}
+
+// 시즌 득점·도움 1위 전체 (동률 포함). 홈 위젯 TOP N과 달리 잘리지 않고,
+// 시즌 중 이적으로 (선수, 팀) 행이 나뉜 경우도 선수 단위로 합산해 판정한다.
+async function getSeasonAwardLeaders(
+  seasonId: number,
+  teamNameMap: Map<number, string>
+): Promise<{ topScorers: PlayerStatRow[]; topAssists: PlayerStatRow[] }> {
+  const totals = await prisma.playerSeasonStats.groupBy({
+    by: ['player_id'],
+    where: { season_id: seasonId, player_id: { not: null } },
+    _sum: { goals: true, assists: true, matches_played: true },
+  });
+
+  const maxGoals = Math.max(0, ...totals.map((t) => t._sum.goals ?? 0));
+  const maxAssists = Math.max(0, ...totals.map((t) => t._sum.assists ?? 0));
+  const scorerIds = new Set(
+    maxGoals > 0
+      ? totals
+          .filter((t) => (t._sum.goals ?? 0) === maxGoals)
+          .map((t) => t.player_id as number)
+      : []
+  );
+  const assistIds = new Set(
+    maxAssists > 0
+      ? totals
+          .filter((t) => (t._sum.assists ?? 0) === maxAssists)
+          .map((t) => t.player_id as number)
+      : []
+  );
+  const leaderIds = Array.from(
+    new Set([...Array.from(scorerIds), ...Array.from(assistIds)])
+  );
+  if (leaderIds.length === 0) return { topScorers: [], topAssists: [] };
+
+  // 선수별 최신 (player, team) 행을 대표 행으로 쓰고 수치는 시즌 합산으로 교체
+  const rows = await prisma.playerSeasonStats.findMany({
+    where: { season_id: seasonId, player_id: { in: leaderIds } },
+    include: seasonStatRowInclude,
+    orderBy: [{ matches_played: 'desc' }, { stat_id: 'desc' }],
+  });
+  const sumMap = new Map(totals.map((t) => [t.player_id as number, t._sum]));
+  const byPlayer = new Map<number, PlayerStatRow>();
+  for (const r of rows) {
+    if (r.player_id == null || byPlayer.has(r.player_id)) continue;
+    const sum = sumMap.get(r.player_id);
+    byPlayer.set(r.player_id, {
+      ...toPlayerStatRow(r, teamNameMap),
+      goals: sum?.goals ?? r.goals,
+      assists: sum?.assists ?? r.assists,
+      matches_played: sum?.matches_played ?? r.matches_played,
+    });
+  }
+
+  const pick = (ids: Set<number>) =>
+    leaderIds
+      .filter((id) => ids.has(id))
+      .map((id) => byPlayer.get(id))
+      .filter((row): row is PlayerStatRow => row != null)
+      .sort(
+        (a, b) =>
+          (a.matches_played ?? 0) - (b.matches_played ?? 0) ||
+          (a.player_id ?? 0) - (b.player_id ?? 0)
+      );
+
+  return { topScorers: pick(scorerIds), topAssists: pick(assistIds) };
+}
+
+// 우승팀 로스터 = 시즌 팀 히스토리 ∪ 시즌 기록 보유 선수 (경기수·골·도움 순)
+async function getChampionRoster(
+  seasonId: number,
+  teamId: number
+): Promise<ChampionRosterPlayer[]> {
+  const [history, stats] = await Promise.all([
+    prisma.playerTeamHistory.findMany({
+      where: { season_id: seasonId, team_id: teamId },
+      select: { player: seasonStatRowInclude.player },
+    }),
+    prisma.playerSeasonStats.findMany({
+      where: { season_id: seasonId, team_id: teamId },
+      select: {
+        player_id: true,
+        matches_played: true,
+        goals: true,
+        assists: true,
+        player: seasonStatRowInclude.player,
+      },
+    }),
+  ]);
+
+  const rosterMap = new Map<number, ChampionRosterPlayer>();
+  const upsert = (
+    p: NonNullable<SeasonStatWithRelations['player']>,
+    st?: {
+      matches_played: number | null;
+      goals: number | null;
+      assists: number | null;
+    }
+  ) => {
+    const prev = rosterMap.get(p.player_id);
+    rosterMap.set(p.player_id, {
+      player_id: p.player_id,
+      player_name: p.name,
+      player_image: p.profile_image_url ?? null,
+      jersey_number: p.jersey_number ?? null,
+      matches_played: st?.matches_played ?? prev?.matches_played ?? 0,
+      goals: st?.goals ?? prev?.goals ?? 0,
+      assists: st?.assists ?? prev?.assists ?? 0,
+    });
+  };
+  history.forEach((h) => h.player && upsert(h.player));
+  stats.forEach((s) => s.player && upsert(s.player, s));
+
+  return Array.from(rosterMap.values()).sort(
+    (a, b) =>
+      b.matches_played - a.matches_played ||
+      b.goals - a.goals ||
+      b.assists - a.assists ||
+      a.player_name.localeCompare(b.player_name, 'ko')
+  );
+}
+
+/**
+ * 시즌 마무리 배너 데이터. 최신 시즌이 종료(end_date ≤ 오늘)됐을 때만 호출.
+ * 순위표 1위가 정확히 1팀일 때만 우승팀·로스터를 채움 (조별 리그 등 복수 1위는 제외).
+ */
+async function getSeasonFinale(season: {
+  season_id: number;
+  season_name: string;
+}): Promise<SeasonFinale> {
+  const [championRows, groupStandingCount, teamSeasonNames] = await Promise.all(
+    [
+      prisma.standing.findMany({
+        where: { season_id: season.season_id, position: 1 },
+        select: {
+          team_id: true,
+          team: { select: { team_id: true, team_name: true, logo: true } },
+        },
+      }),
+      // 조별 리그(group_league_standings)가 있는 시즌은 standings 1위가
+      // 전체 승점 1위일 뿐 우승팀이 아니므로 우승 표기를 하지 않는다
+      prisma.groupLeagueStanding.count({
+        where: { season_id: season.season_id },
+      }),
+      prisma.teamSeasonName.findMany({
+        where: { season_id: season.season_id },
+        select: { team_id: true, team_name: true },
+      }),
+    ]
+  );
+  const teamNameMap = new Map<number, string>(
+    teamSeasonNames.map((t) => [t.team_id, t.team_name])
+  );
+
+  const championTeam =
+    groupStandingCount === 0 && championRows.length === 1
+      ? (championRows[0].team ?? null)
+      : null;
+
+  const [roster, { topScorers, topAssists }] = await Promise.all([
+    championTeam
+      ? getChampionRoster(season.season_id, championTeam.team_id)
+      : Promise.resolve([] as ChampionRosterPlayer[]),
+    getSeasonAwardLeaders(season.season_id, teamNameMap),
+  ]);
+
+  return {
+    season_id: season.season_id,
+    season_name: season.season_name,
+    champion: championTeam
+      ? {
+          team_id: championTeam.team_id,
+          team_name:
+            teamNameMap.get(championTeam.team_id) ?? championTeam.team_name,
+          logo: championTeam.logo ?? null,
+        }
+      : null,
+    roster,
+    topScorers,
+    topAssists,
+  };
 }
 
 // 새 시즌 개막 전(완료 경기 없음)에는 순위표·선수 스탯을 직전 시즌 데이터로 폴백
@@ -994,11 +1244,13 @@ export async function getHomePageData(): Promise<HomePageData> {
         season_id: 0,
         season_name: '',
         start_date: null,
+        end_date: null,
         category: null,
       },
       statsSeason: { season_id: 0, season_name: '', is_fallback: false },
       cupMatches: [],
       kickoffMatch: null,
+      seasonFinale: null,
       recentMatches: [],
       upcomingMatches: [],
       todayMatches: [],
@@ -1029,6 +1281,13 @@ export async function getHomePageData(): Promise<HomePageData> {
 
   const isCupSeason = CUP_CATEGORIES.includes(currentSeason.category ?? '');
 
+  // 시즌 마무리 배너: 종료일이 지났고(미래 end_date 제외) 스탯이 현재 시즌일 때만.
+  // 다음 시즌이 등록되면 최신 시즌이 바뀌어 자동으로 내려가고 개막 배너로 전환된다.
+  const isSeasonFinished =
+    currentSeason.end_date != null &&
+    currentSeason.end_date.getTime() <= Date.now() &&
+    !statsSeason.is_fallback;
+
   const [
     recentMatches,
     upcomingMatches,
@@ -1036,6 +1295,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     knockoutMatches,
     cupMatches,
     kickoffMatch,
+    seasonFinale,
     standings,
     topScorers,
     topAssists,
@@ -1055,6 +1315,9 @@ export async function getHomePageData(): Promise<HomePageData> {
     statsSeason.is_fallback
       ? getSeasonKickoffMatch(currentSeason.season_id)
       : Promise.resolve(null),
+    isSeasonFinished
+      ? getSeasonFinale(currentSeason)
+      : Promise.resolve(null as SeasonFinale | null),
     getStandings(statsSeason.season_id),
     getTopScorersList(statsSeason.season_id),
     getTopAssistsList(statsSeason.season_id),
@@ -1074,11 +1337,15 @@ export async function getHomePageData(): Promise<HomePageData> {
       start_date: currentSeason.start_date
         ? currentSeason.start_date.toISOString()
         : null,
+      end_date: currentSeason.end_date
+        ? currentSeason.end_date.toISOString()
+        : null,
       category: currentSeason.category ?? null,
     },
     statsSeason,
     cupMatches,
     kickoffMatch,
+    seasonFinale,
     recentMatches,
     upcomingMatches,
     todayMatches,
