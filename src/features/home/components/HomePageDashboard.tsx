@@ -14,6 +14,7 @@ import MatchesWidget from './MatchesWidget';
 import PlayerCompareBanner from './PlayerCompareBanner';
 import PlayerStatsWidget from './PlayerStatsWidget';
 import PowerRankingWidget from './PowerRankingWidget';
+import SeasonFinaleBanner from './SeasonFinaleBanner';
 import SeasonKickoffBanner from './SeasonKickoffBanner';
 import StandingsWidget from './StandingsWidget';
 
@@ -71,6 +72,13 @@ export default function HomePageDashboard({
       <h2 className="text-lg font-bold text-gray-900 mb-4">
         {pageData.currentSeason.season_name}
       </h2>
+
+      {/* 시즌 마무리 배너 (시즌 종료 후 다음 시즌 개막 전까지 노출) */}
+      {pageData.seasonFinale && (
+        <div className="mb-4">
+          <SeasonFinaleBanner finale={pageData.seasonFinale} />
+        </div>
+      )}
 
       {/* Kickoff Banner (개막 전에만 노출) */}
       {statsSeason.is_fallback && (
