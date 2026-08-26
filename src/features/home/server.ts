@@ -246,25 +246,70 @@ function toPlayerStatRow(
   };
 }
 
-// 시즌 1위 전체 (동률 포함) — 홈 위젯 TOP N과 달리 잘리지 않음
+// 시즌 득점·도움 1위 전체 (동률 포함). 홈 위젯 TOP N과 달리 잘리지 않고,
+// 시즌 중 이적으로 (선수, 팀) 행이 나뉜 경우도 선수 단위로 합산해 판정한다.
 async function getSeasonAwardLeaders(
   seasonId: number,
-  field: 'goals' | 'assists',
   teamNameMap: Map<number, string>
-): Promise<PlayerStatRow[]> {
-  const agg = await prisma.playerSeasonStats.aggregate({
-    where: { season_id: seasonId },
-    _max: { [field]: true },
+): Promise<{ topScorers: PlayerStatRow[]; topAssists: PlayerStatRow[] }> {
+  const totals = await prisma.playerSeasonStats.groupBy({
+    by: ['player_id'],
+    where: { season_id: seasonId, player_id: { not: null } },
+    _sum: { goals: true, assists: true, matches_played: true },
   });
-  const max = agg._max[field];
-  if (!max || max <= 0) return [];
 
+  const maxGoals = Math.max(0, ...totals.map((t) => t._sum.goals ?? 0));
+  const maxAssists = Math.max(0, ...totals.map((t) => t._sum.assists ?? 0));
+  const scorerIds = new Set(
+    maxGoals > 0
+      ? totals
+          .filter((t) => (t._sum.goals ?? 0) === maxGoals)
+          .map((t) => t.player_id as number)
+      : []
+  );
+  const assistIds = new Set(
+    maxAssists > 0
+      ? totals
+          .filter((t) => (t._sum.assists ?? 0) === maxAssists)
+          .map((t) => t.player_id as number)
+      : []
+  );
+  const leaderIds = Array.from(
+    new Set([...Array.from(scorerIds), ...Array.from(assistIds)])
+  );
+  if (leaderIds.length === 0) return { topScorers: [], topAssists: [] };
+
+  // 선수별 최신 (player, team) 행을 대표 행으로 쓰고 수치는 시즌 합산으로 교체
   const rows = await prisma.playerSeasonStats.findMany({
-    where: { season_id: seasonId, [field]: max },
+    where: { season_id: seasonId, player_id: { in: leaderIds } },
     include: seasonStatRowInclude,
-    orderBy: [{ matches_played: 'asc' }, { player_id: 'asc' }],
+    orderBy: [{ matches_played: 'desc' }, { stat_id: 'desc' }],
   });
-  return rows.map((r) => toPlayerStatRow(r, teamNameMap));
+  const sumMap = new Map(totals.map((t) => [t.player_id as number, t._sum]));
+  const byPlayer = new Map<number, PlayerStatRow>();
+  for (const r of rows) {
+    if (r.player_id == null || byPlayer.has(r.player_id)) continue;
+    const sum = sumMap.get(r.player_id);
+    byPlayer.set(r.player_id, {
+      ...toPlayerStatRow(r, teamNameMap),
+      goals: sum?.goals ?? r.goals,
+      assists: sum?.assists ?? r.assists,
+      matches_played: sum?.matches_played ?? r.matches_played,
+    });
+  }
+
+  const pick = (ids: Set<number>) =>
+    leaderIds
+      .filter((id) => ids.has(id))
+      .map((id) => byPlayer.get(id))
+      .filter((row): row is PlayerStatRow => row != null)
+      .sort(
+        (a, b) =>
+          (a.matches_played ?? 0) - (b.matches_played ?? 0) ||
+          (a.player_id ?? 0) - (b.player_id ?? 0)
+      );
+
+  return { topScorers: pick(scorerIds), topAssists: pick(assistIds) };
 }
 
 // 우승팀 로스터 = 시즌 팀 히스토리 ∪ 시즌 기록 보유 선수 (경기수·골·도움 순)
@@ -329,32 +374,40 @@ async function getSeasonFinale(season: {
   season_id: number;
   season_name: string;
 }): Promise<SeasonFinale> {
-  const [championRows, teamSeasonNames] = await Promise.all([
-    prisma.standing.findMany({
-      where: { season_id: season.season_id, position: 1 },
-      select: {
-        team_id: true,
-        team: { select: { team_id: true, team_name: true, logo: true } },
-      },
-    }),
-    prisma.teamSeasonName.findMany({
-      where: { season_id: season.season_id },
-      select: { team_id: true, team_name: true },
-    }),
-  ]);
+  const [championRows, groupStandingCount, teamSeasonNames] = await Promise.all(
+    [
+      prisma.standing.findMany({
+        where: { season_id: season.season_id, position: 1 },
+        select: {
+          team_id: true,
+          team: { select: { team_id: true, team_name: true, logo: true } },
+        },
+      }),
+      // 조별 리그(group_league_standings)가 있는 시즌은 standings 1위가
+      // 전체 승점 1위일 뿐 우승팀이 아니므로 우승 표기를 하지 않는다
+      prisma.groupLeagueStanding.count({
+        where: { season_id: season.season_id },
+      }),
+      prisma.teamSeasonName.findMany({
+        where: { season_id: season.season_id },
+        select: { team_id: true, team_name: true },
+      }),
+    ]
+  );
   const teamNameMap = new Map<number, string>(
     teamSeasonNames.map((t) => [t.team_id, t.team_name])
   );
 
   const championTeam =
-    championRows.length === 1 ? (championRows[0].team ?? null) : null;
+    groupStandingCount === 0 && championRows.length === 1
+      ? (championRows[0].team ?? null)
+      : null;
 
-  const [roster, topScorers, topAssists] = await Promise.all([
+  const [roster, { topScorers, topAssists }] = await Promise.all([
     championTeam
       ? getChampionRoster(season.season_id, championTeam.team_id)
       : Promise.resolve([] as ChampionRosterPlayer[]),
-    getSeasonAwardLeaders(season.season_id, 'goals', teamNameMap),
-    getSeasonAwardLeaders(season.season_id, 'assists', teamNameMap),
+    getSeasonAwardLeaders(season.season_id, teamNameMap),
   ]);
 
   return {
