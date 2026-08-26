@@ -19,7 +19,6 @@ const nextConfig = {
   },
   // 관리자 페이지들은 정적 생성에서 제외
   experimental: {
-    missingSuspenseWithCSRBailout: false,
     optimizePackageImports: ['lucide-react', 'date-fns'],
   },
   async headers() {

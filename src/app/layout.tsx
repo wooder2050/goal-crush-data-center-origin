@@ -189,7 +189,10 @@ export default function RootLayout({
               <AdminNavItem />
             </Header>
             <div className="pt-24 md:pt-28">
-              <ScrollToTopOnRouteChange />
+              {/* useSearchParams 사용 — Suspense 없이 두면 앱 전체가 CSR로 deopt되어 SSR HTML이 비어버림 */}
+              <Suspense fallback={null}>
+                <ScrollToTopOnRouteChange />
+              </Suspense>
               <NicknameSetupModal />
               <div className="min-h-screen">{children}</div>
               <Footer />
