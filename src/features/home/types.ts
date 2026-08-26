@@ -108,6 +108,21 @@ export interface ChampionRosterPlayer {
   assists: number;
 }
 
+/**
+ * 시즌 마무리 배너 데이터 — 최신 시즌이 종료(end_date ≤ 오늘)됐고
+ * 스탯이 폴백이 아닐 때만 채워짐. 우승팀은 순위표 1위가 정확히 1팀일 때만.
+ */
+export interface SeasonFinale {
+  season_id: number;
+  season_name: string;
+  champion: { team_id: number; team_name: string; logo: string | null } | null;
+  roster: ChampionRosterPlayer[];
+  /** 득점 1위 전체 (동률 포함) */
+  topScorers: PlayerStatRow[];
+  /** 도움 1위 전체 (동률 포함) */
+  topAssists: PlayerStatRow[];
+}
+
 export interface SeasonSummaryStats {
   totalMatches: number;
   completedMatches: number;
@@ -136,8 +151,8 @@ export interface HomePageData {
   cupMatches: HomeMatch[];
   /** 새 시즌 개막전 (개막 배너용, 폴백 상태에서만 조회됨) */
   kickoffMatch: HomeMatch | null;
-  /** 우승팀 로스터 (시즌 종료 상태에서만 조회됨, 아니면 빈 배열) */
-  championRoster: ChampionRosterPlayer[];
+  /** 시즌 마무리 배너 (시즌 종료 상태에서만 채워짐) */
+  seasonFinale: SeasonFinale | null;
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
   /** 매치데이 카드 전용: 윈도우에 걸릴 수 있는 최근 36h~향후 24h 경기 (완료 포함) */

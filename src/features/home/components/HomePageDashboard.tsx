@@ -74,16 +74,9 @@ export default function HomePageDashboard({
       </h2>
 
       {/* 시즌 마무리 배너 (시즌 종료 후 다음 시즌 개막 전까지 노출) */}
-      {pageData.currentSeason.end_date && !statsSeason.is_fallback && (
+      {pageData.seasonFinale && (
         <div className="mb-4">
-          <SeasonFinaleBanner
-            seasonId={pageData.currentSeason.season_id}
-            seasonName={pageData.currentSeason.season_name}
-            standings={pageData.standings}
-            championRoster={pageData.championRoster ?? []}
-            topScorers={pageData.topScorers}
-            topAssists={pageData.topAssists}
-          />
+          <SeasonFinaleBanner finale={pageData.seasonFinale} />
         </div>
       )}
 
