@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { type ReactNode, Suspense } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
+import { AdSlot } from '@/components/AdSlot';
 import { Section } from '@/components/ui';
 import ChallengeResults from '@/features/matches/components/ChallengeResults';
 import GLeagueTournamentResults from '@/features/matches/components/GLeagueTournamentResults';
@@ -105,6 +106,7 @@ function SeasonDetailBody({
         <GoalWrapper fallback={<UpcomingMatchesSkeleton items={1} />}>
           <UpcomingMatches seasonId={season.season_id} limit={10} />
         </GoalWrapper>
+        <AdSlot placement="seasonDetail" />
         <SeasonViewershipChart seasonId={season.season_id} />
         <Component
           seasonId={season.season_id}

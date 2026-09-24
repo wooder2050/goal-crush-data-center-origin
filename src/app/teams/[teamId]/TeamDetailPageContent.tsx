@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
+import { AdSlot } from '@/components/AdSlot';
 import { Section } from '@/components/ui';
 import {
   getTeamByIdPrisma,
@@ -126,6 +127,7 @@ export default function TeamDetailPageContent({
               coachSeasonRecords={initialData.coachSeasonRecords}
               teamColor={teamColor}
             />
+            <AdSlot placement="teamDetail" />
             <TeamSquadTable
               players={players}
               teamId={teamIdNumber}
