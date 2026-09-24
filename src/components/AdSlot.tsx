@@ -93,7 +93,9 @@ function AdSlotInner({
   return (
     <aside aria-label="광고" className={cn('ad-slot py-3', className)}>
       <p className="mb-1 text-center text-[11px] text-gray-400">광고</p>
-      <div className="min-h-[250px] lg:min-h-[100px]">
+      {/* 실측(2026-09-24): 모바일은 화면 너비와 같은 정사각형, sm 이상은 높이 280px.
+          채워질 때 아래 콘텐츠가 밀리지 않도록 그만큼 미리 확보한다 */}
+      <div className="min-h-[100vw] sm:min-h-[280px]">
         <ins
           ref={insRef}
           className="adsbygoogle"
