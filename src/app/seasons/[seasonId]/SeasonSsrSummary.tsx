@@ -88,12 +88,21 @@ export default function SeasonSsrSummaryBlock({
       {hasStandings && (
         <p className="mt-2 text-gray-600">
           순위:{' '}
-          {summary.top_standings
-            .map(
-              (s) =>
-                `${s.position}위 ${s.team_name}(${s.marker ? `${s.marker}, ` : ''}승점 ${s.points ?? 0}, ${s.wins ?? 0}승 ${s.losses ?? 0}패)`
-            )
-            .join(' · ')}
+          {summary.top_standings.map((s, i) => (
+            <span key={s.position}>
+              {i > 0 && ' · '}
+              {s.position}위{' '}
+              {s.team_id ? (
+                <Link href={`/teams/${s.team_id}`} className="hover:underline">
+                  {s.team_name}
+                </Link>
+              ) : (
+                s.team_name
+              )}
+              ({s.marker ? `${s.marker}, ` : ''}승점 {s.points ?? 0},{' '}
+              {s.wins ?? 0}승 {s.losses ?? 0}패)
+            </span>
+          ))}
         </p>
       )}
     </section>
