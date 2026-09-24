@@ -33,6 +33,7 @@ export type SeasonSummaryMatch = {
 
 export type SeasonSummaryStanding = {
   position: number;
+  team_id: number | null;
   team_name: string | null;
   points: number | null;
   wins: number | null;
@@ -449,6 +450,7 @@ export async function getInitialSeasonDetailData(
     })),
     top_standings: topStandings.map((s) => ({
       position: s.position,
+      team_id: s.team_id ?? null,
       team_name: resolveTeamName(s.team_id, s.team?.team_name),
       points: s.points,
       wins: s.wins,

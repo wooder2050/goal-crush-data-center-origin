@@ -136,9 +136,20 @@ function StandingsTable({
                       />
                     </div>
                   )}
-                  <span className="text-sm font-medium text-gray-800 truncate max-w-[120px] sm:max-w-none">
-                    {s.team?.team_name?.replace('FC ', '')}
-                  </span>
+                  {s.team?.team_id ? (
+                    // 팀명은 팀 상세로, 행의 나머지 영역은 시즌 순위로 이동
+                    <Link
+                      href={`/teams/${s.team.team_id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-sm font-medium text-gray-800 truncate max-w-[120px] sm:max-w-none hover:underline"
+                    >
+                      {s.team.team_name?.replace('FC ', '')}
+                    </Link>
+                  ) : (
+                    <span className="text-sm font-medium text-gray-800 truncate max-w-[120px] sm:max-w-none">
+                      {s.team?.team_name?.replace('FC ', '')}
+                    </span>
+                  )}
                 </div>
               </td>
               <td className="text-center py-2.5 px-2 text-sm text-gray-600 hidden sm:table-cell">
