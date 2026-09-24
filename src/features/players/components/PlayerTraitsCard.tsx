@@ -79,13 +79,19 @@ export default function PlayerTraitsCard({
     (_, i) => (Math.PI * 2 * i) / TRAIT_ITEMS.length - Math.PI / 2
   );
 
-  const radarPoints = TRAIT_ITEMS.map((item, i) => {
-    const val = (Number(traits[item.key]) || 0) / 100;
-    const r = maxR * val;
-    return {
-      x: cx + r * Math.cos(angles[i]),
-      y: cy + r * Math.sin(angles[i]),
-    };
+  // 비교할 수 없는 축(null)은 꼭짓점을 빼고 나머지 축끼리만 잇는다 —
+  // 0으로 그리면 최하위처럼 보이기 때문
+  const radarPoints = TRAIT_ITEMS.flatMap((item, i) => {
+    const raw = traits[item.key];
+    if (typeof raw !== 'number') return [];
+    const r = maxR * (raw / 100);
+    return [
+      {
+        key: item.key,
+        x: cx + r * Math.cos(angles[i]),
+        y: cy + r * Math.sin(angles[i]),
+      },
+    ];
   });
 
   const radarPath =
@@ -149,8 +155,8 @@ export default function PlayerTraitsCard({
           <path d={radarPath} fill="none" stroke={color} strokeWidth="1.5" />
 
           {/* Dots */}
-          {radarPoints.map((p, i) => (
-            <circle key={i} cx={p.x} cy={p.y} r="3" fill={color} />
+          {radarPoints.map((p) => (
+            <circle key={p.key} cx={p.x} cy={p.y} r="3" fill={color} />
           ))}
 
           {/* Labels + Percentages */}

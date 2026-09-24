@@ -196,6 +196,15 @@ export async function getInitialMatchDetailData(
 
   if (!match) return null;
 
+  // 상세 기록 등록 건수 — 아래 조회들과 독립이라 먼저 시작해 두고 마지막에 받는다
+  const coveragePromise = Promise.all([
+    prisma.playerMatchDetailedStats.count({ where: { match_id: matchId } }),
+    prisma.matchAction.count({ where: { match_id: matchId } }),
+    prisma.playerMatchRating.count({ where: { match_id: matchId } }),
+  ]);
+  // 아래 조회가 먼저 실패해 await에 도달하지 못해도 unhandled rejection이 나지 않도록
+  coveragePromise.catch(() => {});
+
   // 시즌별 팀명 조회
   const teamSeasonNames =
     match.home_team_id != null &&
@@ -392,11 +401,7 @@ export async function getInitialMatchDetailData(
     ];
   }
 
-  const [detailedStatsPlayers, actions, ratedPlayers] = await Promise.all([
-    prisma.playerMatchDetailedStats.count({ where: { match_id: matchId } }),
-    prisma.matchAction.count({ where: { match_id: matchId } }),
-    prisma.playerMatchRating.count({ where: { match_id: matchId } }),
-  ]);
+  const [detailedStatsPlayers, actions, ratedPlayers] = await coveragePromise;
 
   return {
     match: serializedMatch,

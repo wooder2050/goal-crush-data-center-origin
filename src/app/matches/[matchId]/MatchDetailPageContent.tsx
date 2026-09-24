@@ -26,8 +26,8 @@ function RecordCoverageNote({ coverage }: { coverage: MatchRecordCoverage }) {
   ].filter(Boolean);
   return (
     <p className="mt-3 text-xs text-gray-400">
-      상세 기록: {parts.join(' · ')} — 운영자가 방송 화면을 보고 직접 기록한
-      데이터입니다.
+      상세 기록: {parts.join(' · ')} — 상세 통계·플레이는 운영자가 방송 화면을
+      보고 직접 기록했고, 평점은 이 기록으로 계산한 값입니다.
     </p>
   );
 }

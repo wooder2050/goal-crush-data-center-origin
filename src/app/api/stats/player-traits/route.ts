@@ -81,7 +81,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid player_id' }, { status: 400 });
     }
 
-    // 선수별 주 포지션(출전 기록 최빈값)으로 역할을 정하고, 상세 기록 합계·평균을 한 번에 조회
+    // 선수별 주 포지션(출전 기록 최빈값, 동률이면 포지션 코드 사전순)으로 역할을 정하고,
+    // 상세 기록 합계·평균을 한 번에 조회. 기록된 수치가 하나도 없는 행은
+    // 미입력으로 보고 제외한다 (0을 실제 관측값처럼 집계하지 않도록)
     const rows = await prisma.$queryRaw<PlayerAvgRow[]>`
       WITH main_position AS (
         SELECT DISTINCT ON (player_id) player_id, position
@@ -91,7 +93,7 @@ export async function GET(request: NextRequest) {
           WHERE minutes_played > 0 AND position IS NOT NULL
           GROUP BY player_id, position
         ) t
-        ORDER BY player_id, cnt DESC
+        ORDER BY player_id, cnt DESC, position ASC
       )
       SELECT
         d.player_id,
@@ -112,6 +114,9 @@ export async function GET(request: NextRequest) {
         COUNT(*) FILTER (WHERE d.goals_conceded = 0)::int as clean_sheet_count
       FROM player_match_detailed_stats d
       LEFT JOIN main_position mp ON mp.player_id = d.player_id
+      WHERE d.passes + d.key_passes + d.shots + d.goals + d.assists
+        + d.tackles + d.interceptions + d.clearances + d.dribbles + d.fouls
+        + d.saves + d.goals_conceded + d.gk_throws > 0
       GROUP BY d.player_id, mp.position
     `;
 
@@ -133,7 +138,8 @@ export async function GET(request: NextRequest) {
       lowerIsBetter = false
     ): number => percentileOf(cohort.map(pick), pick(playerRow), lowerIsBetter);
 
-    // 비율 지표: 최소 시도 수를 넘은 선수끼리만 비교, 본인이 못 넘으면 null
+    // 비율 지표: 최소 시도 수를 넘은 선수끼리만 비교.
+    // 본인이 못 넘거나 비교 가능한 선수가 본인 포함 2명 미만이면 null
     const ratioPct = (
       total: (r: PlayerAvgRow) => number,
       completed: (r: PlayerAvgRow) => number,
@@ -141,6 +147,7 @@ export async function GET(request: NextRequest) {
     ): number | null => {
       if (total(playerRow) < minAttempts) return null;
       const eligible = cohort.filter((r) => total(r) >= minAttempts);
+      if (eligible.length < 2) return null;
       const ratio = (r: PlayerAvgRow) => completed(r) / total(r);
       return percentileOf(eligible.map(ratio), ratio(playerRow));
     };
