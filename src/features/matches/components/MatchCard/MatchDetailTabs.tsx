@@ -107,7 +107,8 @@ export default function MatchDetailTabs({ match }: MatchDetailTabsProps) {
         ))}
       </TabsList>
 
-      {/* 요약 탭은 항상 마운트 — 탭을 오갈 때 요약 안 광고를 다시 요청하지 않도록 */}
+      {/* 요약 탭은 항상 마운트 — 탭을 오갈 때 요약 안 광고를 다시 요청하지 않도록.
+          (useHashTab은 첫 렌더가 항상 summary라 요약 데이터 조회는 원래도 먼저 실행됨) */}
       <TabsContent
         value="summary"
         forceMount

@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { AD_SLOTS, type AdPlacement } from '@/constants/ads';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,7 @@ declare global {
 }
 
 const ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+const AD_SCRIPT_TIMEOUT_MS = 8000;
 
 interface AdSlotProps {
   placement: AdPlacement;
@@ -54,10 +55,14 @@ function AdSlotInner({
   className?: string;
 }) {
   const insRef = useRef<HTMLModElement>(null);
+  // 광고 스크립트가 차단·실패해 처리되지 않으면 빈 자리(라벨·최소 높이)를 접는다
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     const el = insRef.current;
     if (!el) return;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -69,12 +74,21 @@ function AdSlotInner({
         } catch {
           // 광고 차단기 등으로 실패해도 페이지 동작엔 영향 없음
         }
+        // adsbygoogle.js는 처리한 <ins>에 data-adsbygoogle-status를 붙인다
+        timer = setTimeout(() => {
+          if (!el.hasAttribute('data-adsbygoogle-status')) setCollapsed(true);
+        }, AD_SCRIPT_TIMEOUT_MS);
       },
       { rootMargin: '200px 0px' }
     );
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
   }, []);
+
+  if (collapsed) return null;
 
   return (
     <aside aria-label="광고" className={cn('ad-slot py-3', className)}>
