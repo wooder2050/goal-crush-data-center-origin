@@ -1,5 +1,4 @@
 import { apiUrl } from '@/lib/api-url';
-import { authFetch } from '@/lib/auth-fetch';
 import {
   Assist,
   Goal,
@@ -693,7 +692,9 @@ export interface MatchDetailedStats {
 export const getMatchDetailedStatsPrisma = async (
   matchId: number
 ): Promise<MatchDetailedStats[]> => {
-  const response = await authFetch(`/api/matches/${matchId}/detailed-stats`);
+  const response = await fetch(
+    apiUrl(`/api/matches/${matchId}/detailed-stats`)
+  );
   if (!response.ok) {
     if (response.status === 404) return [];
     throw new Error(
@@ -738,7 +739,7 @@ export interface TeamPassNetworkData {
 export const getMatchPassMapPrisma = async (
   matchId: number
 ): Promise<TeamPassNetworkData[]> => {
-  const response = await authFetch(`/api/matches/${matchId}/pass-map`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/pass-map`));
   if (!response.ok) {
     if (response.status === 404) return [];
     throw new Error(`Failed to fetch pass map: ${response.status}`);
@@ -764,30 +765,18 @@ export interface PlayerMatchRating {
   breakdown: Record<string, number>;
 }
 
-export interface FeaturedPlayerSummary {
-  player_id: number;
-  name: string;
-  team_id: number;
-  profile_image_url: string | null;
-}
-
 export interface MatchRatingsResponse {
   match_id: number;
   ratings: PlayerMatchRating[];
-  /** 확장 기록 존재 여부 (비로그인에게도 공개 — 잠금 UI 판단용) */
-  has_extended_data?: boolean;
-  /** 비로그인 응답에만 포함: 팀별 베스트 선수 (이름만, 평점 비공개) */
-  featured_players?: FeaturedPlayerSummary[];
 }
 
 // Get auto-calculated match player ratings
 export const getMatchRatingsPrisma = async (
   matchId: number
 ): Promise<MatchRatingsResponse> => {
-  const response = await authFetch(`/api/matches/${matchId}/ratings`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/ratings`));
   if (!response.ok) {
-    // 오류를 빈 데이터로 삼키면 '확장 기록 없음'으로 오판되어 잠금 UI가
-    // 사라진다 — throw해서 React Query 재시도/에러 경계로 처리
+    // 오류를 빈 데이터로 삼키면 '평점 없는 경기'로 오판된다 — throw해서 React Query 재시도로 처리
     throw new Error(`Failed to fetch match ratings: ${response.status}`);
   }
   return response.json();
@@ -817,15 +806,13 @@ export interface PlayerMatchXtRating {
 export interface MatchXtRatingsResponse {
   match_id: number;
   ratings: PlayerMatchXtRating[];
-  /** 확장 기록 존재 여부 (비로그인에게도 공개 — 잠금 UI 판단용) */
-  has_extended_data?: boolean;
 }
 
 // Get xT-based match player ratings
 export const getMatchXtRatingsPrisma = async (
   matchId: number
 ): Promise<MatchXtRatingsResponse> => {
-  const response = await authFetch(`/api/matches/${matchId}/xt-ratings`);
+  const response = await fetch(apiUrl(`/api/matches/${matchId}/xt-ratings`));
   if (!response.ok) {
     throw new Error(`Failed to fetch xT ratings: ${response.status}`);
   }
