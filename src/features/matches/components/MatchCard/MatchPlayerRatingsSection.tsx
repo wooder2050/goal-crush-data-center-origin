@@ -12,6 +12,12 @@ import {
   RatingTypeTabs,
 } from '@/components/ui';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import {
+  formatTeamRank,
+  formatTeamRankShort,
+  rankWithinGroup,
+  type TeamRank,
+} from '@/lib/team-rank';
 import { getRatingBgColor, getRatingTextColor } from '@/lib/utils';
 
 import {
@@ -35,9 +41,11 @@ interface Props {
 function StatsPlayerRatingRow({
   player,
   isBest,
+  rank,
 }: {
   player: PlayerMatchRating;
   isBest: boolean;
+  rank?: TeamRank;
 }) {
   const posCode = getPositionText(player.position);
 
@@ -102,6 +110,8 @@ function StatsPlayerRatingRow({
         {player.red_cards > 0 && <span className="text-[10px]">🟥</span>}
       </div>
 
+      <RankText rank={rank} />
+
       {/* 평점 배지 */}
       <div className="flex-shrink-0">
         <span
@@ -118,9 +128,11 @@ function StatsPlayerRatingRow({
 function XtPlayerRatingRow({
   player,
   isBest,
+  rank,
 }: {
   player: PlayerMatchXtRating;
   isBest: boolean;
+  rank?: TeamRank;
 }) {
   const posCode = getPositionText(player.position);
 
@@ -167,6 +179,8 @@ function XtPlayerRatingRow({
         </div>
       </div>
 
+      <RankText rank={rank} />
+
       {/* 평점 배지 */}
       <div className="flex-shrink-0">
         <span
@@ -177,6 +191,18 @@ function XtPlayerRatingRow({
         </span>
       </div>
     </div>
+  );
+}
+
+function RankText({ rank }: { rank?: TeamRank }) {
+  if (!rank) return null;
+  return (
+    <span
+      className="flex-shrink-0 text-[10px] text-gray-400"
+      title={formatTeamRank(rank)}
+    >
+      {formatTeamRankShort(rank)}
+    </span>
   );
 }
 
@@ -203,6 +229,9 @@ function StatsTeamRatingCard({
   bestPlayerId: number | null;
 }) {
   if (players.length === 0) return null;
+  const ranks = rankWithinGroup(
+    players.map((p) => ({ id: p.player_id, value: p.rating }))
+  );
 
   return (
     <Card>
@@ -226,6 +255,7 @@ function StatsTeamRatingCard({
             key={p.player_id}
             player={p}
             isBest={p.player_id === bestPlayerId}
+            rank={ranks.get(p.player_id)}
           />
         ))}
       </CardContent>
@@ -245,6 +275,9 @@ function XtTeamRatingCard({
   bestPlayerId: number | null;
 }) {
   if (players.length === 0) return null;
+  const ranks = rankWithinGroup(
+    players.map((p) => ({ id: p.player_id, value: p.xt_rating }))
+  );
 
   return (
     <Card>
@@ -268,6 +301,7 @@ function XtTeamRatingCard({
             key={p.player_id}
             player={p}
             isBest={p.player_id === bestPlayerId}
+            rank={ranks.get(p.player_id)}
           />
         ))}
       </CardContent>

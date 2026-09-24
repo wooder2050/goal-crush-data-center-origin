@@ -6,6 +6,11 @@ import Link from 'next/link';
 import { useCallback, useRef, useState } from 'react';
 
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import {
+  formatTeamRank,
+  formatTeamRankShort,
+  type TeamRank,
+} from '@/lib/team-rank';
 import { shortenSeasonName } from '@/lib/utils';
 
 // 모듈 레벨 정규식 (js-hoist-regexp)
@@ -39,6 +44,8 @@ interface MatchLogItem {
   yellow_card: number;
   red_card: number;
   rating: number | null;
+  /** 같은 경기·같은 팀에서 평점이 있는 선수 중 순위 */
+  rating_rank: TeamRank | null;
   xt_rating: number | null;
 }
 
@@ -78,6 +85,18 @@ function RatingBadge({ value }: { value: number | null }) {
       className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[12px] font-bold text-white ${bg}`}
     >
       {value.toFixed(1)}
+    </span>
+  );
+}
+
+function TeamRankText({ rank }: { rank: TeamRank | null }) {
+  if (!rank) return null;
+  return (
+    <span
+      className="text-[10px] leading-none text-gray-400"
+      title={formatTeamRank(rank)}
+    >
+      {formatTeamRankShort(rank)}
     </span>
   );
 }
@@ -294,7 +313,7 @@ export default function MatchLogCard({ playerId }: { playerId: number }) {
         <HeaderTooltip emoji="🎯" label="어시스트" />
         <HeaderTooltip emoji="🟨" label="경고" />
         <HeaderTooltip emoji="🟥" label="퇴장" />
-        <span className="w-12 text-center">평점</span>
+        <span className="w-16 text-center">평점 (팀 내)</span>
         <span className="w-12 text-center">xT</span>
       </div>
 
@@ -353,8 +372,9 @@ export default function MatchLogCard({ playerId }: { playerId: number }) {
               <span className="w-8 text-center text-[14px] text-gray-900">
                 {item.red_card}
               </span>
-              <span className="w-12 text-center">
+              <span className="flex w-16 flex-col items-center gap-0.5">
                 <RatingBadge value={item.rating} />
+                <TeamRankText rank={item.rating_rank} />
               </span>
               <span className="w-12 text-center">
                 <RatingBadge value={item.xt_rating} />
@@ -419,7 +439,10 @@ export default function MatchLogCard({ playerId }: { playerId: number }) {
                       <span>{item.assists}</span>
                     </span>
                   )}
-                  <RatingBadge value={item.rating} />
+                  <span className="flex flex-col items-center gap-0.5">
+                    <RatingBadge value={item.rating} />
+                    <TeamRankText rank={item.rating_rank} />
+                  </span>
                 </div>
               </div>
             </Link>
