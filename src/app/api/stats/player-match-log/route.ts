@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { determineMatchResult } from '@/lib/player-stats-utils';
 import { prisma } from '@/lib/prisma';
+import { rankWithinGroup, type TeamRank } from '@/lib/team-rank';
 
 export const dynamic = 'force-dynamic';
 
@@ -105,25 +106,56 @@ export async function GET(request: NextRequest) {
     const matchIds = pageItems
       .map((m) => m.match_id)
       .filter((id): id is number => id != null);
+    // 팀 내 순위 계산을 위해 해당 경기들의 전체 평점을 한 번에 조회
     const [ratings, xtRatings] = await Promise.all([
       prisma.playerMatchRating.findMany({
-        where: { player_id: playerId, match_id: { in: matchIds } },
-        select: { match_id: true, rating: true },
+        where: { match_id: { in: matchIds } },
+        select: {
+          match_id: true,
+          team_id: true,
+          player_id: true,
+          rating: true,
+        },
       }),
       prisma.playerMatchXtRating.findMany({
-        where: { player_id: playerId, match_id: { in: matchIds } },
-        select: { match_id: true, xt_rating: true },
+        where: { match_id: { in: matchIds } },
+        select: {
+          match_id: true,
+          team_id: true,
+          player_id: true,
+          xt_rating: true,
+        },
       }),
     ]);
 
-    const ratingMap = new Map<number, number>();
-    for (const r of ratings) {
-      if (r.rating != null) ratingMap.set(r.match_id, r.rating);
-    }
-    const xtRatingMap = new Map<number, number>();
-    for (const r of xtRatings) {
-      if (r.xt_rating != null) xtRatingMap.set(r.match_id, r.xt_rating);
-    }
+    // 이 선수의 경기별 평점과 팀 내 순위
+    const buildRankMap = (
+      rows: Array<{
+        match_id: number;
+        team_id: number;
+        player_id: number;
+        value: number;
+      }>
+    ) => {
+      const map = new Map<number, { value: number; rank: TeamRank }>();
+      for (const mine of rows) {
+        if (mine.player_id !== playerId) continue;
+        const group = rows
+          .filter(
+            (r) => r.match_id === mine.match_id && r.team_id === mine.team_id
+          )
+          .map((r) => ({ id: r.player_id, value: r.value }));
+        const rank = rankWithinGroup(group).get(playerId);
+        if (rank) map.set(mine.match_id, { value: mine.value, rank });
+      }
+      return map;
+    };
+    const ratingMap = buildRankMap(
+      ratings.map((r) => ({ ...r, value: r.rating }))
+    );
+    const xtRatingMap = buildRankMap(
+      xtRatings.map((r) => ({ ...r, value: r.xt_rating }))
+    );
 
     const items = pageItems.map((ms) => {
       const m = ms.match!;
@@ -154,12 +186,16 @@ export async function GET(request: NextRequest) {
         yellow_card: ms.card_type === 'yellow' ? 1 : 0,
         red_card: ms.card_type === 'red' ? 1 : 0,
         rating:
-          ms.match_id != null && ratingMap.has(ms.match_id)
-            ? ratingMap.get(ms.match_id)!
+          ms.match_id != null
+            ? (ratingMap.get(ms.match_id)?.value ?? null)
+            : null,
+        rating_rank:
+          ms.match_id != null
+            ? (ratingMap.get(ms.match_id)?.rank ?? null)
             : null,
         xt_rating:
-          ms.match_id != null && xtRatingMap.has(ms.match_id)
-            ? xtRatingMap.get(ms.match_id)!
+          ms.match_id != null
+            ? (xtRatingMap.get(ms.match_id)?.value ?? null)
             : null,
       };
     });

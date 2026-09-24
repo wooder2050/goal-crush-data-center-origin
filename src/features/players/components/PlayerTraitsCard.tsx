@@ -5,8 +5,10 @@ import { useEffect, useRef } from 'react';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 
 interface Traits {
-  [key: string]: number | boolean;
+  /** 축별 백분위(0~100). 비교할 수 없는 비율 지표는 null */
+  [key: string]: number | boolean | null;
   matches_analyzed: number;
+  cohort_size: number;
   is_goalkeeper: boolean;
 }
 
@@ -21,19 +23,19 @@ async function fetchTraits(playerId: number): Promise<TraitsResponse> {
 }
 
 const FIELD_TRAITS = [
-  { key: 'touches', label: '터치' },
+  { key: 'passes', label: '패스 시도' },
   { key: 'chance_creation', label: '기회 창출' },
   { key: 'shots', label: '슛 시도' },
   { key: 'goals', label: '득점' },
   { key: 'defensive', label: '수비적 행동' },
-  { key: 'pass_accuracy', label: '패스 성공' },
+  { key: 'pass_accuracy', label: '패스 성공률' },
 ];
 
 const GK_TRAITS = [
-  { key: 'pass_accuracy', label: '정확한 긴 패스 %' },
-  { key: 'gk_distribution', label: '배급 정확도' },
+  { key: 'pass_accuracy', label: '패스 성공률' },
+  { key: 'gk_distribution', label: '스로 배급' },
   { key: 'clean_sheet', label: '클린 시트' },
-  { key: 'goals_conceded', label: '실점 수' },
+  { key: 'goals_conceded', label: '적은 실점' },
   { key: 'saves', label: '선방 횟수' },
   { key: 'clearances', label: '클리어런스' },
 ];
@@ -67,9 +69,7 @@ export default function PlayerTraitsCard({
 
   const isGK = traits.is_goalkeeper === true;
   const TRAIT_ITEMS = isGK ? GK_TRAITS : FIELD_TRAITS;
-  const subtitle = isGK
-    ? '다른 골키퍼와 비교한 통계'
-    : '다른 선수와 비교한 통계';
+  const subtitle = `${isGK ? '골키퍼' : '필드 선수'} ${traits.cohort_size}명과 비교한 백분위 (100 = 최고)`;
 
   const color = teamColor || 'rgb(220, 38, 38)';
   const cx = 150;
@@ -79,13 +79,19 @@ export default function PlayerTraitsCard({
     (_, i) => (Math.PI * 2 * i) / TRAIT_ITEMS.length - Math.PI / 2
   );
 
-  const radarPoints = TRAIT_ITEMS.map((item, i) => {
-    const val = (Number(traits[item.key]) || 0) / 100;
-    const r = maxR * val;
-    return {
-      x: cx + r * Math.cos(angles[i]),
-      y: cy + r * Math.sin(angles[i]),
-    };
+  // 비교할 수 없는 축(null)은 꼭짓점을 빼고 나머지 축끼리만 잇는다 —
+  // 0으로 그리면 최하위처럼 보이기 때문
+  const radarPoints = TRAIT_ITEMS.flatMap((item, i) => {
+    const raw = traits[item.key];
+    if (typeof raw !== 'number') return [];
+    const r = maxR * (raw / 100);
+    return [
+      {
+        key: item.key,
+        x: cx + r * Math.cos(angles[i]),
+        y: cy + r * Math.sin(angles[i]),
+      },
+    ];
   });
 
   const radarPath =
@@ -102,7 +108,7 @@ export default function PlayerTraitsCard({
       <div className="border-b border-gray-100 px-6 py-4">
         <p className="text-[18px] font-medium text-gray-900">선수 특성</p>
         <p className="mt-0.5 text-[14px] text-[#9F9F9F]">
-          {subtitle} ({traits.matches_analyzed}경기 기준)
+          {subtitle} · 상세 기록 {traits.matches_analyzed}경기 기준
         </p>
       </div>
       <div className="flex items-center justify-center px-4 py-8">
@@ -149,8 +155,8 @@ export default function PlayerTraitsCard({
           <path d={radarPath} fill="none" stroke={color} strokeWidth="1.5" />
 
           {/* Dots */}
-          {radarPoints.map((p, i) => (
-            <circle key={i} cx={p.x} cy={p.y} r="3" fill={color} />
+          {radarPoints.map((p) => (
+            <circle key={p.key} cx={p.x} cy={p.y} r="3" fill={color} />
           ))}
 
           {/* Labels + Percentages */}
@@ -164,7 +170,8 @@ export default function PlayerTraitsCard({
                 : Math.cos(angles[i]) > 0
                   ? 'start'
                   : 'end';
-            const val = Number(traits[item.key]) || 0;
+            const raw = traits[item.key];
+            const val = typeof raw === 'number' ? raw : null;
             return (
               <g key={item.key}>
                 <text
@@ -186,7 +193,7 @@ export default function PlayerTraitsCard({
                   fontWeight="600"
                   fontFamily="sans-serif"
                 >
-                  {val}%
+                  {val ?? '-'}
                 </text>
               </g>
             );

@@ -16,9 +16,20 @@ export type SeasonMatchItem = {
   away_team: { team_id: number; team_name: string; logo: string | null } | null;
 };
 
+/**
+ * 경기의 상세 기록 등록 건수 (운영자 수기 입력).
+ * 건수가 있다는 사실만 나타내며, 기록이 빠짐없이 완료됐다는 뜻은 아니다.
+ */
+export type MatchRecordCoverage = {
+  detailedStatsPlayers: number;
+  actions: number;
+  ratedPlayers: number;
+};
+
 export type InitialMatchDetailData = {
   match: MatchWithTeams;
   recentSeasonMatches: SeasonMatchItem[];
+  recordCoverage: MatchRecordCoverage;
 };
 
 // Prisma 클라이언트에 teamSeasonName 메서드가 없는 문제를 해결하기 위한 타입 확장
@@ -184,6 +195,15 @@ export async function getInitialMatchDetailData(
   });
 
   if (!match) return null;
+
+  // 상세 기록 등록 건수 — 아래 조회들과 독립이라 먼저 시작해 두고 마지막에 받는다
+  const coveragePromise = Promise.all([
+    prisma.playerMatchDetailedStats.count({ where: { match_id: matchId } }),
+    prisma.matchAction.count({ where: { match_id: matchId } }),
+    prisma.playerMatchRating.count({ where: { match_id: matchId } }),
+  ]);
+  // 아래 조회가 먼저 실패해 await에 도달하지 못해도 unhandled rejection이 나지 않도록
+  coveragePromise.catch(() => {});
 
   // 시즌별 팀명 조회
   const teamSeasonNames =
@@ -381,5 +401,11 @@ export async function getInitialMatchDetailData(
     ];
   }
 
-  return { match: serializedMatch, recentSeasonMatches };
+  const [detailedStatsPlayers, actions, ratedPlayers] = await coveragePromise;
+
+  return {
+    match: serializedMatch,
+    recentSeasonMatches,
+    recordCoverage: { detailedStatsPlayers, actions, ratedPlayers },
+  };
 }

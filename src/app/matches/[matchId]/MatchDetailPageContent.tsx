@@ -8,7 +8,29 @@ import { ShareButtons } from '@/components/ShareButtons';
 import { Section } from '@/components/ui';
 import DetailMatchCard from '@/features/matches/components/MatchCard/DetailMatchCard';
 import MatchSidebar from '@/features/matches/components/MatchCard/MatchSidebar';
-import type { InitialMatchDetailData } from '@/features/matches/server';
+import type {
+  InitialMatchDetailData,
+  MatchRecordCoverage,
+} from '@/features/matches/server';
+
+/** 상세 기록이 있는 경기에만, 등록된 건수를 사실 그대로 표시 */
+function RecordCoverageNote({ coverage }: { coverage: MatchRecordCoverage }) {
+  const { detailedStatsPlayers, actions, ratedPlayers } = coverage;
+  if (detailedStatsPlayers === 0 && actions === 0 && ratedPlayers === 0) {
+    return null;
+  }
+  const parts = [
+    detailedStatsPlayers > 0 && `선수 ${detailedStatsPlayers}명 상세 통계`,
+    actions > 0 && `플레이 ${actions.toLocaleString('ko-KR')}건`,
+    ratedPlayers > 0 && `평점 ${ratedPlayers}명`,
+  ].filter(Boolean);
+  return (
+    <p className="mt-3 text-xs text-gray-400">
+      상세 기록: {parts.join(' · ')} — 상세 통계·플레이는 운영자가 방송 화면을
+      보고 직접 기록했고, 평점은 이 기록으로 계산한 값입니다.
+    </p>
+  );
+}
 
 interface MatchDetailPageContentProps {
   matchId: string;
@@ -68,6 +90,7 @@ export default function MatchDetailPageContent({
                   matchId={id}
                   initialMatch={initialData.match}
                 />
+                <RecordCoverageNote coverage={initialData.recordCoverage} />
               </div>
               <aside className="hidden lg:block">
                 <div className="sticky top-4 space-y-4">
