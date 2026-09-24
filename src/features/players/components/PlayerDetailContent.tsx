@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
+import { AdSlot } from '@/components/AdSlot';
 import type {
   getPlayerByIdPrisma,
   getPlayerSummaryPrisma,
@@ -521,6 +522,9 @@ function PlayerDetailContentInner({
           )}
         </div>
       </div>
+
+      {/* 프로필(상단)과 기록(하단) 사이 광고 */}
+      <AdSlot placement="playerDetail" className="mt-4" />
 
       {/* Bottom row */}
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">

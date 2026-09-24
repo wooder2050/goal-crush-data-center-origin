@@ -1,6 +1,7 @@
 'use client';
 
 import { GoalWrapper } from '@/common/GoalWrapper';
+import { AdSlot } from '@/components/AdSlot';
 import type { MatchWithTeams } from '@/lib/types';
 
 import { hasPenaltyShootout } from '../../../lib/matchUtils';
@@ -36,6 +37,7 @@ export default function SummaryTab({ match }: { match: MatchWithTeams }) {
           <GoalWrapper fallback={<FeaturedPlayersSectionSkeleton />}>
             <FeaturedPlayersSection match={match} />
           </GoalWrapper>
+          <AdSlot placement="matchDetail" />
           <GoalWrapper fallback={<RecentFormSectionSkeleton />}>
             <RecentFormSection match={match} />
           </GoalWrapper>

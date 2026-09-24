@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { trackSelectContent } from '@/lib/analytics';
@@ -99,11 +100,21 @@ export default function FreshnessStrip({
       {latestCompleted && (
         <>
           최근 반영:{' '}
-          <span className="font-medium text-gray-700">
+          <Link
+            href={`/matches/${latestCompleted.match_id}`}
+            onClick={() =>
+              trackSelectContent({
+                module: 'freshness_strip',
+                destination: 'latest_match',
+                matchState: 'completed',
+              })
+            }
+            className="font-medium text-gray-700 underline-offset-2 hover:underline"
+          >
             {formatKstMonthDay(latestCompleted.match_date)}{' '}
             {latestCompleted.home_team?.team_name} vs{' '}
             {latestCompleted.away_team?.team_name}
-          </span>
+          </Link>
         </>
       )}
       {latestCompleted && dday !== null && ' · '}
