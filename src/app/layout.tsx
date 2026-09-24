@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import { AdminNavItem } from '@/components/AdminNavItem';
 import { AuthButtons } from '@/components/AuthButtons';
 import { AuthProvider } from '@/components/AuthProvider';
+import { AuthQueryInvalidator } from '@/components/AuthQueryInvalidator';
 import Footer from '@/components/Footer';
 import { OrganizationJsonLd, WebsiteJsonLd } from '@/components/JsonLd';
 import { Navigation } from '@/components/Navigation';
@@ -179,6 +180,7 @@ export default function RootLayout({
             }}
           />
           <Providers>
+            <AuthQueryInvalidator />
             <Suspense fallback={null}>
               <OAuthAuthTracker />
             </Suspense>
