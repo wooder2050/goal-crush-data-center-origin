@@ -5,8 +5,10 @@ import { useEffect, useRef } from 'react';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 
 interface Traits {
-  [key: string]: number | boolean;
+  /** 축별 백분위(0~100). 비교할 수 없는 비율 지표는 null */
+  [key: string]: number | boolean | null;
   matches_analyzed: number;
+  cohort_size: number;
   is_goalkeeper: boolean;
 }
 
@@ -21,19 +23,19 @@ async function fetchTraits(playerId: number): Promise<TraitsResponse> {
 }
 
 const FIELD_TRAITS = [
-  { key: 'touches', label: '터치' },
+  { key: 'passes', label: '패스 시도' },
   { key: 'chance_creation', label: '기회 창출' },
   { key: 'shots', label: '슛 시도' },
   { key: 'goals', label: '득점' },
   { key: 'defensive', label: '수비적 행동' },
-  { key: 'pass_accuracy', label: '패스 성공' },
+  { key: 'pass_accuracy', label: '패스 성공률' },
 ];
 
 const GK_TRAITS = [
-  { key: 'pass_accuracy', label: '정확한 긴 패스 %' },
-  { key: 'gk_distribution', label: '배급 정확도' },
+  { key: 'pass_accuracy', label: '패스 성공률' },
+  { key: 'gk_distribution', label: '스로 배급' },
   { key: 'clean_sheet', label: '클린 시트' },
-  { key: 'goals_conceded', label: '실점 수' },
+  { key: 'goals_conceded', label: '적은 실점' },
   { key: 'saves', label: '선방 횟수' },
   { key: 'clearances', label: '클리어런스' },
 ];
@@ -67,9 +69,7 @@ export default function PlayerTraitsCard({
 
   const isGK = traits.is_goalkeeper === true;
   const TRAIT_ITEMS = isGK ? GK_TRAITS : FIELD_TRAITS;
-  const subtitle = isGK
-    ? '다른 골키퍼와 비교한 통계'
-    : '다른 선수와 비교한 통계';
+  const subtitle = `${isGK ? '골키퍼' : '필드 선수'} ${traits.cohort_size}명과 비교한 백분위 (100 = 최고)`;
 
   const color = teamColor || 'rgb(220, 38, 38)';
   const cx = 150;
@@ -102,7 +102,7 @@ export default function PlayerTraitsCard({
       <div className="border-b border-gray-100 px-6 py-4">
         <p className="text-[18px] font-medium text-gray-900">선수 특성</p>
         <p className="mt-0.5 text-[14px] text-[#9F9F9F]">
-          {subtitle} ({traits.matches_analyzed}경기 기준)
+          {subtitle} · 상세 기록 {traits.matches_analyzed}경기 기준
         </p>
       </div>
       <div className="flex items-center justify-center px-4 py-8">
@@ -164,7 +164,8 @@ export default function PlayerTraitsCard({
                 : Math.cos(angles[i]) > 0
                   ? 'start'
                   : 'end';
-            const val = Number(traits[item.key]) || 0;
+            const raw = traits[item.key];
+            const val = typeof raw === 'number' ? raw : null;
             return (
               <g key={item.key}>
                 <text
@@ -186,7 +187,7 @@ export default function PlayerTraitsCard({
                   fontWeight="600"
                   fontFamily="sans-serif"
                 >
-                  {val}%
+                  {val ?? '-'}
                 </text>
               </g>
             );
