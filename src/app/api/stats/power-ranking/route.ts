@@ -27,15 +27,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ rankings: [], season: null });
     }
 
-    // 새 시즌에 평점 데이터가 아직 없으면 데이터가 있는 가장 최근 시즌으로 폴백
+    // 새 시즌 완료 경기에 평점이 아직 없으면 평점이 있는 가장 최근 시즌으로 폴백.
+    // 폴백 판정·순위 집계·scope 모두 완료 경기 기준 (완료 전 평점 저장 시 어긋나지 않게)
     let isFallback = false;
     const currentSeasonRating = await prisma.playerMatchRating.findFirst({
-      where: { match: { season_id: currentSeason.season_id } },
+      where: {
+        match: { season_id: currentSeason.season_id, status: 'completed' },
+      },
       select: { rating_id: true },
     });
     if (!currentSeasonRating) {
       const latestRatedMatch = await prisma.match.findFirst({
-        where: { player_match_ratings: { some: {} } },
+        where: { status: 'completed', player_match_ratings: { some: {} } },
         orderBy: { match_date: 'desc' },
         select: {
           season: { select: { season_id: true, season_name: true } },
@@ -52,7 +55,7 @@ export async function GET(request: NextRequest) {
 
     // 평점 데이터가 있는 경기의 선수 통계
     const ratedMatches = await prisma.playerMatchRating.findMany({
-      where: { match: { season_id: seasonId } },
+      where: { match: { season_id: seasonId, status: 'completed' } },
       select: { match_id: true, player_id: true },
     });
 
@@ -63,7 +66,7 @@ export async function GET(request: NextRequest) {
     // 해당 시즌 모든 선수 경기 통계
     const allPms = await prisma.playerMatchStats.findMany({
       where: {
-        match: { season_id: seasonId },
+        match: { season_id: seasonId, status: 'completed' },
         minutes_played: { gt: 0 },
         player_id: { not: null },
       },

@@ -28,11 +28,14 @@ export default function StandingsWidget({
     return (
       <Card className="shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">시즌 순위표</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-base">시즌 순위표</CardTitle>
+            <SeasonScopeBadge seasonName={seasonName} isFallback={isFallback} />
+          </div>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-500 text-center py-4">
-            순위 데이터가 없습니다.
+            아직 순위 기록이 없습니다.
           </p>
         </CardContent>
       </Card>

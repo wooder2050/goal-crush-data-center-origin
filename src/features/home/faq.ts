@@ -27,7 +27,8 @@ export function buildGifaCupFaqAnswer(data: HomePageData): string {
   const name = `골 때리는 그녀들 ${season.season_name.replace(/골\s*때리는\s*그녀들\s*/, '').trim()}`;
   const particle = topicParticle(name);
 
-  if (season.end_date) {
+  // 종료일이 미리 입력돼 있어도 실제로 지나기 전에는 종료로 보지 않는다
+  if (season.end_date && new Date(season.end_date).getTime() <= Date.now()) {
     return `${name}${particle} ${kstMonthDay.format(new Date(season.end_date))} 종료됐습니다. ${generic}`;
   }
 
