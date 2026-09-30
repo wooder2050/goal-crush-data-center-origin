@@ -11,6 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  describePowerRankingScope,
+  type PowerRankingScope,
+} from '@/features/stats/powerRankingScope';
 import { apiUrl } from '@/lib/api-url';
 import { shortenSeasonName } from '@/lib/utils';
 
@@ -48,6 +52,9 @@ type RankingRow = {
 type PowerRankingData = {
   rankings: RankingRow[];
   season: { season_id: number; season_name: string } | null;
+  /** 현재 시즌에 평점이 없어 평점이 있는 최근 시즌을 보여주는 중 */
+  is_fallback?: boolean;
+  scope?: PowerRankingScope;
 };
 
 const POSITION_STYLES: Record<string, string> = {
@@ -88,9 +95,28 @@ export default function PowerRankingPageContent() {
           <div className="mb-4">
             <h1 className="text-2xl font-bold">파워랭킹</h1>
             {data?.season && (
-              <p className="mt-1 text-[14px] text-[#9F9F9F]">
-                {shortenSeasonName(data.season.season_name)}
-              </p>
+              <div className="mt-1 space-y-0.5">
+                <p className="text-[14px] text-[#9F9F9F]">
+                  {
+                    describePowerRankingScope(
+                      shortenSeasonName(data.season.season_name),
+                      data.scope
+                    ).title
+                  }
+                </p>
+                {data.scope && (
+                  <p className="text-[12px] text-[#9F9F9F]">
+                    {describePowerRankingScope(null, data.scope).detail} ·
+                    선수별 평점이 있는 출전만 집계
+                  </p>
+                )}
+                {data.is_fallback && (
+                  <p className="text-[12px] text-amber-700">
+                    현재 시즌은 평점 기록이 없어, 평점이 기록된 가장 최근 시즌을
+                    보여줍니다.
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
@@ -166,6 +192,12 @@ export default function PowerRankingPageContent() {
                 가중치로 종합한 0~100점 스케일의 선수 순위입니다. 공격수는 공격
                 포인트에, 수비수는 클린시트에, 골키퍼는 세이브 성공률과 실점에
                 더 높은 가중치가 적용되어 모든 포지션이 공정하게 평가됩니다.
+              </p>
+              <p className="mt-2 text-[13px] leading-[1.8] text-[#9F9F9F]">
+                평점은 운영자가 기록한 상세 경기 기록으로 계산하므로 일부
+                경기에만 있습니다. 순위는 선수별로 평점이 있는 출전만 집계하며,
+                xT 평점이 없는 경기는 6점, 액션 기록이 없는 경기는 액션 점수
+                0으로 계산합니다.
               </p>
             </div>
           )}

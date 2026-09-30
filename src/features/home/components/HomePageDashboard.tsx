@@ -2,6 +2,7 @@
 
 import { Section } from '@/components/ui';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
+import { CUP_CATEGORIES } from '@/lib/tournament';
 
 import { fetchHomePageData } from '../api-prisma';
 import type { HomePageData } from '../types';
@@ -45,6 +46,12 @@ export default function HomePageDashboard({
       ) ??
       null)
     : null;
+
+  // 컵 대회 여부는 등록 경기 수가 아니라 시즌 카테고리로 판단 —
+  // 경기가 0건일 때 과거 리그 순위표가 뜨지 않도록
+  const isCupSeason = CUP_CATEGORIES.includes(
+    pageData.currentSeason.category ?? ''
+  );
 
   const matchdayCandidates = pageData.todayMatches ?? [];
   // 스트립과 카드가 서로 다른 후보를 보면 '매치데이 보기' 링크만 뜨고
@@ -95,19 +102,26 @@ export default function HomePageDashboard({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
         {/* Left Column - Standings + Player Stats */}
         <div className="lg:col-span-7 space-y-4">
-          {pageData.knockoutMatches.length > 0 &&
-            !(pageData.cupMatches?.length > 0) && (
-              <KnockoutBracketWidget
-                seasonId={pageData.currentSeason.season_id}
-                knockoutMatches={pageData.knockoutMatches}
-              />
-            )}
+          {/* 최신 결과·득점자·예정 경기를 순위보다 먼저 (모바일에서 첫 화면 근처) */}
+          <MatchesWidget
+            seasonId={pageData.currentSeason.season_id}
+            recentMatches={pageData.recentMatches}
+            upcomingMatches={pageData.upcomingMatches}
+            knockoutMatches={pageData.knockoutMatches}
+            latestMatchGoals={pageData.latestMatchGoals}
+          />
+          {pageData.knockoutMatches.length > 0 && !isCupSeason && (
+            <KnockoutBracketWidget
+              seasonId={pageData.currentSeason.season_id}
+              knockoutMatches={pageData.knockoutMatches}
+            />
+          )}
           {/* 컵 대회는 승점 순위표 대신 라운드별 토너먼트 현황 */}
-          {pageData.cupMatches?.length > 0 ? (
+          {isCupSeason ? (
             <CupTournamentWidget
               seasonId={pageData.currentSeason.season_id}
               seasonName={pageData.currentSeason.season_name}
-              matches={pageData.cupMatches}
+              matches={pageData.cupMatches ?? []}
             />
           ) : (
             <StandingsWidget
@@ -119,6 +133,7 @@ export default function HomePageDashboard({
           )}
           <PlayerStatsWidget
             seasonId={statsSeason.season_id}
+            seasonName={statsSeason.season_name}
             topScorers={pageData.topScorers}
             topAssists={pageData.topAssists}
             topRatings={pageData.topRatings}
@@ -127,16 +142,11 @@ export default function HomePageDashboard({
           />
         </div>
 
-        {/* Right Column - Matches + Career Stats */}
+        {/* Right Column - Power Ranking + Career Stats */}
         <div className="lg:col-span-5 space-y-4">
-          <MatchesWidget
-            seasonId={pageData.currentSeason.season_id}
-            recentMatches={pageData.recentMatches}
-            upcomingMatches={pageData.upcomingMatches}
-            knockoutMatches={pageData.knockoutMatches}
-          />
           <PowerRankingWidget />
           <PlayerCompareBanner
+            seasonName={statsSeason.season_name}
             topScorers={pageData.topScorers}
             topAssists={pageData.topAssists}
           />

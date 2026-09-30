@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import {
+  describePowerRankingScope,
+  type PowerRankingScope,
+} from '@/features/stats/powerRankingScope';
 import { apiUrl } from '@/lib/api-url';
 
 type RankingRow = {
@@ -17,6 +21,8 @@ type RankingRow = {
   team_color: string | null;
   position: string;
   power_index: number;
+  /** 이 선수의 집계 경기 수 (평점이 있는 출전만) */
+  matches: number;
 };
 
 const POSITION_STYLES: Record<string, string> = {
@@ -29,31 +35,30 @@ const POSITION_STYLES: Record<string, string> = {
 export default function PowerRankingWidget() {
   const [rankings, setRankings] = useState<RankingRow[]>([]);
   const [isFallback, setIsFallback] = useState(false);
+  const [seasonName, setSeasonName] = useState<string | null>(null);
+  const [scope, setScope] = useState<PowerRankingScope | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(apiUrl('/api/stats/power-ranking?limit=5'))
+    fetch(apiUrl('/api/stats/power-ranking?limit=3'))
       .then((r) => r.json())
       .then((d) => {
         setRankings(d.rankings ?? []);
         setIsFallback(d.is_fallback ?? false);
+        setSeasonName(d.season?.season_name ?? null);
+        setScope(d.scope ?? null);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
+  const scopeText = describePowerRankingScope(seasonName, scope);
+
   return (
     <Card className="shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-base">파워랭킹</CardTitle>
-            {isFallback && (
-              <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
-                지난 시즌
-              </span>
-            )}
-          </div>
+          <CardTitle className="text-base">파워랭킹</CardTitle>
           <Link
             href="/stats/power-ranking"
             className="text-xs text-[#ff4800] hover:underline"
@@ -61,11 +66,24 @@ export default function PowerRankingWidget() {
             전체 순위 보기
           </Link>
         </div>
+        {/* 집계 범위: 시즌 전체가 아니라 평점이 기록된 일부 경기 기준 */}
+        {!loading && scopeText.title && (
+          <div className="mt-1 space-y-0.5">
+            <p
+              className={`text-xs font-medium ${isFallback ? 'text-amber-700' : 'text-gray-600'}`}
+            >
+              {scopeText.title}
+            </p>
+            {scopeText.detail && (
+              <p className="text-[11px] text-gray-400">{scopeText.detail}</p>
+            )}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="px-3 sm:px-6 pb-4">
         {loading ? (
           <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="flex items-center gap-2.5 animate-pulse">
                 <div className="h-4 w-4 bg-gray-200 rounded" />
                 <div className="h-9 w-9 bg-gray-200 rounded-full" />
@@ -144,7 +162,7 @@ export default function PowerRankingWidget() {
                         </div>
                       )}
                       <span className="truncate text-[11px] text-gray-400">
-                        {row.team_name}
+                        {row.team_name} · {row.matches}경기
                       </span>
                     </div>
                   </div>
@@ -168,6 +186,14 @@ export default function PowerRankingWidget() {
               );
             })}
           </div>
+        )}
+        {!loading && rankings.length > 0 && (
+          <Link
+            href="/stats/power-ranking"
+            className="mt-2 block text-center text-[11px] text-gray-400 hover:text-gray-600"
+          >
+            평점 기록 경기 기준 · 집계 범위 보기
+          </Link>
         )}
       </CardContent>
     </Card>

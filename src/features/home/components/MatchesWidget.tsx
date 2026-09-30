@@ -1,17 +1,22 @@
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { trackSelectContent } from '@/lib/analytics';
+import { formatKstMonthDay, formatKstTime } from '@/lib/kst';
 
-import type { HomeMatch } from '../types';
+import type { HomeMatch, LatestMatchGoals } from '../types';
+import { shortSeasonName } from './SeasonScopeBadge';
 
 interface MatchesWidgetProps {
   seasonId: number;
   recentMatches: HomeMatch[];
   upcomingMatches: HomeMatch[];
   knockoutMatches?: HomeMatch[];
+  /** 가장 최근 완료 경기의 득점 기록 (최근 결과 첫 행과 같은 경기일 때만 표시) */
+  latestMatchGoals?: LatestMatchGoals | null;
 }
 
 const STAGE_LABELS: Record<string, string> = {
@@ -30,6 +35,7 @@ export default function MatchesWidget({
   recentMatches,
   upcomingMatches,
   knockoutMatches = [],
+  latestMatchGoals = null,
 }: MatchesWidgetProps) {
   const hasNoMatches =
     recentMatches.length === 0 &&
@@ -77,9 +83,31 @@ export default function MatchesWidget({
                 <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1.5">
                   최근 결과
                 </div>
-                {recentMatches.map((match) => (
-                  <CompletedMatchRow key={match.match_id} match={match} />
-                ))}
+                {recentMatches.map((match, i) => {
+                  const seasonId = match.season?.season_id;
+                  // 시즌이 바뀌는 지점마다 시즌명을 붙여 여러 대회 결과가 섞여도 구분되게
+                  const showSeason =
+                    match.season &&
+                    (i === 0 ||
+                      recentMatches[i - 1].season?.season_id !== seasonId);
+                  return (
+                    <div key={match.match_id}>
+                      {showSeason && (
+                        <div className="px-2 pt-1 text-[11px] text-gray-400">
+                          {shortSeasonName(match.season!.season_name)}
+                        </div>
+                      )}
+                      <CompletedMatchRow match={match} />
+                      {i === 0 &&
+                        latestMatchGoals?.match.match_id === match.match_id && (
+                          <LatestScorers
+                            match={match}
+                            goals={latestMatchGoals.goals}
+                          />
+                        )}
+                    </div>
+                  );
+                })}
               </>
             )}
 
@@ -204,9 +232,55 @@ function CompletedMatchRow({ match }: { match: HomeMatch }) {
   );
 }
 
+/**
+ * 최신 경기 득점자 → 선수 상세 링크.
+ * 득점 기록이 없는데 스코어가 있으면 '등록된 득점자 기록 없음'(0:0이면 표시 안 함)
+ */
+function LatestScorers({
+  match,
+  goals,
+}: {
+  match: HomeMatch;
+  goals: LatestMatchGoals['goals'];
+}) {
+  const totalScore = (match.home_score ?? 0) + (match.away_score ?? 0);
+  if (goals.length === 0) {
+    if (totalScore === 0) return null;
+    return (
+      <p className="px-2 pb-1.5 text-[11px] text-gray-400">
+        등록된 득점자 기록 없음
+      </p>
+    );
+  }
+  return (
+    <p className="px-2 pb-1.5 text-[11px] leading-5 text-gray-500">
+      <span className="mr-1 text-gray-400">득점</span>
+      {goals.map((g, i) => (
+        <span key={g.goal_id}>
+          {i > 0 && ' · '}
+          <Link
+            href={`/players/${g.player_id}`}
+            onClick={() =>
+              trackSelectContent({
+                module: 'home_latest_scorers',
+                destination: 'player',
+              })
+            }
+            className="text-gray-700 underline-offset-2 hover:underline"
+          >
+            {g.player_name}
+          </Link>
+          {g.goal_time != null && ` ${g.goal_time}'`}
+          {g.goal_type === 'own_goal' && ' (자책)'}
+          {g.goal_type === 'penalty' && ' (PK)'}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 function UpcomingMatchRow({ match }: { match: HomeMatch }) {
-  const dateStr = format(new Date(match.match_date), 'M/d', { locale: ko });
-  const timeStr = format(new Date(match.match_date), 'HH:mm');
+  const isDateConfirmed = match.is_date_confirmed !== false;
 
   return (
     <Link
@@ -233,10 +307,18 @@ function UpcomingMatchRow({ match }: { match: HomeMatch }) {
 
       {/* Date & Time */}
       <div className="flex-shrink-0 w-12 sm:w-14 text-center">
-        <div className="text-[10px] sm:text-xs text-gray-400">{dateStr}</div>
-        <div className="text-xs sm:text-sm font-medium text-gray-600">
-          {timeStr}
-        </div>
+        {isDateConfirmed ? (
+          <>
+            <div className="text-[10px] sm:text-xs text-gray-400">
+              {formatKstMonthDay(match.match_date)}
+            </div>
+            <div className="text-xs sm:text-sm font-medium text-gray-600">
+              {formatKstTime(match.match_date)}
+            </div>
+          </>
+        ) : (
+          <span className="text-[11px] text-amber-600 font-medium">미정</span>
+        )}
       </div>
 
       {/* Away Team */}
@@ -307,10 +389,10 @@ function InterleagueMatchRow({ match }: { match: HomeMatch }) {
         ) : isDateConfirmed ? (
           <>
             <div className="text-[10px] sm:text-xs text-gray-400">
-              {format(new Date(match.match_date), 'M/d', { locale: ko })}
+              {formatKstMonthDay(match.match_date)}
             </div>
             <div className="text-xs sm:text-sm font-medium text-gray-600">
-              {format(new Date(match.match_date), 'HH:mm')}
+              {formatKstTime(match.match_date)}
             </div>
           </>
         ) : (
