@@ -1,5 +1,6 @@
 import type { TeamSeasonNameResult } from '@/app/api/types';
 import { prisma } from '@/lib/prisma';
+import { CUP_CATEGORIES } from '@/lib/tournament';
 
 import type {
   CareerStatRow,
@@ -161,9 +162,6 @@ async function getLatestSeason(): Promise<{
   });
   return season;
 }
-
-/** 컵(토너먼트) 대회 카테고리 — 순위표 대신 라운드별 토너먼트 현황을 표시 */
-export const CUP_CATEGORIES = ['GIFA_CUP', 'SBS_CUP', 'CHAMPION_MATCH'];
 
 // 컵 대회: 시즌 전 경기 (라운드 정보 포함, 홈 토너먼트 현황 위젯용)
 async function getCupMatchesList(seasonId: number): Promise<HomeMatch[]> {

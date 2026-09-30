@@ -4,7 +4,9 @@ import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/stats/power-ranking?limit=20
- * 현재 시즌 파워랭킹 (포지션별 가중치 기반 복합 지수)
+ * 평점 기록이 있는 경기 기준 파워랭킹 (포지션별 가중치 기반 복합 지수).
+ * 현재 시즌에 평점이 없으면 평점이 있는 가장 최근 시즌으로 폴백하며,
+ * 응답의 scope에 실제 집계 범위(완료 경기 중 포함 경기 수·기간)를 담는다.
  * 공식 상세: docs/power-ranking-formula.md
  */
 export async function GET(request: NextRequest) {
@@ -91,6 +93,31 @@ export async function GET(request: NextRequest) {
     const filteredPms = allPms.filter((pms) =>
       ratedMatchPlayerSet.has(`${pms.match_id}-${pms.player_id}`)
     );
+
+    // 집계 범위 — 순위가 시즌 전체가 아니라 평점이 기록된 일부 경기 기준임을 알리기 위함
+    const includedMatchIds = Array.from(
+      new Set(
+        filteredPms
+          .map((p) => p.match_id)
+          .filter((id): id is number => id != null)
+      )
+    );
+    const [completedMatches, includedRange] = await Promise.all([
+      prisma.match.count({
+        where: { season_id: seasonId, status: 'completed' },
+      }),
+      prisma.match.aggregate({
+        where: { match_id: { in: includedMatchIds } },
+        _min: { match_date: true },
+        _max: { match_date: true },
+      }),
+    ]);
+    const scope = {
+      completed_matches: completedMatches,
+      included_matches: includedMatchIds.length,
+      first_match_date: includedRange._min.match_date?.toISOString() ?? null,
+      last_match_date: includedRange._max.match_date?.toISOString() ?? null,
+    };
 
     // 평점 데이터
     const ratings = await prisma.playerMatchRating.findMany({
@@ -555,6 +582,7 @@ export async function GET(request: NextRequest) {
       rankings: rankings.slice(0, limit),
       season: currentSeason,
       is_fallback: isFallback,
+      scope,
     });
   } catch (error) {
     console.error('Error calculating power ranking:', error);

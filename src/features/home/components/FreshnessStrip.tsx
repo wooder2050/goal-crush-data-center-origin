@@ -52,9 +52,7 @@ export default function FreshnessStrip({
     return (
       <p className="mb-3 text-xs text-gray-500">
         {isMatchCompleted(matchdayMatch) ? (
-          <span className="font-medium text-emerald-600">
-            경기 기록 업데이트 완료
-          </span>
+          <span className="font-medium text-emerald-600">경기 결과 반영</span>
         ) : (
           <>
             <span className="font-medium text-amber-600">
@@ -99,7 +97,7 @@ export default function FreshnessStrip({
     <p className="mb-3 text-xs text-gray-500">
       {latestCompleted && (
         <>
-          최근 반영:{' '}
+          최근 경기:{' '}
           <Link
             href={`/matches/${latestCompleted.match_id}`}
             onClick={() =>

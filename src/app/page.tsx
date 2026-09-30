@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { FAQPageJsonLd } from '@/components/JsonLd';
 import { HomePageDashboard } from '@/features/home';
+import { buildGifaCupFaqAnswer } from '@/features/home/faq';
 import { getHomePageData } from '@/features/home/server';
 import { withRetry } from '@/lib/retry';
 
@@ -61,13 +62,12 @@ export default async function Page() {
         faqs={[
           {
             question: '골때녀 GIFA컵 일정은?',
-            answer:
-              '골 때리는 그녀들 2026 제2회 GIFA컵은 7월 8일 개막해 8월 26일 결승에서 발라드림이 승부차기 끝에 우승했습니다. 골때녀 데이터센터에서 역대 GIFA컵의 대진과 경기 결과를 확인할 수 있고, 새 대회도 매 경기 방송 후 바로 업데이트합니다.',
+            answer: buildGifaCupFaqAnswer(initialData),
           },
           {
             question: '골때녀 경기 결과는 어디서 확인하나요?',
             answer:
-              '골때녀 데이터센터에서 모든 시즌의 경기 결과를 확인할 수 있습니다. 득점자, 어시스트, 선수 평점, 상세 스탯(패스 성공률, 슈팅, 인터셉트 등)까지 제공합니다.',
+              '골때녀 데이터센터에서 모든 시즌의 경기 결과와 득점자·어시스트를 확인할 수 있습니다. 운영자가 상세 기록을 남긴 일부 경기는 선수 평점과 상세 스탯(패스 성공률, 슈팅, 인터셉트 등)도 제공합니다.',
           },
           {
             question: '골때녀 출연진(선수) 정보는?',

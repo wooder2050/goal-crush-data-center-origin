@@ -1,11 +1,10 @@
 'use client';
 
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import Image from 'next/image';
 import Link from 'next/link';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { formatKstMonthDay, formatKstTime } from '@/lib/kst';
 import { STAGE_LABELS } from '@/lib/tournament';
 
 import type { HomeMatch } from '../types';
@@ -47,37 +46,50 @@ export default function CupTournamentWidget({
   const orderedStages = STAGE_ORDER.filter((s) => byStage.has(s)).concat(
     Array.from(byStage.keys()).filter((s) => !STAGE_ORDER.includes(s))
   );
+  // 대진 공개 전(라운드가 하나도 정해지지 않음)에는 토너먼트 현황이라 부르지 않는다
+  const stageUndecided =
+    matches.length > 0 && matches.every((m) => !m.tournament_stage);
 
   return (
     <Card className="shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">토너먼트 현황</CardTitle>
+          <CardTitle className="text-base whitespace-nowrap">
+            {stageUndecided ? '공개된 경기 일정' : '토너먼트 현황'}
+          </CardTitle>
           <Link
             href={`/seasons/${seasonId}?tab=matches`}
-            className="text-xs text-[#ff4800] hover:underline"
+            title={`${seasonName} 전체 경기`}
+            className="text-xs text-[#ff4800] hover:underline whitespace-nowrap"
           >
-            {seasonName} 전체 보기
+            전체 경기 보기
           </Link>
         </div>
       </CardHeader>
       <CardContent className="px-3 sm:px-6 pb-4">
         {matches.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-4">
-            등록된 경기가 없습니다.
+            아직 공개된 대진이 없습니다. 대진이 공개되면 반영됩니다.
           </p>
         ) : (
           <div className="space-y-1">
             {orderedStages.map((stage) => (
               <div key={stage}>
-                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1.5 mt-1">
-                  {STAGE_LABELS[stage] ?? '라운드 미정'}
-                </div>
+                {!stageUndecided && (
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 py-1.5 mt-1">
+                    {STAGE_LABELS[stage] ?? '라운드 미정'}
+                  </div>
+                )}
                 {(byStage.get(stage) ?? []).map((match) => (
                   <CupMatchRow key={match.match_id} match={match} />
                 ))}
               </div>
             ))}
+            {stageUndecided && (
+              <p className="px-2 pt-2 text-[11px] text-gray-400">
+                라운드와 나머지 대진은 공개 후 반영됩니다.
+              </p>
+            )}
           </div>
         )}
       </CardContent>
@@ -137,10 +149,10 @@ function CupMatchRow({ match }: { match: HomeMatch }) {
         ) : match.is_date_confirmed !== false ? (
           <>
             <div className="text-[10px] sm:text-xs text-gray-400">
-              {format(new Date(match.match_date), 'M/d', { locale: ko })}
+              {formatKstMonthDay(match.match_date)}
             </div>
             <div className="text-xs sm:text-sm font-medium text-gray-600">
-              {format(new Date(match.match_date), 'HH:mm')}
+              {formatKstTime(match.match_date)}
             </div>
           </>
         ) : (
