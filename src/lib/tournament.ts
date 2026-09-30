@@ -15,3 +15,6 @@ export function stageLabel(stage: string | null | undefined): string | null {
   if (!stage) return null;
   return STAGE_LABELS[stage] ?? null;
 }
+
+/** 컵(토너먼트) 대회 시즌 카테고리 — 홈에서 순위표 대신 토너먼트/일정 위젯을 쓴다 */
+export const CUP_CATEGORIES = ['GIFA_CUP', 'SBS_CUP', 'CHAMPION_MATCH'];

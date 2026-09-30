@@ -26,3 +26,17 @@ export function formatKstMonthDay(iso: string): string {
     day: 'numeric',
   }).format(new Date(iso));
 }
+
+/**
+ * KST 기준 HH:mm 표기.
+ * 서버(UTC)와 브라우저(KST)가 같은 문자열을 내도록 시간대를 고정한다 —
+ * 로컬 시간대로 포맷하면 SSR은 12:00, 브라우저는 21:00이 되어 하이드레이션이 깨진다.
+ */
+export function formatKstTime(iso: string): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Seoul',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(iso));
+}

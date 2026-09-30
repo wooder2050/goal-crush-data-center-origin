@@ -3,9 +3,9 @@ import { Metadata } from 'next';
 import PowerRankingPageContent from '@/features/stats/components/PowerRankingPageContent';
 
 export const metadata: Metadata = {
-  title: '골때녀 파워랭킹 - 이번 시즌 선수 종합 순위',
+  title: '골때녀 파워랭킹 - 평점 기반 선수 종합 순위',
   description:
-    '골 때리는 그녀들 이번 시즌 파워랭킹! 득점·도움·평점·승률·액션 점수를 포지션별 가중치로 종합한 선수 순위를 확인하세요.',
+    '골 때리는 그녀들 파워랭킹. 평점이 기록된 경기를 기준으로 득점·도움·평점·승률·액션 점수를 포지션별 가중치로 종합한 선수 순위입니다.',
   keywords: [
     '골때녀 파워랭킹',
     '골때녀 선수 순위',
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: '/stats/power-ranking' },
   openGraph: {
-    title: '골때녀 파워랭킹 - 이번 시즌 선수 종합 순위',
+    title: '골때녀 파워랭킹 - 평점 기반 선수 종합 순위',
     description:
-      '골 때리는 그녀들 이번 시즌 파워랭킹! 득점·도움·평점·승률·액션 점수를 포지션별 가중치로 종합한 선수 순위를 확인하세요.',
+      '골 때리는 그녀들 파워랭킹. 평점이 기록된 경기를 기준으로 득점·도움·평점·승률·액션 점수를 포지션별 가중치로 종합한 선수 순위입니다.',
     url: 'https://www.gtndatacenter.com/stats/power-ranking',
   },
 };

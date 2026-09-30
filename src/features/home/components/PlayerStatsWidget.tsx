@@ -15,9 +15,12 @@ import {
 import { getRatingBgColor } from '@/lib/utils';
 
 import type { PlayerStatRow } from '../types';
+import SeasonScopeBadge from './SeasonScopeBadge';
 
 interface PlayerStatsWidgetProps {
   seasonId: number;
+  /** 실제로 집계한 시즌명 (폴백이면 직전 시즌) */
+  seasonName: string;
   topScorers: PlayerStatRow[];
   topAssists: PlayerStatRow[];
   topRatings: PlayerStatRow[];
@@ -27,6 +30,7 @@ interface PlayerStatsWidgetProps {
 
 export default function PlayerStatsWidget({
   seasonId,
+  seasonName,
   topScorers,
   topAssists,
   topRatings,
@@ -48,11 +52,7 @@ export default function PlayerStatsWidget({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CardTitle className="text-base">선수 순위</CardTitle>
-            {isFallback && (
-              <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
-                지난 시즌
-              </span>
-            )}
+            <SeasonScopeBadge seasonName={seasonName} isFallback={isFallback} />
           </div>
           <Link
             href={`/seasons/${seasonId}?tab=players`}
@@ -78,11 +78,13 @@ export default function PlayerStatsWidget({
             title="득점 순위"
             players={topScorers}
             statKey="goals"
+            emptyText="아직 득점 기록이 없습니다."
           />
           <PlayerColumn
             title="도움 순위"
             players={topAssists}
             statKey="assists"
+            emptyText="아직 도움 기록이 없습니다."
           />
         </div>
       </CardContent>
@@ -144,21 +146,23 @@ function PlayerColumn({
   title,
   players,
   statKey,
+  emptyText,
 }: {
   title: string;
   players: PlayerStatRow[];
-  statKey: 'goals' | 'assists' | 'avg_rating';
+  statKey: 'goals' | 'assists';
+  emptyText: string;
 }) {
+  // 시즌 초반 0골·0도움 선수를 순위처럼 늘어놓지 않는다
+  const ranked = players.filter((p) => (p[statKey] ?? 0) > 0);
   return (
     <div>
       <h3 className="text-sm font-semibold text-gray-700 mb-2">{title}</h3>
-      {players.length === 0 ? (
-        <p className="text-sm text-gray-500 text-center py-4">
-          데이터가 없습니다.
-        </p>
+      {ranked.length === 0 ? (
+        <p className="text-sm text-gray-500 text-center py-4">{emptyText}</p>
       ) : (
         <div className="divide-y divide-gray-100">
-          {players.slice(0, 5).map((player, index) => (
+          {ranked.slice(0, 5).map((player, index) => (
             <PlayerRow
               key={player.player_id ?? index}
               player={player}

@@ -5,13 +5,17 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui';
 
 import type { PlayerStatRow } from '../types';
+import { shortSeasonName } from './SeasonScopeBadge';
 
 interface PlayerCompareBannerProps {
+  /** 득점·도움 순위를 집계한 시즌명 */
+  seasonName: string;
   topScorers: PlayerStatRow[];
   topAssists: PlayerStatRow[];
 }
 
 export default function PlayerCompareBanner({
+  seasonName,
   topScorers,
   topAssists,
 }: PlayerCompareBannerProps) {
@@ -19,6 +23,8 @@ export default function PlayerCompareBanner({
   const assister = topAssists[0];
 
   if (!scorer?.player_id || !assister?.player_id) return null;
+  // 시즌 초반 0골·0도움 선수끼리 비교하지 않음
+  if ((scorer.goals ?? 0) === 0 || (assister.assists ?? 0) === 0) return null;
   // 같은 선수면 의미 없으므로 숨김
   if (scorer.player_id === assister.player_id) return null;
 
@@ -30,7 +36,8 @@ export default function PlayerCompareBanner({
         <CardContent className="p-4">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-500">
-              득점왕 vs 도움왕
+              {seasonName ? `${shortSeasonName(seasonName)} ` : ''}득점 선두 vs
+              도움 선두
             </span>
             <span className="flex items-center gap-1 text-xs font-medium text-gray-400 group-hover:text-gray-700">
               비교하기
