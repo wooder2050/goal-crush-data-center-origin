@@ -43,6 +43,10 @@ export function buildMatchSeo(m: MatchSeoInput) {
     const pkText = hasPenalty
       ? ` (승부차기 ${m.penaltyHomeScore}:${m.penaltyAwayScore})`
       : '';
+    // 제목은 네이버 권장 길이(40자 안팎)에 맞춰 짧게 — 방송일은 설명에 둔다
+    const pkShort = hasPenalty
+      ? ` (PK ${m.penaltyHomeScore}:${m.penaltyAwayScore})`
+      : '';
     let winner: string | null = null;
     if (h !== a) winner = h > a ? m.homeTeamName : m.awayTeamName;
     else if (hasPenalty && m.penaltyHomeScore !== m.penaltyAwayScore)
@@ -51,7 +55,7 @@ export function buildMatchSeo(m: MatchSeoInput) {
           ? m.homeTeamName
           : m.awayTeamName;
 
-    const resultLine = `${home} ${h}:${a} ${away}${pkText}`;
+    const resultLine = `${home} ${h}:${a} ${away}${pkShort}`;
     const scorers =
       m.scorers.length > 3
         ? `${m.scorers.slice(0, 3).join(', ')} 외 ${m.scorers.length - 3}명`
@@ -63,7 +67,7 @@ export function buildMatchSeo(m: MatchSeoInput) {
       : '';
 
     return {
-      title: `${resultLine} 경기 결과${dotDate ? ` (${dotDate})` : ''}`,
+      title: `${resultLine} 경기 결과`,
       description: `${seasonLabel} ${m.homeTeamName} vs ${m.awayTeamName} 경기 결과 ${h}:${a}${winnerText}${longDate ? ` (${longDate} 방송)` : ''}.${scorers ? ` 득점: ${scorers}.` : ''} 선수별 평점·상세 기록 확인.`,
       heading: `${m.homeTeamName} ${h}:${a} ${m.awayTeamName}${pkText} 경기 결과`,
     };
@@ -71,7 +75,7 @@ export function buildMatchSeo(m: MatchSeoInput) {
 
   const dated = m.isDateConfirmed && dotDate;
   return {
-    title: `${home} vs ${away} 경기 일정·라인업${dated ? ` (${dotDate} 방송)` : ''}`,
+    title: `${home} vs ${away} 경기 일정·라인업${dated ? ` (${dotDate})` : ''}`,
     description: `${seasonLabel} ${m.homeTeamName} vs ${m.awayTeamName}.${m.isDateConfirmed && longDate ? ` ${longDate} 방송 예정.` : ''} 최근 전적·맞대결 기록을 확인하세요.`,
     heading: `${m.homeTeamName} vs ${m.awayTeamName}`,
   };

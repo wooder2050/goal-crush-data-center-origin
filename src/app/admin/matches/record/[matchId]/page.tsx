@@ -54,6 +54,7 @@ export default function RecordMatchDetailPage() {
     data: match,
     isLoading: isLoadingMatch,
     error: matchError,
+    refetch: refetchMatch,
   } = useMatchDetail(matchId);
 
   // 골 목록 조회
@@ -662,6 +663,7 @@ export default function RecordMatchDetailPage() {
               <SummaryEditTab
                 matchId={matchId}
                 initialSummary={match.summary ?? null}
+                onSaved={() => refetchMatch()}
               />
             </TabsContent>
           </Tabs>

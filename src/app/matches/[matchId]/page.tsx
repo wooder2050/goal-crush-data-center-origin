@@ -3,7 +3,10 @@ import { notFound } from 'next/navigation';
 
 import { SportsEventJsonLd } from '@/components/JsonLd';
 import { buildMatchSeo } from '@/features/matches/match-seo';
-import { getInitialMatchDetailData } from '@/features/matches/server';
+import {
+  getInitialMatchDetailData,
+  getMatchTeamSeasonNames,
+} from '@/features/matches/server';
 import { prisma } from '@/lib/prisma';
 
 import MatchDetailPageContent from './MatchDetailPageContent';
@@ -47,8 +50,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const homeTeamName = match.home_team?.team_name || '홈팀';
-  const awayTeamName = match.away_team?.team_name || '원정팀';
+  // 본문(H1·JSON-LD)과 같은 시즌별 팀명을 쓴다
+  const { homeTeamSeasonName, awayTeamSeasonName } =
+    await getMatchTeamSeasonNames(match);
+  const homeTeamName =
+    homeTeamSeasonName?.team_name || match.home_team?.team_name || '홈팀';
+  const awayTeamName =
+    awayTeamSeasonName?.team_name || match.away_team?.team_name || '원정팀';
   const seasonName = match.season?.season_name || '';
 
   // 득점자 정보 (자책골 제외)
@@ -118,7 +126,7 @@ export default async function Page({ params }: Props) {
     <>
       <SportsEventJsonLd
         name={`${homeTeamName} vs ${awayTeamName}`}
-        startDate={matchDate || ''}
+        startDate={match.is_date_confirmed === false ? '' : matchDate || ''}
         homeTeam={homeTeamName}
         awayTeam={awayTeamName}
         location={match.location || undefined}

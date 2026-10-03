@@ -99,9 +99,11 @@ async function updateMatch(matchId: number, data: Record<string, unknown>) {
       broadcast_time:
         data.broadcast_time !== undefined ? data.broadcast_time : undefined,
       summary:
-        data.summary === null || typeof data.summary === 'string'
-          ? data.summary
-          : undefined,
+        data.summary === null
+          ? null
+          : typeof data.summary === 'string'
+            ? data.summary.trim() || null
+            : undefined,
     },
     include: {
       home_team: true,

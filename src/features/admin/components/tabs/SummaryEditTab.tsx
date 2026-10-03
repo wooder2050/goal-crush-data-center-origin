@@ -10,6 +10,8 @@ import { authFetch } from '@/lib/auth-fetch';
 interface SummaryEditTabProps {
   matchId: number;
   initialSummary: string | null;
+  /** 저장 성공 후 호출 — 부모의 경기 조회를 갱신해 탭을 다시 열어도 저장한 값이 보이게 */
+  onSaved?: () => void;
 }
 
 /**
@@ -19,6 +21,7 @@ interface SummaryEditTabProps {
 export default function SummaryEditTab({
   matchId,
   initialSummary,
+  onSaved,
 }: SummaryEditTabProps) {
   const [summary, setSummary] = useState(initialSummary ?? '');
   const [saving, setSaving] = useState(false);
@@ -35,6 +38,7 @@ export default function SummaryEditTab({
       });
       if (!response.ok) throw new Error('요약 저장에 실패했습니다.');
       setSavedAt(new Date().toLocaleTimeString('ko-KR'));
+      onSaved?.();
     } catch (error) {
       console.error('요약 저장 실패:', error);
       alert('요약 저장 중 오류가 발생했습니다. 다시 시도해주세요.');
