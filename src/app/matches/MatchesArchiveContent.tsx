@@ -4,8 +4,9 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
+import { AdSlot } from '@/components/AdSlot';
 import { Container, H1, Section } from '@/components/ui';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { apiUrl } from '@/lib/api-url';
@@ -33,6 +34,10 @@ interface Props {
   recentMatches: ArchiveMatch[];
   upcomingMatches: ArchiveMatch[];
 }
+
+/** 최근 결과 목록에서 광고를 끼울 위치(이 행 수 뒤)와, 광고를 넣을 최소 행 수 */
+const AD_AFTER_ROWS = 4;
+const AD_MIN_ROWS = 7;
 
 async function fetchSeasonMatches(seasonId: number): Promise<ArchiveMatch[]> {
   const res = await fetch(apiUrl(`/api/matches/season/${seasonId}`));
@@ -71,7 +76,7 @@ export default function MatchesArchiveContent({
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* 왼쪽: 경기 목록 */}
         <div className="lg:col-span-2 space-y-8">
-          {showingSeasonMatches ? (
+          {showingSeasonMatches && (
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900">
@@ -105,35 +110,42 @@ export default function MatchesArchiveContent({
                 </p>
               )}
             </section>
-          ) : (
-            <>
-              {recentMatches.length > 0 && (
-                <section>
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">
-                    최근 경기 결과
-                  </h2>
-                  <div className="space-y-2">
-                    {recentMatches.map((match) => (
-                      <MatchRow key={match.match_id} match={match} />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {upcomingMatches.length > 0 && (
-                <section>
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">
-                    예정 경기
-                  </h2>
-                  <div className="space-y-2">
-                    {upcomingMatches.map((match) => (
-                      <MatchRow key={match.match_id} match={match} />
-                    ))}
-                  </div>
-                </section>
-              )}
-            </>
           )}
+          {/* 기본 목록은 시즌 필터를 켜도 언마운트하지 않고 숨긴다 —
+              필터를 껐다 켤 때마다 광고가 다시 요청되지 않도록 */}
+          <div className={showingSeasonMatches ? 'hidden' : 'space-y-8'}>
+            {recentMatches.length > 0 && (
+              <section>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">
+                  최근 경기 결과
+                </h2>
+                <div className="space-y-2">
+                  {recentMatches.map((match, i) => (
+                    <Fragment key={match.match_id}>
+                      <MatchRow match={match} />
+                      {i === AD_AFTER_ROWS - 1 &&
+                        recentMatches.length >= AD_MIN_ROWS && (
+                          <AdSlot placement="matchList" />
+                        )}
+                    </Fragment>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {upcomingMatches.length > 0 && (
+              <section>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">
+                  예정 경기
+                </h2>
+                <div className="space-y-2">
+                  {upcomingMatches.map((match) => (
+                    <MatchRow key={match.match_id} match={match} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
         </div>
 
         {/* 오른쪽: 시즌별 필터 */}
