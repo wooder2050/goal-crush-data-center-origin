@@ -1,5 +1,3 @@
-import Script from 'next/script';
-
 interface JsonLdData {
   '@context': string;
   '@type': string;
@@ -10,15 +8,18 @@ interface JsonLdProps {
   data: JsonLdData;
 }
 
-export function JsonLd({ data, id }: JsonLdProps & { id?: string }) {
-  const scriptId =
-    id || `json-ld-${data['@type']?.toString().toLowerCase() || 'default'}`;
+/**
+ * 구조화 데이터는 일반 <script>로 서버 HTML에 출력한다.
+ * next/script는 id로 로드 여부를 캐시해 클라이언트 이동(경기 A→B) 시 이전 페이지
+ * 데이터가 남을 수 있다(Next.js 권장 방식). `<`는 이스케이프해 본문 문자열이
+ * </script>를 닫지 못하게 한다.
+ */
+export function JsonLd({ data }: JsonLdProps) {
   return (
-    <Script
-      id={scriptId}
+    <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(data),
+        __html: JSON.stringify(data).replace(/</g, '\\u003c'),
       }}
     />
   );
@@ -65,108 +66,47 @@ export function OrganizationJsonLd() {
   return <JsonLd data={data} />;
 }
 
-// 스포츠 이벤트 구조화 데이터
+// 스포츠 이벤트 구조화 데이터 — 방송 경기 기록. 장소·종료 시각·관람 정보처럼
+// 실제 데이터가 없는 값은 만들어 넣지 않는다
 export function SportsEventJsonLd({
   name,
   startDate,
-  endDate,
   location,
   homeTeam,
   awayTeam,
   description,
   image,
-  seasonName,
   status,
-  homeScore,
-  awayScore,
 }: {
   name: string;
   startDate: string;
-  endDate?: string;
   location?: string;
   homeTeam?: string;
   awayTeam?: string;
   description?: string;
   image?: string;
-  seasonName?: string;
   status?: 'scheduled' | 'completed' | 'cancelled';
-  homeScore?: number | null;
-  awayScore?: number | null;
 }) {
-  // endDate: 전달되지 않으면 startDate + 30분으로 자동 계산
-  const computedEndDate =
-    endDate ||
-    (() => {
-      try {
-        const start = new Date(startDate);
-        start.setMinutes(start.getMinutes() + 30);
-        return start.toISOString();
-      } catch {
-        return startDate;
-      }
-    })();
-
-  // eventStatus 매핑
-  const eventStatus =
-    status === 'cancelled'
-      ? 'https://schema.org/EventCancelled'
-      : status === 'completed'
-        ? 'https://schema.org/EventScheduled'
-        : 'https://schema.org/EventScheduled';
-
   const data: JsonLdData = {
     '@context': 'https://schema.org',
     '@type': 'SportsEvent',
     name,
-    startDate,
-    endDate: computedEndDate,
-    eventStatus,
-    location: {
-      '@type': 'Place',
-      name: location || 'SBS 프리즘타워',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: '서울',
-        addressCountry: 'KR',
-      },
-    },
-    description:
-      description ||
-      `골 때리는 그녀들 ${homeTeam || ''} vs ${awayTeam || ''} 경기`,
+    ...(startDate && { startDate }),
+    eventStatus:
+      status === 'cancelled'
+        ? 'https://schema.org/EventCancelled'
+        : 'https://schema.org/EventScheduled',
+    ...(location && { location: { '@type': 'Place', name: location } }),
+    ...(description && { description }),
     organizer: {
       '@type': 'Organization',
       name: 'SBS',
       url: 'https://www.sbs.co.kr',
     },
-    ...(homeTeam &&
-      awayTeam && {
-        competitor: [
-          { '@type': 'SportsTeam', name: homeTeam },
-          { '@type': 'SportsTeam', name: awayTeam },
-        ],
-        performer: [
-          { '@type': 'SportsTeam', name: homeTeam },
-          { '@type': 'SportsTeam', name: awayTeam },
-        ],
-      }),
-    ...(homeScore != null &&
-      awayScore != null && {
-        result: `${homeScore} : ${awayScore}`,
-      }),
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'KRW',
-      availability: 'https://schema.org/InStock',
-      validFrom: startDate,
-      url: 'https://www.gtndatacenter.com',
-      description: 'SBS 방송으로 무료 시청 가능',
-    },
-    image: image || 'https://www.gtndatacenter.com/og-image.png',
+    ...(homeTeam && { homeTeam: { '@type': 'SportsTeam', name: homeTeam } }),
+    ...(awayTeam && { awayTeam: { '@type': 'SportsTeam', name: awayTeam } }),
+    ...(image && { image }),
     sport: '축구',
-    ...(seasonName && {
-      eventAttendanceMode: 'https://schema.org/MixedEventAttendanceMode',
-    }),
     inLanguage: 'ko-KR',
   };
 
@@ -316,7 +256,7 @@ export function SeasonJsonLd({
     inLanguage: 'ko-KR',
   };
 
-  return <JsonLd data={data} id="json-ld-season" />;
+  return <JsonLd data={data} />;
 }
 
 // FAQ 구조화 데이터
@@ -338,5 +278,5 @@ export function FAQPageJsonLd({
     })),
   };
 
-  return <JsonLd data={data} id="json-ld-faq" />;
+  return <JsonLd data={data} />;
 }

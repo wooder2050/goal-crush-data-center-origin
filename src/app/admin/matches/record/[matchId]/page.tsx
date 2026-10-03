@@ -30,6 +30,7 @@ import {
   PenaltiesTab,
   ScoreTab,
   SubstitutionsTab,
+  SummaryEditTab,
 } from '@/features/admin/components/tabs';
 import { useMatchAssists } from '@/features/admin/hooks/useAssistQuery';
 import { useMatchCoaches } from '@/features/admin/hooks/useCoachQuery';
@@ -578,6 +579,7 @@ export default function RecordMatchDetailPage() {
               <TabsTrigger value="substitutions">교체</TabsTrigger>
               <TabsTrigger value="penalties">승부차기</TabsTrigger>
               <TabsTrigger value="coaches">감독</TabsTrigger>
+              <TabsTrigger value="summary">요약</TabsTrigger>
             </TabsList>
 
             <TabsContent value="score">
@@ -653,6 +655,13 @@ export default function RecordMatchDetailPage() {
                   team_id: match?.away_team_id || 0,
                   team_name: match?.away_team?.team_name || '',
                 }}
+              />
+            </TabsContent>
+
+            <TabsContent value="summary">
+              <SummaryEditTab
+                matchId={matchId}
+                initialSummary={match.summary ?? null}
               />
             </TabsContent>
           </Tabs>

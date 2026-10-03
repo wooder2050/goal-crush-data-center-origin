@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { SportsEventJsonLd } from '@/components/JsonLd';
+import { buildMatchSeo } from '@/features/matches/match-seo';
 import { getInitialMatchDetailData } from '@/features/matches/server';
 import { prisma } from '@/lib/prisma';
 
@@ -49,36 +50,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const homeTeamName = match.home_team?.team_name || '홈팀';
   const awayTeamName = match.away_team?.team_name || '원정팀';
   const seasonName = match.season?.season_name || '';
-  const matchDate = match.match_date
-    ? new Date(match.match_date).toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : '';
-
-  // 스코어 정보
-  const hasScore = match.home_score !== null && match.away_score !== null;
-  const scoreText = hasScore ? `${match.home_score}:${match.away_score}` : '';
 
   // 득점자 정보 (자책골 제외)
   const scorerNames = (match.goals ?? [])
     .filter((g) => g.goal_type !== 'own_goal')
     .map((g) => g.player?.name)
     .filter(Boolean) as string[];
-  const uniqueScorers = Array.from(new Set(scorerNames));
-  const scorersText =
-    uniqueScorers.length > 3
-      ? uniqueScorers.slice(0, 3).join(', ') +
-        ` 외 ${uniqueScorers.length - 3}명`
-      : uniqueScorers.join(', ');
 
-  const title = hasScore
-    ? `${homeTeamName} vs ${awayTeamName} 경기 결과 ${scoreText} - ${seasonName}`
-    : `${homeTeamName} vs ${awayTeamName} - ${seasonName}${matchDate ? ` (${matchDate})` : ''}`;
-  const description = hasScore
-    ? `골 때리는 그녀들 ${seasonName} ${homeTeamName} vs ${awayTeamName} 경기 결과 ${scoreText} (${matchDate}).${scorersText ? ` 득점: ${scorersText}.` : ''} 선수별 평점·상세 스탯 확인.`
-    : `골 때리는 그녀들 ${seasonName} ${homeTeamName} vs ${awayTeamName}. ${matchDate} 예정. 라인업·맞대결 기록을 확인하세요.`;
+  const { title, description } = buildMatchSeo({
+    homeTeamName,
+    awayTeamName,
+    seasonName,
+    status: match.status,
+    matchDate: match.match_date,
+    isDateConfirmed: match.is_date_confirmed,
+    homeScore: match.home_score,
+    awayScore: match.away_score,
+    penaltyHomeScore: match.penalty_home_score,
+    penaltyAwayScore: match.penalty_away_score,
+    scorers: Array.from(new Set(scorerNames)),
+  });
 
   return {
     title,
@@ -131,17 +122,28 @@ export default async function Page({ params }: Props) {
         homeTeam={homeTeamName}
         awayTeam={awayTeamName}
         location={match.location || undefined}
-        description={`골 때리는 그녀들 ${(match as { season?: { season_name?: string } }).season?.season_name ?? ''} - ${homeTeamName} vs ${awayTeamName}`}
-        seasonName={
-          (match as { season?: { season_name?: string } }).season
-            ?.season_name ?? undefined
+        description={
+          buildMatchSeo({
+            homeTeamName,
+            awayTeamName,
+            seasonName: match.season?.season_name ?? '',
+            status: match.status ?? null,
+            matchDate: match.match_date ?? null,
+            isDateConfirmed: match.is_date_confirmed ?? true,
+            homeScore: match.home_score,
+            awayScore: match.away_score,
+            penaltyHomeScore: match.penalty_home_score ?? null,
+            penaltyAwayScore: match.penalty_away_score ?? null,
+            scorers: [],
+          }).description
         }
         status={
-          (match.status as 'scheduled' | 'completed' | 'cancelled') ??
-          'scheduled'
+          match.status === 'cancelled'
+            ? 'cancelled'
+            : match.status === 'completed'
+              ? 'completed'
+              : 'scheduled'
         }
-        homeScore={match.home_score}
-        awayScore={match.away_score}
       />
       <MatchDetailPageContent matchId={matchId} initialData={initialData} />
     </>

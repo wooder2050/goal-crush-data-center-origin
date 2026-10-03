@@ -40,3 +40,33 @@ export function formatKstTime(iso: string): string {
     hour12: false,
   }).format(new Date(iso));
 }
+
+/** KST 기준 YYYY.M.D 표기 (제목처럼 짧아야 하는 곳) */
+export function formatKstDotDate(iso: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(new Date(iso));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value;
+  return `${get('year')}.${get('month')}.${get('day')}`;
+}
+
+/** KST 기준 YYYY년 M월 D일 표기 */
+export function formatKstLongDate(iso: string): string {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(iso));
+}
+
+/** KST 기준 요일 한 글자 (월~일) */
+export function formatKstWeekday(iso: string): string {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    weekday: 'short',
+  }).format(new Date(iso));
+}

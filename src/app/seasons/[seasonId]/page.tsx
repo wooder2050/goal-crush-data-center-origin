@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { SeasonJsonLd } from '@/components/JsonLd';
 import { getInitialSeasonDetailData } from '@/features/seasons/server';
 import { prisma } from '@/lib/prisma';
+import { CUP_CATEGORIES } from '@/lib/tournament';
 
 import SeasonDetailContent from './SeasonDetailContent';
 import SeasonSsrSummaryBlock from './SeasonSsrSummary';
@@ -41,8 +42,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const seasonName = season.season_name;
-  const title = `${seasonName} 순위·결과`;
-  const description = `골 때리는 그녀들 ${seasonName} 전체 경기 결과·팀 순위·득점 랭킹·어시스트 랭킹. 실시간 업데이트되는 순위표와 팀별 성적을 확인하세요.`;
+  // 컵 대회는 승점 순위표가 아니라 대진표·라운드 결과가 핵심 — 페이지가 실제로 보여주는 것만 약속한다
+  const isCup = CUP_CATEGORIES.includes(season.category ?? '');
+  const title = isCup
+    ? `${seasonName} 대진표·경기 결과`
+    : `${seasonName} 순위·결과`;
+  const description = isCup
+    ? `골 때리는 그녀들 ${seasonName} 대진표·라운드별 경기 결과·승부차기 기록과 득점·어시스트 랭킹을 확인하세요.`
+    : `골 때리는 그녀들 ${seasonName} 전체 경기 결과·팀 순위·득점 랭킹·어시스트 랭킹. 방송 후 갱신되는 순위표와 팀별 성적을 확인하세요.`;
 
   return {
     title,
