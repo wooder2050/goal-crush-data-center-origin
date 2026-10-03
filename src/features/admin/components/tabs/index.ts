@@ -6,3 +6,4 @@ export { default as LineupsTab } from './LineupsTab';
 export { default as PenaltiesTab } from './PenaltiesTab';
 export { default as ScoreTab } from './ScoreTab';
 export { default as SubstitutionsTab } from './SubstitutionsTab';
+export { default as SummaryEditTab } from './SummaryEditTab';

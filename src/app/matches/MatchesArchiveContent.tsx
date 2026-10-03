@@ -1,7 +1,5 @@
 'use client';
 
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Fragment, useState } from 'react';
@@ -10,6 +8,7 @@ import { AdSlot } from '@/components/AdSlot';
 import { Container, H1, Section } from '@/components/ui';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { apiUrl } from '@/lib/api-url';
+import { formatKstMonthDay, formatKstTime, formatKstWeekday } from '@/lib/kst';
 
 interface ArchiveMatch {
   match_id: number;
@@ -183,8 +182,8 @@ export default function MatchesArchiveContent({
 
 function MatchRow({ match }: { match: ArchiveMatch }) {
   const isCompleted = match.status === 'completed';
-  const matchDate = new Date(match.match_date);
-  const dateStr = format(matchDate, 'M/d (EEE)', { locale: ko });
+  // 서버(UTC)·브라우저(KST)가 같은 문자열을 내도록 KST로 고정
+  const dateStr = `${formatKstMonthDay(match.match_date)} (${formatKstWeekday(match.match_date)})`;
   const hasPenalty =
     match.penalty_home_score != null && match.penalty_away_score != null;
 
@@ -242,7 +241,7 @@ function MatchRow({ match }: { match: ArchiveMatch }) {
           </>
         ) : (
           <span className="text-xs font-medium text-gray-500">
-            {format(matchDate, 'HH:mm')}
+            {formatKstTime(match.match_date)}
           </span>
         )}
       </div>

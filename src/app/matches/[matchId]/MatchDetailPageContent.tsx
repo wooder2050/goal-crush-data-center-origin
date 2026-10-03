@@ -8,6 +8,7 @@ import { ShareButtons } from '@/components/ShareButtons';
 import { Section } from '@/components/ui';
 import DetailMatchCard from '@/features/matches/components/MatchCard/DetailMatchCard';
 import MatchSidebar from '@/features/matches/components/MatchCard/MatchSidebar';
+import { buildMatchSeo } from '@/features/matches/match-seo';
 import type {
   InitialMatchDetailData,
   MatchRecordCoverage,
@@ -46,6 +47,20 @@ export default function MatchDetailPageContent({
   const homeTeam = match.home_team?.team_name || '홈팀';
   const awayTeam = match.away_team?.team_name || '원정팀';
   const hasScore = match.home_score !== null && match.away_score !== null;
+  // 메타 title과 같은 결과 문구 — 검색 결과와 본문 제목이 같은 결과를 말하도록
+  const { heading } = buildMatchSeo({
+    homeTeamName: homeTeam,
+    awayTeamName: awayTeam,
+    seasonName: match.season?.season_name ?? '',
+    status: match.status ?? null,
+    matchDate: match.match_date ?? null,
+    isDateConfirmed: match.is_date_confirmed ?? true,
+    homeScore: match.home_score,
+    awayScore: match.away_score,
+    penaltyHomeScore: match.penalty_home_score ?? null,
+    penaltyAwayScore: match.penalty_away_score ?? null,
+    scorers: [],
+  });
   const shareTitle = hasScore
     ? `${homeTeam} vs ${awayTeam} ${match.home_score}:${match.away_score}`
     : `${homeTeam} vs ${awayTeam}`;
@@ -63,8 +78,10 @@ export default function MatchDetailPageContent({
               {match.season?.season_name || '시즌 목록'}
             </Link>
           )}
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">경기 상세</h1>
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <h1 className="text-lg font-bold text-gray-900 sm:text-2xl">
+              {heading}
+            </h1>
             <ShareButtons
               title={`${shareTitle} | 골때녀 데이터센터`}
               description={
