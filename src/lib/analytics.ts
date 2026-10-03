@@ -64,6 +64,17 @@ export function trackSelectContent(params: {
   });
 }
 
+/**
+ * 광고 자리 노출 — 자리의 50% 이상이 1초 연속 보였을 때 경로당 1회.
+ * 빈 자리 도달도 포함하며 실제 광고 노출·수익 지표가 아니다(원인 분석용).
+ */
+export function trackAdPlacementImpression(placement: string): void {
+  sendGtag('event', 'component_impression', {
+    component: 'ad_placement',
+    placement,
+  });
+}
+
 // ── 인증 계측 (GA4 표준 login / sign_up) ──────────────────────────
 
 /** 로그인 성공 (method: password | google) */

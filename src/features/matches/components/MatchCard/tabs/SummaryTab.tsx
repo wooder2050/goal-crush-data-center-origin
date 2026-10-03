@@ -34,10 +34,11 @@ export default function SummaryTab({ match }: { match: MatchWithTeams }) {
               <PenaltyShootoutSection match={match} />
             </GoalWrapper>
           )}
+          {/* 득점 바로 뒤 — 베스트 선수(모바일에서 사진 2장 세로)에 밀려 도달률이 낮았음 */}
+          <AdSlot placement="matchDetail" />
           <GoalWrapper fallback={<FeaturedPlayersSectionSkeleton />}>
             <FeaturedPlayersSection match={match} />
           </GoalWrapper>
-          <AdSlot placement="matchDetail" />
           <GoalWrapper fallback={<RecentFormSectionSkeleton />}>
             <RecentFormSection match={match} />
           </GoalWrapper>
