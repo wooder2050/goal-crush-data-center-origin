@@ -16,11 +16,34 @@ declare global {
 const ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
 /** 화면 아래 이 거리 안에 들어오면 <ins>를 붙인다 — 정확히 보일 때 시작하면 늦다 */
 const PRELOAD_MARGIN = '300px 0px';
-/** 이 시간 안에 adsbygoogle.js가 로드되지 않으면 차단된 것으로 보고 자리를 접는다 */
-const AD_SCRIPT_TIMEOUT_MS = 8000;
 /** 광고 '자리'가 보였다고 볼 기준 — 50% 이상이 1초 연속. 애드센스 Active View와는 다른 지표 */
 const VIEWABLE_RATIO = 0.5;
 const VIEWABLE_MS = 1000;
+
+/**
+ * adsbygoogle.js 로드 실패(차단기·네트워크) 감지. 리소스 error는 버블링하지 않으므로
+ * window 캡처 단계에서 받는다. 이 모듈은 하이드레이션 때 평가되고 로더는 그 뒤
+ * (afterInteractive)에 삽입되므로 실패 이벤트를 놓치지 않는다.
+ * 느린 로드는 실패가 아니다 — 시간 초과로 판단하지 않는다.
+ */
+let adLoaderFailed = false;
+const adLoaderFailListeners = new Set<() => void>();
+if (typeof window !== 'undefined') {
+  window.addEventListener(
+    'error',
+    (e) => {
+      const target = e.target as HTMLScriptElement | null;
+      if (
+        target?.tagName !== 'SCRIPT' ||
+        !target.src.includes('adsbygoogle.js')
+      )
+        return;
+      adLoaderFailed = true;
+      adLoaderFailListeners.forEach((fn) => fn());
+    },
+    true
+  );
+}
 
 /**
  * 자리가 아직 화면 아래(사용자가 보기 전)인지. 이때 접어야 보이는 콘텐츠가 밀리지 않는다.
@@ -155,22 +178,21 @@ function AdSlotInner({
         : new MutationObserver(read);
     mo?.observe(el, { attributes: true, attributeFilter: ['data-ad-status'] });
 
-    // 로더 자체가 로드되지 않으면(차단기·네트워크) 상태가 영영 붙지 않으므로 접는다.
-    // 느리게 로드된 경우를 차단으로 오판하지 않도록 loaded 플래그만 본다
-    const timer = setTimeout(() => {
-      if (!window.adsbygoogle?.loaded) {
-        setUnfilled(true);
-        if (isBelowViewport(boxRef.current)) setCollapsed(true);
-      }
-    }, AD_SCRIPT_TIMEOUT_MS);
+    // 로더가 로드에 실패하면 상태가 영영 붙지 않으므로 미충전과 같이 처리한다
+    const onLoaderFail = () => {
+      setUnfilled(true);
+      if (isBelowViewport(boxRef.current)) setCollapsed(true);
+    };
+    if (adLoaderFailed) onLoaderFail();
+    else adLoaderFailListeners.add(onLoaderFail);
 
     return () => {
       mo?.disconnect();
-      clearTimeout(timer);
+      adLoaderFailListeners.delete(onLoaderFail);
     };
   }, [mounted]);
 
-  // 4) 광고 자리 노출 이벤트 — 50% 이상이 1초 연속 보일 때 경로당 1회.
+  // 4) 광고 자리 노출 이벤트 — 50% 이상이 1초 연속 보일 때 마운트당 1회(경로 방문마다 새로 마운트).
   //    빈 자리 도달도 포함하며 실제 광고 노출·수익 지표가 아니다
   useEffect(() => {
     const box = boxRef.current;
@@ -229,6 +251,7 @@ function AdSlotInner({
     <aside
       ref={boxRef}
       aria-label="광고"
+      aria-hidden={unfilled || undefined}
       data-ad-placement={placement}
       className={cn('ad-slot py-3', className)}
     >
