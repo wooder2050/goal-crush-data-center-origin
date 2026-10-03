@@ -1,5 +1,6 @@
 'use client';
 
+import { AdSlot } from '@/components/AdSlot';
 import { Section } from '@/components/ui';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { CUP_CATEGORIES } from '@/lib/tournament';
@@ -110,6 +111,9 @@ export default function HomePageDashboard({
             knockoutMatches={pageData.knockoutMatches}
             latestMatchGoals={pageData.latestMatchGoals}
           />
+          {/* 실제 경기 데이터가 있을 때만 — 매치데이 카드·개막 배너·경기 위젯보다 아래 */}
+          {(pageData.recentMatches.length > 0 ||
+            pageData.upcomingMatches.length > 0) && <AdSlot placement="home" />}
           {pageData.knockoutMatches.length > 0 && !isCupSeason && (
             <KnockoutBracketWidget
               seasonId={pageData.currentSeason.season_id}
