@@ -64,11 +64,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     careerStats.matches > 0
       ? `통산 ${careerStats.matches}경기 ${careerStats.goals}골 ${careerStats.assists}도움`
       : '';
-  const title = statsText
-    ? `${playerName} - ${statsText}`
-    : `${playerName}${teamInfo}`;
+  // 이름만 검색하는 유입이 많아 동명이인과 구분되도록 소속팀을 항상 제목에 둔다.
+  // 통산 수치는 본문 집계와 기준이 달라질 수 있어 제목에는 넣지 않는다
+  const title = `${playerName}${teamInfo} 프로필·통산 기록`;
   const description = statsText
-    ? `골 때리는 그녀들${currentTeam ? ` ${currentTeam}` : ''} ${playerName} 선수의 ${statsText}. 시즌별 스탯·최근 경기 출전 이력. 2026 G리그 포함 전 시즌 데이터 제공.`
+    ? `골 때리는 그녀들${currentTeam ? ` ${currentTeam}` : ''} ${playerName} 선수의 ${statsText}. 시즌별 스탯·최근 경기 출전 이력을 확인하세요.`
     : `골 때리는 그녀들${currentTeam ? ` ${currentTeam}` : ''} ${playerName} 선수의 프로필과 경기 기록. 시즌별 득점·어시스트·출전 통계를 제공합니다.`;
 
   return {

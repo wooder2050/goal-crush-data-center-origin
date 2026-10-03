@@ -177,6 +177,45 @@ async function getMatchesArchiveDataInner(): Promise<MatchesArchiveData> {
 // ── /matches/[matchId] detail ─────────────────────────
 
 /**
+ * 경기 양 팀의 시즌별 팀명. 메타(title)와 본문(H1·JSON-LD)이 같은 이름을 쓰도록
+ * 경기 상세의 두 경로가 함께 사용한다.
+ */
+export async function getMatchTeamSeasonNames(match: {
+  home_team_id: number | null;
+  away_team_id: number | null;
+  season_id: number | null;
+}) {
+  const teamSeasonNames =
+    match.home_team_id != null &&
+    match.away_team_id != null &&
+    match.season_id != null
+      ? await (
+          prisma as unknown as ExtendedPrismaClient
+        ).teamSeasonName.findMany({
+          where: {
+            OR: [
+              { team_id: match.home_team_id, season_id: match.season_id },
+              { team_id: match.away_team_id, season_id: match.season_id },
+            ],
+          },
+          select: {
+            team_id: true,
+            team_name: true,
+          },
+        })
+      : [];
+
+  return {
+    homeTeamSeasonName: teamSeasonNames.find(
+      (t: MatchTeamSeasonNameResult) => t.team_id === match.home_team_id
+    ),
+    awayTeamSeasonName: teamSeasonNames.find(
+      (t: MatchTeamSeasonNameResult) => t.team_id === match.away_team_id
+    ),
+  };
+}
+
+/**
  * Fetches a single match with teams, season, and coaches for SSR.
  * Replicates the GET logic from /api/matches/[match_id]/route.ts.
  */
@@ -206,32 +245,8 @@ export async function getInitialMatchDetailData(
   coveragePromise.catch(() => {});
 
   // 시즌별 팀명 조회
-  const teamSeasonNames =
-    match.home_team_id != null &&
-    match.away_team_id != null &&
-    match.season_id != null
-      ? await (
-          prisma as unknown as ExtendedPrismaClient
-        ).teamSeasonName.findMany({
-          where: {
-            OR: [
-              { team_id: match.home_team_id, season_id: match.season_id },
-              { team_id: match.away_team_id, season_id: match.season_id },
-            ],
-          },
-          select: {
-            team_id: true,
-            team_name: true,
-          },
-        })
-      : [];
-
-  const homeTeamSeasonName = teamSeasonNames.find(
-    (t: MatchTeamSeasonNameResult) => t.team_id === match.home_team_id
-  );
-  const awayTeamSeasonName = teamSeasonNames.find(
-    (t: MatchTeamSeasonNameResult) => t.team_id === match.away_team_id
-  );
+  const { homeTeamSeasonName, awayTeamSeasonName } =
+    await getMatchTeamSeasonNames(match);
 
   // Date → string 직렬화
   const { highlight_url = null, full_video_url = null } = match as {
