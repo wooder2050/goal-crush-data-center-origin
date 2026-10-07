@@ -1,10 +1,11 @@
 'use client';
 
+import { useSuspenseQueries } from '@tanstack/react-query';
 import Image from 'next/image';
 import React, { useMemo } from 'react';
 
 import { Card } from '@/components/ui/card';
-import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { goalQueryOptions } from '@/hooks/useGoalQuery';
 
 import {
   getHeadToHeadByMatchIdPrisma,
@@ -12,13 +13,13 @@ import {
 } from '../../api-prisma';
 
 export default function HeadToHeadSection({ matchId }: { matchId: number }) {
-  const { data } = useGoalSuspenseQuery(getHeadToHeadByMatchIdPrisma, [
-    matchId,
-  ]);
-  const { data: listData } = useGoalSuspenseQuery(
-    getHeadToHeadListByMatchIdPrisma,
-    [matchId]
-  );
+  // 두 조회를 병렬로. 목록은 HeadToHeadList와 같은 키(scope 'prev')를 써서 요청 1회로 공유
+  const [{ data }, { data: listData }] = useSuspenseQueries({
+    queries: [
+      goalQueryOptions(getHeadToHeadByMatchIdPrisma, [matchId]),
+      goalQueryOptions(getHeadToHeadListByMatchIdPrisma, [matchId, 'prev']),
+    ],
+  });
 
   const teamA = data?.teamA ?? null;
   const teamB = data?.teamB ?? null;
