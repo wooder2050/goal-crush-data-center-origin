@@ -20,6 +20,7 @@
   3. `player_match_stats` 누적 (득점자 goals, 도움 assists, GK goals_conceded)
 - [ ] 자책골: `goals`에 own_goal로만 — 개인 득점 스탯에는 미반영
 - [ ] 스코어·승부차기: `matches.home/away_score`, 동점 시 `penalty_*` 필수 (무승부 없음)
+  - 맞대결(`h2h_pair_stats`)은 스코어 변경 트리거가 **해당 팀 쌍을 매번 재계산** (2026-10-07부터, `docs/sql/h2h-recompute-trigger.sql`) — 실시간으로 골마다 스코어를 갱신해도 부풀지 않음. 이전 트리거는 갱신마다 +1 누적해 실시간 경기(398·399·400) 맞대결이 부풀었음
 - [ ] 경기 감독: `match_coaches` 2행 (감독 상세 페이지 경기 기록용)
 - [ ] 종료: `status='completed'`
 
