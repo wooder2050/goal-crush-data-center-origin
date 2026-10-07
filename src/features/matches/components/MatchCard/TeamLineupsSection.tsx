@@ -1,5 +1,6 @@
 'use client';
 
+import { usePrefetchQuery, useSuspenseQueries } from '@tanstack/react-query';
 import Link from 'next/link';
 import React, { useState } from 'react';
 
@@ -9,7 +10,11 @@ import {
   RatingTypeDescription,
   RatingTypeTabs,
 } from '@/components/ui/rating-type-tabs';
-import { useGoalQuery, useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import {
+  goalQueryOptions,
+  useGoalQuery,
+  useGoalSuspenseQuery,
+} from '@/hooks/useGoalQuery';
 import type { Assist, Goal } from '@/lib/types';
 import { MatchWithTeams } from '@/lib/types/database';
 
@@ -73,6 +78,9 @@ function TeamLineupsSectionInner({
   className = '',
 }: TeamLineupsSectionProps) {
   const [ratingType, setRatingType] = useState<'stats' | 'xt'>('stats');
+  // 라인업 응답을 기다리지 않고 골·도움 요청도 동시에 시작
+  usePrefetchQuery(goalQueryOptions(getMatchAssistsPrisma, [match.match_id]));
+  usePrefetchQuery(goalQueryOptions(getMatchGoalsPrisma, [match.match_id]));
   const { data: actualLineups = {} } = useGoalSuspenseQuery(
     getMatchLineupsPrisma,
     [match.match_id]
@@ -83,30 +91,45 @@ function TeamLineupsSectionInner({
       (arr: unknown) => !Array.isArray(arr) || arr.length === 0
     );
 
-  const { data: predictedLineups = {} } = useGoalSuspenseQuery(
-    getPredictedMatchLineupsPrisma,
-    [match.match_id]
-  );
-
-  const { data: seasonPlayers = [] } = useGoalSuspenseQuery(
-    getSeasonPlayersPrisma,
-    [match.season?.season_id || 0, match.home_team_id || 0]
-  );
-
-  const { data: awaySeasonPlayers = [] } = useGoalSuspenseQuery(
-    getSeasonPlayersPrisma,
-    [match.season?.season_id || 0, match.away_team_id || 0]
-  );
-
-  const { data: lastMatchLineups = [] } = useGoalSuspenseQuery(
-    getLastMatchLineupsPrisma,
-    [match.home_team_id || 0, match.match_date]
-  );
-
-  const { data: awayLastMatchLineups = [] } = useGoalSuspenseQuery(
-    getLastMatchLineupsPrisma,
-    [match.away_team_id || 0, match.match_date]
-  );
+  // 골·도움은 항상, 예상 라인업용 조회 5개는 실제 라인업이 없을 때만 — 전부 한 번에 병렬 실행.
+  // (기존엔 suspense 쿼리 7개가 직렬로 대기해 콜드 스타트가 겹치면 탭 표시가 수 초씩 늦어짐)
+  const seasonId = match.season?.season_id || 0;
+  const homeId = match.home_team_id || 0;
+  const awayId = match.away_team_id || 0;
+  const [assistsResult, goalsResult, ...predictedResults] = useSuspenseQueries({
+    queries: [
+      goalQueryOptions(getMatchAssistsPrisma, [match.match_id]),
+      goalQueryOptions(getMatchGoalsPrisma, [match.match_id]),
+      ...(actualEmpty
+        ? [
+            goalQueryOptions(getPredictedMatchLineupsPrisma, [match.match_id]),
+            goalQueryOptions(getSeasonPlayersPrisma, [seasonId, homeId]),
+            goalQueryOptions(getSeasonPlayersPrisma, [seasonId, awayId]),
+            goalQueryOptions(getLastMatchLineupsPrisma, [
+              homeId,
+              match.match_date,
+            ]),
+            goalQueryOptions(getLastMatchLineupsPrisma, [
+              awayId,
+              match.match_date,
+            ]),
+          ]
+        : []),
+    ],
+  });
+  const assists = (assistsResult.data ?? []) as unknown as Assist[];
+  const goals = (goalsResult.data ?? []) as unknown as Awaited<
+    ReturnType<typeof getMatchGoalsPrisma>
+  >;
+  const predictedLineups = (predictedResults[0]?.data ?? {}) as Awaited<
+    ReturnType<typeof getPredictedMatchLineupsPrisma>
+  >;
+  type SeasonPlayers = Awaited<ReturnType<typeof getSeasonPlayersPrisma>>;
+  type LastLineups = Awaited<ReturnType<typeof getLastMatchLineupsPrisma>>;
+  const seasonPlayers = (predictedResults[1]?.data ?? []) as SeasonPlayers;
+  const awaySeasonPlayers = (predictedResults[2]?.data ?? []) as SeasonPlayers;
+  const lastMatchLineups = (predictedResults[3]?.data ?? []) as LastLineups;
+  const awayLastMatchLineups = (predictedResults[4]?.data ?? []) as LastLineups;
 
   let lineups: Record<string, LineupPlayer[]> = actualLineups;
   let isPredicted = false;
@@ -182,17 +205,6 @@ function TeamLineupsSectionInner({
 
     isPredicted = homeLineup.length > 0 || awayLineup.length > 0;
   }
-
-  // Fetch assist data via Suspense Query
-  const { data: assists = [] as Assist[] } = useGoalSuspenseQuery(
-    getMatchAssistsPrisma,
-    [match.match_id]
-  );
-
-  // Fetch goal data via Suspense Query
-  const { data: goals = [] } = useGoalSuspenseQuery(getMatchGoalsPrisma, [
-    match.match_id,
-  ]);
 
   // Fetch pass map data (non-blocking, for pitch view)
   const { data: passMapData } = useGoalQuery(getMatchPassMapPrisma, [
