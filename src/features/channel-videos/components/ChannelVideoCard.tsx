@@ -13,23 +13,38 @@ import ChannelVideoPlayer from './ChannelVideoPlayer';
 /**
  * 골때녀 기록실(유튜브) 쇼츠 카드 — channel_videos 최신 1편.
  * matchId를 주면 그 경기 영상만 찾고, 없으면 카드 자체를 그리지 않는다.
+ * reserveSpace: 아래에 다른 위젯이 있는 자리(홈)에서 로딩 중 같은 높이를 잡아 레이아웃 밀림을 줄인다.
  */
 export default function ChannelVideoCard({
   matchId,
   heading,
+  reserveSpace = false,
   className = '',
 }: {
   matchId?: number;
   heading: string;
+  reserveSpace?: boolean;
   className?: string;
 }) {
-  const { data: videos } = useGoalQuery(
+  // 전역 기본값은 재조회를 꺼 두었지만, 이 카드는 DB 수정이 배포 없이 보여야 하므로 다시 켠다
+  const { data: videos, isPending } = useGoalQuery(
     getChannelVideos,
     [{ matchId, limit: 1 }],
-    { staleTime: 60_000 }
+    {
+      staleTime: 60_000,
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+    }
   );
   const video = videos?.[0];
-  if (!video) return null;
+  if (!video) {
+    return reserveSpace && isPending ? (
+      <div
+        aria-hidden
+        className={`h-[565px] animate-pulse rounded-lg border bg-white sm:h-[505px] ${className}`}
+      />
+    ) : null;
+  }
 
   return (
     <Card className={`shadow-sm ${className}`}>
@@ -50,9 +65,14 @@ export default function ChannelVideoCard({
         </div>
       </CardHeader>
       <CardContent className="px-3 pb-4 sm:px-6">
-        <div className="flex gap-4">
-          <ChannelVideoPlayer video={video} className="w-40 shrink-0" />
-          <div className="flex min-w-0 flex-col justify-center gap-2">
+        {/* 유튜브 임베드 최소 크기(200px) — 좁은 화면은 영상 아래에 설명 */}
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
+          <ChannelVideoPlayer
+            key={video.youtube_id}
+            video={video}
+            className="w-[200px] shrink-0"
+          />
+          <div className="flex w-full min-w-0 flex-col justify-center gap-2">
             <span className="w-fit rounded bg-red-50 px-1.5 py-0.5 text-[11px] font-semibold text-red-600">
               {VIDEO_TYPE_LABEL[video.video_type] ?? '쇼츠'}
             </span>

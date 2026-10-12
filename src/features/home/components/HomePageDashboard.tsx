@@ -149,7 +149,7 @@ export default function HomePageDashboard({
 
         {/* Right Column - Power Ranking + Career Stats */}
         <div className="lg:col-span-5 space-y-4">
-          <ChannelVideoCard heading="골때녀 기록실 쇼츠" />
+          <ChannelVideoCard heading="골때녀 기록실 쇼츠" reserveSpace />
           <PowerRankingWidget />
           <PlayerCompareBanner
             seasonName={statsSeason.season_name}

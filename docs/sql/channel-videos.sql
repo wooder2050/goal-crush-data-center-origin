@@ -20,11 +20,13 @@ CREATE TABLE IF NOT EXISTS public.channel_videos (
 CREATE INDEX IF NOT EXISTS idx_channel_videos_match ON public.channel_videos (match_id);
 CREATE INDEX IF NOT EXISTS idx_channel_videos_published ON public.channel_videos (published_at DESC);
 
--- 사이트는 Prisma(서버)로 읽는다. 공개 데이터라 읽기만 열어 둔다 (2026-10-30 이후 새 테이블은 GRANT 필수)
+-- 사이트는 Prisma(서버)로 읽는다. Data API로는 노출 중인 행만 읽기 전용 (2026-10-30 이후 새 테이블은 GRANT 필수)
 ALTER TABLE public.channel_videos ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS channel_videos_read ON public.channel_videos;
-CREATE POLICY channel_videos_read ON public.channel_videos FOR SELECT USING (true);
+REVOKE ALL ON public.channel_videos FROM anon, authenticated;
 GRANT SELECT ON public.channel_videos TO anon, authenticated;
+DROP POLICY IF EXISTS channel_videos_read ON public.channel_videos;
+CREATE POLICY channel_videos_read ON public.channel_videos
+  FOR SELECT TO anon, authenticated USING (is_active);
 
 -- 첫 영상: 401 탑걸 vs 월드클라쓰 프리뷰 (2026-10-12)
 INSERT INTO public.channel_videos (youtube_url, title, video_type, match_id, published_at)
