@@ -1,6 +1,9 @@
 'use client';
 
+import { Youtube } from 'lucide-react';
 import Link from 'next/link';
+
+import { YOUTUBE_CHANNEL_NAME, YOUTUBE_CHANNEL_URL } from '@/lib/youtube';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -19,6 +22,15 @@ export default function Footer() {
               아카이브입니다. 매주 업데이트되는 경기 데이터와 선수 통계를
               제공합니다.
             </p>
+            <a
+              href={YOUTUBE_CHANNEL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mb-4 inline-flex items-center gap-1.5 text-sm text-gray-300 hover:text-[#ff4800] transition-colors"
+            >
+              <Youtube className="h-4 w-4 text-red-500" aria-hidden />
+              유튜브 {YOUTUBE_CHANNEL_NAME}
+            </a>
             <div className="flex space-x-4 text-sm text-gray-400">
               <span>© {currentYear} 골 때리는 그녀들 데이터센터</span>
             </div>

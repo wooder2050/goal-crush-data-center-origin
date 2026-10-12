@@ -2,6 +2,7 @@
 
 import { AdSlot } from '@/components/AdSlot';
 import { Section } from '@/components/ui';
+import { ChannelVideoCard } from '@/features/channel-videos';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { CUP_CATEGORIES } from '@/lib/tournament';
 
@@ -148,6 +149,7 @@ export default function HomePageDashboard({
 
         {/* Right Column - Power Ranking + Career Stats */}
         <div className="lg:col-span-5 space-y-4">
+          <ChannelVideoCard heading="골때녀 기록실 쇼츠" />
           <PowerRankingWidget />
           <PlayerCompareBanner
             seasonName={statsSeason.season_name}
