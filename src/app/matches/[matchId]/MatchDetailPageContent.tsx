@@ -6,6 +6,7 @@ import React from 'react';
 
 import { ShareButtons } from '@/components/ShareButtons';
 import { Section } from '@/components/ui';
+import { ChannelVideoCard } from '@/features/channel-videos';
 import DetailMatchCard from '@/features/matches/components/MatchCard/DetailMatchCard';
 import MatchSidebar from '@/features/matches/components/MatchCard/MatchSidebar';
 import { buildMatchSeo } from '@/features/matches/match-seo';
@@ -108,6 +109,12 @@ export default function MatchDetailPageContent({
                   initialMatch={initialData.match}
                 />
                 <RecordCoverageNote coverage={initialData.recordCoverage} />
+                {/* 이 경기 유튜브 쇼츠 (channel_videos.match_id) — 없으면 렌더링 안 함 */}
+                <ChannelVideoCard
+                  matchId={id}
+                  heading="이 경기 쇼츠"
+                  className="mt-4"
+                />
               </div>
               <aside className="hidden lg:block">
                 <div className="sticky top-4 space-y-4">

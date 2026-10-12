@@ -1,3 +1,5 @@
+import { YOUTUBE_CHANNEL_SAME_AS } from '@/lib/youtube';
+
 interface JsonLdData {
   '@context': string;
   '@type': string;
@@ -56,6 +58,8 @@ export function OrganizationJsonLd() {
     logo: 'https://www.gtndatacenter.com/icon.png',
     description:
       '골 때리는 그녀들 경기/선수/팀 데이터를 구조화하여 빠르게 탐색할 수 있는 데이터 아카이브',
+    // 사이트와 같은 운영 주체의 유튜브 채널 (골때녀 기록실)
+    sameAs: [YOUTUBE_CHANNEL_SAME_AS],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',

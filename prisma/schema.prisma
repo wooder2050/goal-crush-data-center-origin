@@ -228,6 +228,7 @@ model Match {
   match_periods               MatchPeriod[]
   player_match_ratings        PlayerMatchRating[]
   player_match_xt_ratings     PlayerMatchXtRating[]
+  channel_videos              ChannelVideo[]
 
   @@index([away_coach_id], map: "idx_matches_away_coach")
   @@index([away_team_id], map: "idx_matches_away_team")
@@ -1254,4 +1255,22 @@ model PlayerMatchXtRating {
   @@index([player_id])
   @@index([team_id])
   @@map("player_match_xt_ratings")
+}
+
+// 골때녀 기록실(유튜브 채널) 영상 — 행 추가/수정만으로 홈·경기 상세 노출이 바뀐다 (docs/sql/channel-videos.sql)
+model ChannelVideo {
+  video_id     Int      @id @default(autoincrement())
+  youtube_url  String   @unique
+  title        String
+  video_type   String   @default("preview")
+  match_id     Int?
+  is_active    Boolean  @default(true)
+  published_at DateTime @default(now()) @db.Timestamptz(6)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  match Match? @relation(fields: [match_id], references: [match_id], onDelete: SetNull)
+
+  @@index([match_id], map: "idx_channel_videos_match")
+  @@index([published_at(sort: Desc)], map: "idx_channel_videos_published")
+  @@map("channel_videos")
 }
