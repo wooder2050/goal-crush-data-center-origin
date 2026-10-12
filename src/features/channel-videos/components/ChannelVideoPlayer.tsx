@@ -45,7 +45,9 @@ export default function ChannelVideoPlayer({
             alt=""
             loading="lazy"
             onError={() =>
-              setThumb(`https://i.ytimg.com/vi/${video.youtube_id}/hqdefault.jpg`)
+              setThumb(
+                `https://i.ytimg.com/vi/${video.youtube_id}/hqdefault.jpg`
+              )
             }
             className="h-full w-full object-cover"
           />

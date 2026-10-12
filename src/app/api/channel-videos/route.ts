@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const rawMatchId = searchParams.get('match_id');
   const rawLimit = searchParams.get('limit');
-  const matchId = rawMatchId === null ? null : positiveInt(rawMatchId, INT4_MAX);
+  const matchId =
+    rawMatchId === null ? null : positiveInt(rawMatchId, INT4_MAX);
   const limit = rawLimit === null ? 3 : positiveInt(rawLimit, 12);
 
   if ((rawMatchId !== null && matchId === null) || limit === null) {
