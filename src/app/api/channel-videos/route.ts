@@ -39,14 +39,28 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 잘못 입력된 링크 행·다른 형식 영상이 최신이어도 원하는 영상이 가려지지 않게 후보를 넉넉히 읽고 거른다
+    // 형식은 DB에서 먼저 거른다(쇼츠 = '/shorts/' 링크). 잘못 입력된 링크 행이 최신이어도
+    // 정상 영상이 가려지지 않게 후보를 조금 더 읽고, 아래에서 parseYoutubeUrl로 한 번 더 검증한다
     const rows = await prisma.channelVideo.findMany({
       where: {
         is_active: true,
         ...(matchId !== null ? { match_id: matchId } : {}),
+        ...(format === 'short'
+          ? { youtube_url: { contains: '/shorts/' } }
+          : format === 'long'
+            ? { NOT: { youtube_url: { contains: '/shorts/' } } }
+            : {}),
+      },
+      select: {
+        video_id: true,
+        youtube_url: true,
+        title: true,
+        video_type: true,
+        match_id: true,
+        published_at: true,
       },
       orderBy: [{ published_at: 'desc' }, { video_id: 'desc' }],
-      take: format ? 100 : limit + 10,
+      take: limit + 10,
     });
     const videos: ChannelVideoItem[] = rows
       .flatMap((r) => {

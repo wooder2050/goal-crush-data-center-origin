@@ -137,7 +137,11 @@ export default function HomePageDashboard({
             />
           )}
           {/* 골때녀 기록실 롱폼 (channel_videos 중 일반 영상 최신 1편) — 없으면 렌더링 안 함 */}
-          <ChannelVideoCard heading="골때녀 기록실 영상" format="long" />
+          <ChannelVideoCard
+            heading="골때녀 기록실 영상"
+            format="long"
+            reserveSpace
+          />
           <PlayerStatsWidget
             seasonId={statsSeason.season_id}
             seasonName={statsSeason.season_name}

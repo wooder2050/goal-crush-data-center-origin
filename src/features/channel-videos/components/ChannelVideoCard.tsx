@@ -45,12 +45,23 @@ export default function ChannelVideoCard({
   );
   const video = videos?.[0];
   if (!video) {
-    return reserveSpace && isPending ? (
+    if (!reserveSpace || !isPending) return null;
+    // 로딩 중 같은 크기를 잡아 아래 위젯이 밀리지 않게 (쇼츠: 고정 높이, 롱폼: 16:9 + 설명)
+    return format === 'short' ? (
       <div
         aria-hidden
         className={`h-[565px] animate-pulse rounded-lg border bg-white sm:h-[505px] ${className}`}
       />
-    ) : null;
+    ) : (
+      <div
+        aria-hidden
+        className={`animate-pulse rounded-lg border bg-white p-3 sm:p-6 ${className}`}
+      >
+        <div className="h-6 w-40 rounded bg-gray-100" />
+        <div className="mt-4 aspect-video rounded-lg bg-gray-100" />
+        <div className="h-[132px]" />
+      </div>
+    );
   }
 
   return (
@@ -114,6 +125,7 @@ export function VideoInfo({ video }: { video: ChannelVideoItem }) {
           href={video.youtube_url}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label={`${video.title} 유튜브에서 보기`}
           className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
         >
           유튜브에서 보기
