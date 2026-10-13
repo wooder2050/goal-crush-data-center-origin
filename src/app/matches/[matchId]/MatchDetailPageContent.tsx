@@ -109,7 +109,13 @@ export default function MatchDetailPageContent({
                   initialMatch={initialData.match}
                 />
                 <RecordCoverageNote coverage={initialData.recordCoverage} />
-                {/* 이 경기 유튜브 쇼츠 (channel_videos.match_id) — 없으면 렌더링 안 함 */}
+                {/* 이 경기 유튜브 영상·쇼츠 (channel_videos.match_id) — 없으면 렌더링 안 함 */}
+                <ChannelVideoCard
+                  matchId={id}
+                  heading="이 경기 영상"
+                  format="long"
+                  className="mt-4"
+                />
                 <ChannelVideoCard
                   matchId={id}
                   heading="이 경기 쇼츠"

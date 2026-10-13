@@ -88,6 +88,14 @@ export default function Footer() {
                   통계
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/videos"
+                  className="text-gray-300 hover:text-[#ff4800] transition-colors"
+                >
+                  영상
+                </Link>
+              </li>
             </ul>
           </div>
 
