@@ -1,13 +1,18 @@
 'use client';
 
 import { Youtube } from 'lucide-react';
+import Link from 'next/link';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { useGoalQuery } from '@/hooks/useGoalQuery';
 import { YOUTUBE_CHANNEL_NAME, YOUTUBE_CHANNEL_URL } from '@/lib/youtube';
 
 import { getChannelVideos } from '../api';
-import { VIDEO_TYPE_LABEL } from '../types';
+import {
+  type ChannelVideoFormat,
+  type ChannelVideoItem,
+  VIDEO_TYPE_LABEL,
+} from '../types';
 import ChannelVideoPlayer from './ChannelVideoPlayer';
 
 /**
@@ -18,18 +23,20 @@ import ChannelVideoPlayer from './ChannelVideoPlayer';
 export default function ChannelVideoCard({
   matchId,
   heading,
+  format = 'short',
   reserveSpace = false,
   className = '',
 }: {
   matchId?: number;
   heading: string;
+  format?: ChannelVideoFormat;
   reserveSpace?: boolean;
   className?: string;
 }) {
   // 전역 기본값은 재조회를 꺼 두었지만, 이 카드는 DB 수정이 배포 없이 보여야 하므로 다시 켠다
   const { data: videos, isPending } = useGoalQuery(
     getChannelVideos,
-    [{ matchId, limit: 1 }],
+    [{ matchId, limit: 1, format }],
     {
       staleTime: 60_000,
       refetchOnMount: true,
@@ -38,12 +45,23 @@ export default function ChannelVideoCard({
   );
   const video = videos?.[0];
   if (!video) {
-    return reserveSpace && isPending ? (
+    if (!reserveSpace || !isPending) return null;
+    // 로딩 중 같은 크기를 잡아 아래 위젯이 밀리지 않게 (쇼츠: 고정 높이, 롱폼: 16:9 + 설명)
+    return format === 'short' ? (
       <div
         aria-hidden
         className={`h-[565px] animate-pulse rounded-lg border bg-white sm:h-[505px] ${className}`}
       />
-    ) : null;
+    ) : (
+      <div
+        aria-hidden
+        className={`animate-pulse rounded-lg border bg-white p-3 sm:p-6 ${className}`}
+      >
+        <div className="h-6 w-40 rounded bg-gray-100" />
+        <div className="mt-4 aspect-video rounded-lg bg-gray-100" />
+        <div className="h-[132px]" />
+      </div>
+    );
   }
 
   return (
@@ -54,55 +72,73 @@ export default function ChannelVideoCard({
             <Youtube className="h-4 w-4 text-red-600" aria-hidden />
             {heading}
           </CardTitle>
-          <a
-            href={YOUTUBE_CHANNEL_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/videos"
             className="text-xs text-[#ff4800] hover:underline"
           >
-            채널 보기
-          </a>
+            전체 영상
+          </Link>
         </div>
       </CardHeader>
       <CardContent className="px-3 pb-4 sm:px-6">
-        {/* 유튜브 임베드 최소 크기(200px) — 좁은 화면은 영상 아래에 설명 */}
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
-          <ChannelVideoPlayer
-            key={video.youtube_id}
-            video={video}
-            className="w-[200px] shrink-0"
-          />
-          <div className="flex w-full min-w-0 flex-col justify-center gap-2">
-            <span className="w-fit rounded bg-red-50 px-1.5 py-0.5 text-[11px] font-semibold text-red-600">
-              {VIDEO_TYPE_LABEL[video.video_type] ?? '쇼츠'}
-            </span>
-            <p className="text-sm font-semibold leading-snug text-gray-900">
-              {video.title}
-            </p>
-            <p className="text-xs text-gray-500">
-              {YOUTUBE_CHANNEL_NAME} · 기록으로 보는 경기 쇼츠
-            </p>
-            <div className="mt-1 flex flex-wrap gap-2">
-              <a
-                href={video.youtube_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
-              >
-                유튜브에서 보기
-              </a>
-              <a
-                href={`${YOUTUBE_CHANNEL_URL}?sub_confirmation=1`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-              >
-                구독
-              </a>
-            </div>
+        {video.is_short ? (
+          // 유튜브 임베드 최소 크기(200px) — 좁은 화면은 영상 아래에 설명
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
+            <ChannelVideoPlayer
+              key={video.youtube_id}
+              video={video}
+              className="w-[200px] shrink-0"
+            />
+            <VideoInfo video={video} />
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <ChannelVideoPlayer
+              key={video.youtube_id}
+              video={video}
+              className="w-full"
+            />
+            <VideoInfo video={video} />
+          </div>
+        )}
       </CardContent>
     </Card>
+  );
+}
+
+/** 영상 제목·종류·유튜브 보기/구독 버튼 */
+export function VideoInfo({ video }: { video: ChannelVideoItem }) {
+  return (
+    <div className="flex w-full min-w-0 flex-col justify-center gap-2">
+      <span className="w-fit rounded bg-red-50 px-1.5 py-0.5 text-[11px] font-semibold text-red-600">
+        {VIDEO_TYPE_LABEL[video.video_type] ?? '영상'}
+        {video.is_short ? ' · 쇼츠' : ''}
+      </span>
+      <p className="text-sm font-semibold leading-snug text-gray-900">
+        {video.title}
+      </p>
+      <p className="text-xs text-gray-500">
+        {YOUTUBE_CHANNEL_NAME} · 기록으로 보는 골때녀
+      </p>
+      <div className="mt-1 flex flex-wrap gap-2">
+        <a
+          href={video.youtube_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${video.title} 유튜브에서 보기`}
+          className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+        >
+          유튜브에서 보기
+        </a>
+        <a
+          href={`${YOUTUBE_CHANNEL_URL}?sub_confirmation=1`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          구독
+        </a>
+      </div>
+    </div>
   );
 }
