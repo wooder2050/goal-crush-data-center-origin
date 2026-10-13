@@ -6,7 +6,8 @@ import { useState } from 'react';
 import type { ChannelVideoItem } from '../types';
 
 /**
- * 쇼츠 세로 썸네일 → 누르면 그 자리에서 재생 (iframe은 누른 뒤에만 불러와 첫 로딩을 가볍게)
+ * 썸네일 → 누르면 그 자리에서 재생 (iframe은 누른 뒤에만 불러와 첫 로딩을 가볍게).
+ * 쇼츠는 세로(9:16), 롱폼은 가로(16:9)
  */
 export default function ChannelVideoPlayer({
   video,
@@ -17,12 +18,12 @@ export default function ChannelVideoPlayer({
 }) {
   const [playing, setPlaying] = useState(false);
   const [thumb, setThumb] = useState(
-    `https://i.ytimg.com/vi/${video.youtube_id}/oardefault.jpg`
+    `https://i.ytimg.com/vi/${video.youtube_id}/${video.is_short ? 'oardefault' : 'maxresdefault'}.jpg`
   );
 
   return (
     <div
-      className={`relative aspect-[9/16] overflow-hidden rounded-lg bg-gray-900 ${className}`}
+      className={`relative ${video.is_short ? 'aspect-[9/16]' : 'aspect-video'} overflow-hidden rounded-lg bg-gray-900 ${className}`}
     >
       {playing ? (
         <iframe

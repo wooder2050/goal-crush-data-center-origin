@@ -16,36 +16,43 @@ function positiveInt(value: string | null, max: number): number | null {
 }
 
 /**
- * GET /api/channel-videos?match_id=401&limit=1
+ * GET /api/channel-videos?match_id=401&format=long&limit=1
  * 골때녀 기록실(유튜브) 영상 목록 — channel_videos 행을 바꾸면 배포 없이 반영된다.
  * match_id가 있으면 그 경기 영상만, 없으면 최신순 전체. 링크 형식이 잘못된 행은 건너뛴다.
+ * format: short(youtube.com/shorts 링크) | long(그 외) — 없으면 둘 다
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const rawMatchId = searchParams.get('match_id');
   const rawLimit = searchParams.get('limit');
+  const format = searchParams.get('format');
   const matchId =
     rawMatchId === null ? null : positiveInt(rawMatchId, INT4_MAX);
-  const limit = rawLimit === null ? 3 : positiveInt(rawLimit, 12);
+  const limit = rawLimit === null ? 3 : positiveInt(rawLimit, 24);
 
-  if ((rawMatchId !== null && matchId === null) || limit === null) {
+  if (
+    (rawMatchId !== null && matchId === null) ||
+    limit === null ||
+    (format !== null && format !== 'short' && format !== 'long')
+  ) {
     return NextResponse.json({ error: 'invalid parameter' }, { status: 400 });
   }
 
   try {
-    // 잘못 입력된 링크 행이 최신이어도 정상 영상이 가려지지 않게 후보를 넉넉히 읽고 거른다
+    // 잘못 입력된 링크 행·다른 형식 영상이 최신이어도 원하는 영상이 가려지지 않게 후보를 넉넉히 읽고 거른다
     const rows = await prisma.channelVideo.findMany({
       where: {
         is_active: true,
         ...(matchId !== null ? { match_id: matchId } : {}),
       },
       orderBy: [{ published_at: 'desc' }, { video_id: 'desc' }],
-      take: limit + 10,
+      take: format ? 100 : limit + 10,
     });
     const videos: ChannelVideoItem[] = rows
       .flatMap((r) => {
         const parsed = parseYoutubeUrl(r.youtube_url);
         if (!parsed) return [];
+        if (format && parsed.isShort !== (format === 'short')) return [];
         return [
           {
             video_id: r.video_id,
@@ -55,6 +62,7 @@ export async function GET(request: NextRequest) {
             video_type: r.video_type,
             match_id: r.match_id,
             published_at: r.published_at.toISOString(),
+            is_short: parsed.isShort,
           },
         ];
       })
