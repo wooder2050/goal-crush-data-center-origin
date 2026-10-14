@@ -5,12 +5,18 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 // 골키퍼로 출전했는지 판단하는 함수
+// GK로 시작했거나, 경기 중 골키퍼를 맡은 경우(secondary_position='GK' — 실점 0이어도),
+// 또는 필드 선수였지만 실점이 있는 경우(옛 기록: 교대 정보 없이 실점만 기록)
 function isGoalkeeperAppearance(
   position: string | null,
-  goals_conceded: number | null
+  goals_conceded: number | null,
+  secondary_position: string | null
 ): boolean {
-  // 포지션이 GK이거나, 필드 선수였지만 실점이 있는 경우 (골키퍼로 교체됨)
-  return position === 'GK' || (position !== 'GK' && (goals_conceded || 0) > 0);
+  return (
+    position === 'GK' ||
+    secondary_position === 'GK' ||
+    (goals_conceded || 0) > 0
+  );
 }
 
 export async function GET(
@@ -118,7 +124,11 @@ export async function GET(
     // 골키퍼로 출전한 선수들만 필터링
     const goalkeeperStats = playerMatchStats
       .filter((stat) =>
-        isGoalkeeperAppearance(stat.position, stat.goals_conceded)
+        isGoalkeeperAppearance(
+          stat.position,
+          stat.goals_conceded,
+          stat.secondary_position
+        )
       )
       .map((stat) => {
         const isHome = stat.team?.team_id === match.home_team_id;
@@ -137,9 +147,13 @@ export async function GET(
           is_home: isHome,
           position: stat.position,
           goals_conceded: stat.goals_conceded || 0,
-          // 교체 여부 판단 (필드 포지션으로 시작했지만 실점이 있는 경우)
+          // 교체 골키퍼: 필드 포지션으로 시작해 경기 중 골키퍼를 맡았거나 실점이 있는 경우
           was_substituted_in:
-            stat.position !== 'GK' && (stat.goals_conceded || 0) > 0,
+            stat.position !== 'GK' &&
+            (stat.secondary_position === 'GK' ||
+              (stat.goals_conceded || 0) > 0),
+          /** 포지션 변경 시점(경기 통산 분) — 교대가 기록된 경우 */
+          position_change_minute: stat.position_change_minute ?? null,
         };
       })
       .sort((a, b) => {

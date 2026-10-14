@@ -7,11 +7,18 @@ export const dynamic = 'force-dynamic';
 type AppearanceType = 'starter' | 'substitute' | 'all';
 
 // 골키퍼로 출전했는지 판단하는 함수
+// GK로 시작했거나, 경기 중 골키퍼를 맡은 경우(secondary_position='GK' — 실점 0이어도),
+// 또는 필드 선수였지만 실점이 있는 경우(옛 기록: 교대 정보 없이 실점만 기록)
 function isGoalkeeperAppearance(
   position: string | null,
-  goals_conceded: number | null
+  goals_conceded: number | null,
+  secondary_position: string | null
 ): boolean {
-  return position === 'GK' || (position !== 'GK' && (goals_conceded || 0) > 0);
+  return (
+    position === 'GK' ||
+    secondary_position === 'GK' ||
+    (goals_conceded || 0) > 0
+  );
 }
 
 export async function GET(request: NextRequest) {
@@ -159,7 +166,11 @@ export async function GET(request: NextRequest) {
 
     // 골키퍼로 출전한 기록만 필터링
     let goalkeeperStats = playerMatchStats.filter((stat) =>
-      isGoalkeeperAppearance(stat.position, stat.goals_conceded)
+      isGoalkeeperAppearance(
+        stat.position,
+        stat.goals_conceded,
+        stat.secondary_position
+      )
     );
 
     // 출전 유형에 따라 필터링
