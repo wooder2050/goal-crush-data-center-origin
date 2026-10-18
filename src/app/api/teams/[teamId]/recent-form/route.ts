@@ -13,7 +13,10 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const beforeDate = searchParams.get('before');
     const rawLimit = parseInt(searchParams.get('limit') ?? '10');
-    const limit = Math.min(Number.isNaN(rawLimit) ? 10 : rawLimit, 20);
+    const limit = Math.min(
+      Math.max(Number.isNaN(rawLimit) ? 10 : rawLimit, 1),
+      20
+    );
 
     if (isNaN(teamId)) {
       return NextResponse.json({ error: 'Invalid team ID' }, { status: 400 });
@@ -43,7 +46,7 @@ export async function GET(
           select: { team_id: true, team_name: true, logo: true },
         },
       },
-      orderBy: { match_date: 'desc' },
+      orderBy: [{ match_date: 'desc' }, { match_id: 'desc' }],
       take: limit,
     });
 

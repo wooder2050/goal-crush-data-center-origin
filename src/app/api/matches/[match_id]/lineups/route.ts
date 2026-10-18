@@ -233,9 +233,9 @@ export async function GET(
       lineupsByMatch[key].sort((a, b) => {
         const statusOrder = { starting: 0, substitute: 1, bench: 2 };
         const aOrder =
-          statusOrder[a.participation_status as keyof typeof statusOrder] || 3;
+          statusOrder[a.participation_status as keyof typeof statusOrder] ?? 3;
         const bOrder =
-          statusOrder[b.participation_status as keyof typeof statusOrder] || 3;
+          statusOrder[b.participation_status as keyof typeof statusOrder] ?? 3;
 
         if (aOrder !== bOrder) {
           return aOrder - bOrder;

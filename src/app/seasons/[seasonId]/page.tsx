@@ -100,16 +100,6 @@ export default async function Page({ params }: Props) {
       <SeasonJsonLd
         name={season.season_name}
         description={`골 때리는 그녀들 ${season.season_name} 전체 경기 결과·팀 순위`}
-        startDate={
-          season.start_date
-            ? new Date(season.start_date).toISOString().split('T')[0]
-            : undefined
-        }
-        endDate={
-          season.end_date
-            ? new Date(season.end_date).toISOString().split('T')[0]
-            : undefined
-        }
         url={`https://www.gtndatacenter.com/seasons/${seasonId}`}
       />
       <SeasonDetailContent

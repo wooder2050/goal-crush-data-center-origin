@@ -6,6 +6,7 @@ import React, { useMemo } from 'react';
 
 import { Card } from '@/components/ui/card';
 import { goalQueryOptions } from '@/hooks/useGoalQuery';
+import { getMatchWinner } from '@/lib/match-result';
 
 import {
   getHeadToHeadByMatchIdPrisma,
@@ -43,6 +44,8 @@ export default function HeadToHeadSection({ matchId }: { matchId: number }) {
   };
 
   // 이전 경기들만으로 요약 재계산
+  // 득점은 정규 스코어만 합산하고(승부차기 제외), 승패는 정규 동점일 때만 승부차기로 정한다.
+  // 스코어가 없는 경기는 총 경기·경기당 골 분모에서 뺀다.
   const recomputed = useMemo(() => {
     const teamAId = teamA?.team_id ?? null;
     const teamBId = teamB?.team_id ?? null;
@@ -52,34 +55,27 @@ export default function HeadToHeadSection({ matchId }: { matchId: number }) {
       teamB: { wins: 0, draws: 0, losses: 0, goals_for: 0, goals_against: 0 },
     } as const;
     if (!listData || !teamAId || !teamBId) return base;
+    let total = 0;
     let aWins = 0;
     let bWins = 0;
     let draws = 0;
     let aGF = 0;
     let aGA = 0;
     for (const m of listData.items) {
-      const usePenalty = Boolean(
-        m.penalty && m.penalty.home !== null && m.penalty.away !== null
-      );
-      const hs = usePenalty
-        ? (m.penalty?.home ?? null)
-        : (m.score.home ?? null);
-      const as = usePenalty
-        ? (m.penalty?.away ?? null)
-        : (m.score.away ?? null);
+      const hs = m.score.home ?? null;
+      const as = m.score.away ?? null;
+      if (hs === null || as === null) continue;
+      total += 1;
       const aIsHome = m.home?.team_id === teamAId;
-      const aGoals = aIsHome ? hs : as;
-      const bGoals = aIsHome ? as : hs;
-      if (aGoals !== null && bGoals !== null) {
-        aGF += aGoals;
-        aGA += bGoals;
-        if (aGoals > bGoals) aWins += 1;
-        else if (aGoals < bGoals) bWins += 1;
-        else draws += 1;
-      }
+      aGF += aIsHome ? hs : as;
+      aGA += aIsHome ? as : hs;
+      const winner = getMatchWinner(m.score, m.penalty);
+      if (winner === null) draws += 1;
+      else if ((winner === 'home') === aIsHome) aWins += 1;
+      else bWins += 1;
     }
     return {
-      total: listData.items.length,
+      total,
       teamA: {
         wins: aWins,
         draws,
@@ -143,8 +139,10 @@ export default function HeadToHeadSection({ matchId }: { matchId: number }) {
   const { total, teamA: statsA, teamB: statsB } = recomputed;
 
   // 바 너비 계산 (퍼센트)
-  const aWinPct = total > 0 ? (statsA.wins / total) * 100 : 0;
-  const bWinPct = total > 0 ? (statsB.wins / total) * 100 : 0;
+  // 승률 막대는 승패가 정해진 경기만 분모로 쓴다 (스코어·승부차기 누락 경기 제외)
+  const decided = statsA.wins + statsB.wins;
+  const aWinPct = decided > 0 ? (statsA.wins / decided) * 100 : 0;
+  const bWinPct = decided > 0 ? (statsB.wins / decided) * 100 : 0;
 
   return (
     <Card className="p-3 sm:p-4">
