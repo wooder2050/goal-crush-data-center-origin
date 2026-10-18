@@ -590,7 +590,7 @@ export const getTeamRecentFormPrisma = async (
   }>
 > => {
   const response = await fetch(
-    apiUrl(`/api/teams/${teamId}/recent-form?before=${beforeDate}`)
+    apiUrl(`/api/teams/${teamId}/recent-form?before=${beforeDate}&limit=5`)
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch team recent form: ${response.statusText}`);

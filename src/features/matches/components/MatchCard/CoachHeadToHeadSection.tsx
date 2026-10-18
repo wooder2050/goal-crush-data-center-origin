@@ -5,6 +5,7 @@ import React, { useMemo } from 'react';
 
 import { Card } from '@/components/ui/card';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { getMatchWinner } from '@/lib/match-result';
 
 import { getCoachHeadToHeadListByMatchIdPrisma } from '../../api-prisma';
 
@@ -43,16 +44,14 @@ export default function CoachHeadToHeadSection({
     for (const m of data.items) {
       const homeId = m.home.coach_id ?? undefined;
       const awayId = m.away.coach_id ?? undefined;
-      const hs = m.penalty ? m.penalty.home : m.score.home;
-      const as = m.penalty ? m.penalty.away : m.score.away;
       // 총 득점 계산 (정규 시간 스코어 기준)
       if (m.score.home !== null) totalGoals += m.score.home;
       if (m.score.away !== null) totalGoals += m.score.away;
-      if (hs !== null && as !== null) {
-        if (hs > as && homeId) wins.set(homeId, (wins.get(homeId) ?? 0) + 1);
-        else if (hs < as && awayId)
-          wins.set(awayId, (wins.get(awayId) ?? 0) + 1);
-      }
+      const winner = getMatchWinner(m.score, m.penalty);
+      if (winner === 'home' && homeId)
+        wins.set(homeId, (wins.get(homeId) ?? 0) + 1);
+      else if (winner === 'away' && awayId)
+        wins.set(awayId, (wins.get(awayId) ?? 0) + 1);
     }
 
     const aId = data.current.home_coach_id ?? undefined;

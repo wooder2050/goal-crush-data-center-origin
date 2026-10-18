@@ -59,8 +59,9 @@ export default function RecentFormSection({ match }: RecentFormSectionProps) {
     );
   }
 
+  // 화면에 보이는 최근 5경기만으로 승패를 집계한다 (헤더 합계와 목록 개수 일치)
   const getRecentForm = (matches: RecentMatchResult[]) => {
-    const details = matches.map((m) => {
+    const details = matches.slice(0, 5).map((m) => {
       const teamScore = m.is_home ? m.home_score : m.away_score;
       const opponentScore = m.is_home ? m.away_score : m.home_score;
       const isPenalty =

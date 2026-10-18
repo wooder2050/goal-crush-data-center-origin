@@ -7,6 +7,7 @@ import React from 'react';
 
 import { Card } from '@/components/ui/card';
 import { useGoalSuspenseQuery } from '@/hooks/useGoalQuery';
+import { getMatchWinner } from '@/lib/match-result';
 import { shortenSeasonName } from '@/lib/utils';
 
 import { getHeadToHeadListByMatchIdPrisma } from '../../api-prisma';
@@ -25,19 +26,8 @@ export default function HeadToHeadList({ matchId }: { matchId: number }) {
 
   if (!data || data.items.length === 0) return null;
 
-  const getWinner = (m: (typeof data.items)[number]) => {
-    const usePenalty = Boolean(
-      m.penalty && m.penalty.home !== null && m.penalty.away !== null
-    );
-    const hs = usePenalty ? (m.penalty?.home ?? null) : (m.score.home ?? null);
-    const as = usePenalty ? (m.penalty?.away ?? null) : (m.score.away ?? null);
-    let winner: 'home' | 'away' | 'draw' = 'draw';
-    if (hs !== null && as !== null) {
-      if (hs > as) winner = 'home';
-      else if (hs < as) winner = 'away';
-    }
-    return winner;
-  };
+  const getWinner = (m: (typeof data.items)[number]) =>
+    getMatchWinner(m.score, m.penalty) ?? 'draw';
 
   return (
     <Card className="p-3 sm:p-4">
