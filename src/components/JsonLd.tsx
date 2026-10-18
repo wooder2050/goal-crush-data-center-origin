@@ -226,37 +226,24 @@ export function PersonJsonLd({
 }
 
 // 시즌 구조화 데이터
+// 시즌은 단일 이벤트가 아니므로 SportsEvent를 넣지 않는다.
+// (넣으면 구글 이벤트 리치 결과 검사에서 location·endDate 누락으로 오류가 난다)
 export function SeasonJsonLd({
   name,
   description,
-  startDate,
-  endDate,
   url,
 }: {
   name: string;
   description?: string;
-  startDate?: string;
-  endDate?: string;
   url?: string;
 }) {
   const data: JsonLdData = {
     '@context': 'https://schema.org',
     '@type': 'SportsOrganization',
-    name: `골 때리는 그녀들 ${name}`,
+    name: name.includes('골 때리는 그녀들') ? name : `골 때리는 그녀들 ${name}`,
     ...(description && { description }),
     sport: '축구',
     ...(url && { url }),
-    event: {
-      '@type': 'SportsEvent',
-      name,
-      ...(startDate && { startDate }),
-      ...(endDate && { endDate }),
-      sport: '축구',
-      organizer: {
-        '@type': 'Organization',
-        name: 'SBS',
-      },
-    },
     inLanguage: 'ko-KR',
   };
 
