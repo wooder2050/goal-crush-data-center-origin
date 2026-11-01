@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     url: 'https://www.gtndatacenter.com',
     images: [
       {
-        url: 'https://ppqctvmpsmlagsmmmdee.supabase.co/storage/v1/object/sign/playerprofile/mwE1721003437663.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iZWM2YjcyNS1hYWJjLTQzOGUtODkzMi00NDU1ZmM1ZGEyY2EiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwbGF5ZXJwcm9maWxlL213RTE3MjEwMDM0Mzc2NjMuanBnIiwiaWF0IjoxNzU1MTY2Njk5LCJleHAiOjIwNzA1MjY2OTl9.c0a4K6VimPMfItbZq1rjL5TEWhcC_319UMgLRRSj9sI',
+        url: 'https://img.gtndatacenter.com/playerprofile/mwE1721003437663.jpg',
         width: 1200,
         height: 630,
         alt: '골 때리는 그녀들 데이터 센터',
@@ -101,7 +101,7 @@ export const metadata: Metadata = {
     description:
       '골 때리는 그녀들(골때녀) 경기 결과, 선수 기록, 팀 순위, 시즌 통계를 한눈에 확인할 수 있는 팬 데이터 센터',
     images: [
-      'https://ppqctvmpsmlagsmmmdee.supabase.co/storage/v1/object/sign/playerprofile/mwE1721003437663.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iZWM2YjcyNS1hYWJjLTQzOGUtODkzMi00NDU1ZmM1ZGEyY2EiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwbGF5ZXJwcm9maWxlL213RTE3MjEwMDM0Mzc2NjMuanBnIiwiaWF0IjoxNzU1MTY2Njk5LCJleHAiOjIwNzA1MjY2OTl9.c0a4K6VimPMfItbZq1rjL5TEWhcC_319UMgLRRSj9sI',
+      'https://img.gtndatacenter.com/playerprofile/mwE1721003437663.jpg',
     ],
   },
   robots: {

@@ -5,9 +5,9 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'ppqctvmpsmlagsmmmdee.supabase.co',
+        hostname: 'img.gtndatacenter.com',
         port: '',
-        pathname: '/storage/v1/object/sign/**',
+        pathname: '/**',
       },
       {
         protocol: 'https',
